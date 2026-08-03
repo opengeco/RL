@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro Locali</title>
+<style>
+  :root{
+    --bg:#F5F7FA;
+    --surface:#FFFFFF;
+    --surface-alt:#EEF1F5;
+    --border:#DEE3EA;
+    --text:#1C2530;
+    --text-muted:#66748C;
+    --accent:#1D3557;
+    --accent-dark:#12233F;
+    --accent-light:#E7ECF3;
+    --gold:#A9812F;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(20,30,50,.06), 0 2px 8px rgba(20,30,50,.05);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .topbar{
+    background:var(--surface);
+    color:var(--text); padding:22px 28px; border-bottom:1px solid var(--border);
+  }
+  .topbar-row{display:flex; align-items:center; justify-content:space-between; gap:16px;}
+  .topbar h1{margin:0;font-size:20px;font-weight:600;letter-spacing:.3px; color:var(--text);}
+  .topbar p{margin:4px 0 0;font-size:12.5px;color:var(--text-muted);letter-spacing:.2px;}
+  .gear-btn{
+    background:var(--surface-alt); border:1px solid var(--border);
+    color:var(--text-muted); padding:8px; border-radius:8px; cursor:pointer; display:flex; align-items:center; flex:none;
+  }
+  .gear-btn:hover{background:var(--border); color:var(--text);}
+  .container{max-width:960px; margin:0 auto; padding:28px 20px 60px;}
+  .section-label{
+    font-size:11px; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted);
+    font-weight:600; margin:0 0 12px 2px;
+  }
+  .metrics-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:30px;}
+  .metric-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px 18px; box-shadow:var(--shadow);
+  }
+  .metric-card .row{display:flex; align-items:center; gap:10px;}
+  .metric-card .icon-wrap{
+    width:38px;height:38px;border-radius:8px;background:var(--accent-light);
+    display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none;
+  }
+  .metric-card .label{font-size:12px;color:var(--text-muted);font-weight:600;letter-spacing:.2px;}
+  .metric-card .value{font-size:24px;font-weight:700;color:var(--text);line-height:1.1;margin-top:2px;}
+  .metric-card .sub{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+  .actions-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .action-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:18px; cursor:pointer; box-shadow:var(--shadow); transition:border-color .15s, transform .1s;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .action-card:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .action-card .icon-wrap{
+    width:38px;height:38px;border-radius:8px;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;color:#fff;
+  }
+  .action-card .title{font-weight:600; font-size:14.5px;}
+  .action-card .desc{font-size:12px; color:var(--text-muted); line-height:1.4;}
+
+  /* Modal */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(15,22,35,.5);
+    align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; z-index:100;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--surface); border-radius:12px; width:100%; max-width:560px;
+    box-shadow:0 20px 50px rgba(15,22,35,.25); overflow:hidden; margin-bottom:40px;
+  }
+  .modal.wide{max-width:680px;}
+  .modal-header{
+    padding:16px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface-alt);
+  }
+  .modal-header h2{font-size:16px;margin:0;font-weight:600;}
+  .modal-header .close-btn{
+    background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;
+    display:flex;align-items:center;
+  }
+  .modal-header .close-btn:hover{background:var(--border); color:var(--text);}
+  .modal-body{padding:20px 22px; max-height:70vh; overflow-y:auto;}
+  .modal-footer{padding:14px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;}
+
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .form-group{display:flex; flex-direction:column; gap:5px;}
+  .form-group.full{grid-column:1 / -1;}
+  .form-group label{font-size:12px; font-weight:600; color:var(--text-muted);}
+  .form-group input, .form-group select{
+    padding:9px 10px; border:1px solid var(--border); border-radius:7px; font-size:13.5px;
+    color:var(--text); background:#fff; font-family:inherit;
+  }
+  .form-group input:focus, .form-group select:focus{outline:2px solid var(--accent-light); border-color:var(--accent);}
+  .loc-row{display:flex; align-items:center; gap:10px;}
+  .loc-status{font-size:12px; color:var(--text-muted);}
+  .loc-status.ok{color:#1e7a4a;}
+
+  .ratings-block{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:6px;}
+  .rating-group{border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;}
+  .rating-group .rg-label{font-size:11.5px; font-weight:600; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:8px;}
+  .rating-icons{display:flex; justify-content:center; gap:4px;}
+  .rating-icons button{
+    background:none;border:none;cursor:pointer;padding:2px;color:var(--border);
+  }
+  .rating-icons button.filled{color:var(--accent);}
+  .rating-icons button:hover{color:var(--gold);}
+
+  .btn{
+    padding:9px 16px; border-radius:7px; font-size:13.5px; font-weight:600; cursor:pointer; border:1px solid transparent;
+  }
+  .btn-primary{background:var(--accent); color:#fff;}
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-secondary{background:#fff; color:var(--text); border-color:var(--border);}
+  .btn-secondary:hover{background:var(--surface-alt);}
+  .btn-danger{background:#fff; color:#B3382C; border-color:#EBC4BE;}
+  .btn-danger:hover{background:#FBEEEC;}
+
+  .row-actions{display:flex; align-items:center; gap:2px; flex:none;}
+  .row-action-btn{
+    background:none; border:none; cursor:pointer; padding:7px; border-radius:6px; color:var(--text-muted);
+    display:flex; align-items:center;
+  }
+  .row-action-btn:hover{background:var(--surface-alt); color:var(--text);}
+  .row-action-btn.danger:hover{background:#FBEEEC; color:#B3382C;}
+
+  .search-filters{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px;}
+  .search-filters .form-group.full-row{grid-column:1/-1;}
+
+  .list-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:11px 12px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; cursor:pointer;
+    background:#fff;
+  }
+  .list-row:hover{border-color:var(--accent);}
+  .list-row .lr-main{min-width:0;}
+  .list-row .lr-title{font-size:13.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .list-row .lr-sub{font-size:11.5px; color:var(--text-muted); margin-top:2px;}
+  .list-row .lr-badge{
+    display:flex; align-items:center; gap:5px; font-size:13px; font-weight:700; color:var(--accent); flex:none;
+  }
+  .list-row .lr-dist{font-size:11.5px; color:var(--text-muted); font-weight:600; flex:none; margin-right:10px;}
+  .lr-right{display:flex; align-items:center; gap:10px; flex:none;}
+
+  .empty-state{
+    text-align:center; padding:36px 10px; color:var(--text-muted); font-size:13px;
+  }
+  .empty-state svg{margin-bottom:10px; opacity:.5;}
+
+  .pagination{display:flex; align-items:center; justify-content:center; gap:12px; margin-top:14px;}
+  .pagination button{
+    background:#fff; border:1px solid var(--border); border-radius:6px; padding:6px 10px; cursor:pointer; color:var(--text);
+    display:flex; align-items:center;
+  }
+  .pagination button:disabled{opacity:.35; cursor:default;}
+  .pagination span{font-size:12px; color:var(--text-muted);}
+
+  .badges-row{display:flex; gap:10px; margin:14px 0;}
+  .mini-badge{
+    flex:1; border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;
+  }
+  .mini-badge .mb-icon{color:var(--accent); margin-bottom:4px;}
+  .mini-badge .mb-val{font-size:17px; font-weight:700;}
+  .mini-badge .mb-count{font-size:10.5px; color:var(--text-muted);}
+
+  .detail-info{font-size:13px; color:var(--text-muted); line-height:1.7; margin-bottom:8px;}
+  .detail-info strong{color:var(--text);}
+  .link-address, .link-phone{color:var(--accent); text-decoration:none; border-bottom:1px dashed var(--accent);}
+  .link-address:hover, .link-phone:hover{color:var(--accent-dark); border-bottom-style:solid;}
+
+  table.reviews-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  table.reviews-table th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted);
+    border-bottom:1px solid var(--border); padding:6px 8px; font-weight:600;
+  }
+  table.reviews-table td{padding:7px 8px; border-bottom:1px solid var(--surface-alt); color:var(--text);}
+  table.reviews-table td.center, table.reviews-table th.center{text-align:center;}
+
+  .radius-control{display:flex; align-items:center; gap:10px; margin-bottom:16px; background:var(--surface-alt); padding:10px 12px; border-radius:8px;}
+  .radius-control label{font-size:12.5px; font-weight:600; color:var(--text-muted); flex:none;}
+  .radius-control input[type=number]{width:70px; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:13px;}
+  .radius-control input[type=range]{flex:1;}
+
+  .icon-btn-inline{display:inline-flex; align-items:center; gap:4px;}
+  .fieldnote{font-size:11px; color:var(--text-muted); margin-top:2px;}
+
+  @media(max-width:640px){
+    .metrics-grid, .actions-grid{grid-template-columns:1fr;}
+    .form-grid{grid-template-columns:1fr;}
+    .ratings-block{grid-template-columns:1fr;}
+    .search-filters{grid-template-columns:1fr;}
+    .topbar-row{flex-wrap:wrap;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-row">
+    <h1>Food Tracker - Area Manager</h1>
+    <button id="btnSettings" class="gear-btn" type="button" aria-label="Impostazioni"></button>
+  </div>
+  <p>Locali recensiti durante le trasferte &amp; co.</p>
+</div>
+
+<div class="container">
+
+  <p class="section-label">Medie generali</p>
+  <div class="metrics-grid" id="metricsGrid"></div>
+
+  <p class="section-label">Azioni</p>
+  <div class="actions-grid">
+    <div class="action-card" id="cardNew">
+      <div class="icon-wrap" id="iconNew"></div>
+      <div class="title">Nuovo locale</div>
+      <div class="desc">Registra una visita: dati del locale e giudizio su cibo, servizio e prezzo.</div>
+    </div>
+    <div class="action-card" id="cardSearch">
+      <div class="icon-wrap" id="iconSearch"></div>
+      <div class="title">Cerca locali</div>
+      <div class="desc">Filtra per agenzia, regione, provincia o comune e ordina per valutazione.</div>
+    </div>
+    <div class="action-card" id="cardNearby">
+      <div class="icon-wrap" id="iconNearby"></div>
+      <div class="title">Vicino a me</div>
+      <div class="desc">Rileva la posizione e trova i locali entro un raggio impostabile.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: REGISTRAZIONE -->
+<div class="modal-overlay" id="modalRegister">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h2 id="registerModalTitle">Nuovo locale</h2>
+      <button class="close-btn" data-close="modalRegister"></button>
+    </div>
+    <div class="modal-body">
+      <form id="formRegister">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Data visita</label>
+            <input type="date" id="f_data" required>
+          </div>
+          <div class="form-group">
+            <label>Agenzia</label>
+            <select id="f_agenzia" required>
+              <option value="">Seleziona agenzia...</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Insegna / nome locale</label>
+            <input type="text" id="f_insegna" placeholder="es. Trattoria da Mario" required>
+          </div>
+          <div class="form-group">
+            <label>Regione</label>
+            <select id="f_regione" required>
+              <option value="">Seleziona...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Provincia</label>
+            <select id="f_provincia" required>
+              <option value="">Seleziona prima la regione...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Comune</label>
+            <select id="f_comune" required>
+              <option value="">Seleziona prima la provincia...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Telefono</label>
+            <input type="tel" id="f_telefono" placeholder="es. 070 1234567">
+          </div>
+          <div class="form-group full">
+            <label>Indirizzo</label>
+            <input type="text" id="f_indirizzo" placeholder="via, civico" required>
+          </div>
+          <div class="form-group full">
+            <label>Posizione (obbligatoria)</label>
+            <div class="loc-row">
+              <button type="button" class="btn btn-secondary" id="btnGetLoc" style="white-space:nowrap;"></button>
+              <span class="loc-status" id="locStatus">Nessuna posizione acquisita</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ratings-block">
+          <div class="rating-group">
+            <div class="rg-label" id="rgCiboLabel">Cibo</div>
+            <div class="rating-icons" id="rating_cibo" data-value="0"></div>
+          </div>
+          <div class="rating-group">
+            <div class="rg-label" id="rgServizioLabel">Servizio</div>
+            <div class="rating-icons" id="rating_servizio" data-value="0"></div>
+          </div>
+          <div class="rating-group">
+            <div class="rg-label" id="rgPrezzoLabel">Prezzo</div>
+            <div class="rating-icons" id="rating_prezzo" data-value="0"></div>
+          </div>
+        </div>
+        <p class="fieldnote">Se insegna e indirizzo corrispondono a un locale già registrato, la valutazione viene aggiunta al suo registro storico.</p>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close="modalRegister">Annulla</button>
+      <button class="btn btn-primary" id="btnSaveRegister">Salva registrazione</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: RICERCA -->
+<div class="modal-overlay" id="modalSearch">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h2>Cerca locali</h2>
+      <button class="close-btn" data-close="modalSearch"></button>
+    </div>
+    <div class="modal-body">
+      <div class="search-filters">
+        <div class="form-group">
+          <label>Filtra per</label>
+          <select id="s_dimension">
+            <option value="agenzia">Agenzia</option>
+            <option value="regione">Regione</option>
+            <option value="provincia">Provincia</option>
+            <option value="comune">Comune</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valore</label>
+          <select id="s_value"><option value="">Tutti</option></select>
+        </div>
+        <div class="form-group">
+          <label>Ordina per</label>
+          <select id="s_metric">
+            <option value="cibo">Valutazione cibo</option>
+            <option value="servizio">Valutazione servizio</option>
+            <option value="prezzo">Valutazione prezzo</option>
+          </select>
+        </div>
+        <div class="form-group full-row">
+          <button class="btn btn-primary" id="btnRunSearch" style="width:100%;">Applica filtri</button>
+        </div>
+      </div>
+      <div id="searchResults"></div>
+      <div class="pagination" id="searchPagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: VICINO A ME -->
+<div class="modal-overlay" id="modalNearby">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h2>Locali nelle vicinanze</h2>
+      <button class="close-btn" data-close="modalNearby"></button>
+    </div>
+    <div class="modal-body">
+      <div class="radius-control">
+        <label>Raggio (km)</label>
+        <input type="range" id="radiusRange" min="1" max="50" value="5">
+        <input type="number" id="radiusNumber" min="1" max="200" value="5">
+      </div>
+      <div id="nearbyStatus" class="loc-status" style="margin-bottom:10px;"></div>
+      <div id="nearbyResults"></div>
+      <div class="pagination" id="nearbyPagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETTAGLIO LOCALE -->
+<div class="modal-overlay" id="modalDetail">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h2 id="detailTitle">Locale</h2>
+      <button class="close-btn" data-close="modalDetail"></button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-info" id="detailInfo"></div>
+      <div class="badges-row" id="detailBadges"></div>
+      <p class="section-label" style="margin-top:18px;">Registro valutazioni</p>
+      <table class="reviews-table">
+        <thead>
+          <tr>
+            <th>Data</th><th>Agenzia</th><th class="center">Cibo</th><th class="center">Servizio</th><th class="center">Prezzo</th><th class="center">Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="detailReviewsBody"></tbody>
+      </table>
+      <div class="pagination" id="detailPagination"></div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn btn-danger" id="btnDeleteVenue"></button>
+      <button class="btn btn-primary" id="btnQuickRegister"></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: IMPOSTAZIONI -->
+<div class="modal-overlay" id="modalSettings">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Impostazioni</h2>
+      <button class="close-btn" data-close="modalSettings"></button>
+    </div>
+    <div class="modal-body">
+      <p class="section-label">Agenzie</p>
+      <button class="btn btn-secondary" id="btnOpenAgenzie" style="width:100%; margin-bottom:20px;"></button>
+
+      <p class="section-label">Backup dati</p>
+      <p class="fieldnote" style="margin-bottom:10px;">I dati sono salvati solo nel browser. Esporta un backup periodico o importalo su un altro dispositivo.</p>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary" id="btnExport" style="flex:1;"></button>
+        <button class="btn btn-secondary" id="btnImport" style="flex:1;"></button>
+      </div>
+      <input type="file" id="fileImport" accept="application/json" style="display:none;">
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: AGENZIE -->
+<div class="modal-overlay" id="modalAgenzie">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Agenzie</h2>
+      <button class="close-btn" data-close="modalAgenzie"></button>
+    </div>
+    <div class="modal-body">
+      <p class="fieldnote" style="margin-bottom:12px;">Le agenzie inserite qui compaiono come scelta nella scheda "Nuovo locale".</p>
+      <div class="loc-row" style="margin-bottom:16px;">
+        <input type="text" id="f_nuova_agenzia" placeholder="Nome agenzia" style="flex:1; padding:9px 10px; border:1px solid var(--border); border-radius:7px; font-size:13.5px;">
+        <button class="btn btn-primary" id="btnAddAgenzia">Aggiungi</button>
+      </div>
+      <div id="agenzieList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- ICONS (inline SVG, no external dependency) ---------- */
+const ICONS = {
+  utensils: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V2"/><path d="M9 11v11"/><path d="M17 2c-1.1 1.5-1.7 3.2-1.7 5.5 0 2 .7 3 1.7 3.5V22"/></svg>',
+  bell: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a5 5 0 0 0-5 5c0 5-2 6-2 6h14s-2-1-2-6a5 5 0 0 0-5-5Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+  euro: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6.5A6.5 6.5 0 1 0 17 17.5"/><path d="M4 10h9"/><path d="M4 14h8"/></svg>',
+  plus: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
+  search: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+  pin: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  chevLeft: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  chevRight: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+  download: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4"/><path d="M4 20h16"/></svg>',
+  upload: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V7m0 0-4 4m4-4 4 4"/><path d="M4 20h16"/></svg>',
+  gear: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>',
+  building: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4M9 8h1M14 8h1M9 12h1M14 12h1"/></svg>',
+  trash: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>',
+  pencil: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+  inbox: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/></svg>'
+};
+const CAT_ICON = { cibo:'utensils', servizio:'bell', prezzo:'euro' };
+const CAT_LABEL = { cibo:'Cibo', servizio:'Servizio', prezzo:'Prezzo' };
+
+document.getElementById('iconNew').innerHTML = ICONS.plus;
+document.getElementById('iconSearch').innerHTML = ICONS.search;
+document.getElementById('iconNearby').innerHTML = ICONS.pin;
+document.getElementById('btnSettings').innerHTML = ICONS.gear;
+document.getElementById('btnOpenAgenzie').innerHTML = ICONS.building + ' Gestisci agenzie';
+document.getElementById('btnExport').innerHTML = ICONS.download + ' Esporta';
+document.getElementById('btnImport').innerHTML = ICONS.upload + ' Importa';
+document.getElementById('btnGetLoc').innerHTML = ICONS.pin + ' Rileva posizione';
+document.getElementById('rgCiboLabel').innerHTML = ICONS.utensils + ' Cibo';
+document.getElementById('rgServizioLabel').innerHTML = ICONS.bell + ' Servizio';
+document.getElementById('rgPrezzoLabel').innerHTML = ICONS.euro + ' Prezzo';
+document.querySelectorAll('.close-btn').forEach(b=>b.innerHTML = ICONS.close);
+document.getElementById('btnQuickRegister').innerHTML = ICONS.plus + ' Nuova registrazione';
+document.getElementById('btnDeleteVenue').innerHTML = ICONS.trash + ' Elimina locale';
+
+const REGIONI = ["Abruzzo","Lazio","Sardegna","Toscana","Umbria"];
+const PROVINCE_BY_REGIONE = {
+  "Abruzzo": ["L'Aquila","Chieti","Pescara","Teramo"],
+  "Lazio": ["Roma","Frosinone","Latina","Rieti","Viterbo"],
+  "Sardegna": ["Cagliari","Sassari","Nuoro","Oristano","Sud Sardegna"],
+  "Toscana": ["Firenze","Arezzo","Grosseto","Livorno","Lucca","Massa-Carrara","Pisa","Pistoia","Prato","Siena"],
+  "Umbria": ["Perugia","Terni"]
+};
+const regSelect = document.getElementById('f_regione');
+REGIONI.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; regSelect.appendChild(o); });
+const COMUNI_BY_PROVINCIA = {"Siena":["Abbadia San Salvatore","Asciano","Buonconvento","Casole d'Elsa","Castellina in Chianti","Castelnuovo Berardenga","Castiglione d'Orcia","Cetona","Chianciano Terme","Chiusdino","Chiusi","Colle di Val d'Elsa","Gaiole in Chianti","Montalcino","Montepulciano","Monteriggioni","Monteroni d'Arbia","Monticiano","Murlo","Piancastagnaio","Pienza","Poggibonsi","Radda in Chianti","Radicofani","Radicondoli","Rapolano Terme","San Casciano dei Bagni","San Gimignano","San Quirico d'Orcia","Sarteano","Siena","Sinalunga","Sovicille","Torrita di Siena","Trequanda"],"Oristano":["Abbasanta","Aidomaggiore","Albagiara","Ales","Allai","Arborea","Ardauli","Assolo","Asuni","Baradili","Baratili San Pietro","Baressa","Bauladu","Bidonì","Bonarcado","Boroneddu","Bosa","Busachi","Cabras","Cuglieri","Curcuris","Flussio","Fordongianus","Ghilarza","Gonnoscodina","Gonnosnò","Gonnostramatza","Laconi","Magomadas","Marrubiu","Masullas","Milis","Modolo","Mogorella","Mogoro","Montresta","Morgongiori","Narbolia","Neoneli","Norbello","Nughedu Santa Vittoria","Nurachi","Nureci","Ollastra","Oristano","Palmas Arborea","Pau","Paulilatino","Pompu","Riola Sardo","Ruinas","Sagama","Samugheo","San Nicolò d'Arcidano","San Vero Milis","Santa Giusta","Santu Lussurgiu","Scano di Montiferro","Sedilo","Seneghe","Senis","Sennariolo","Siamaggiore","Siamanna","Siapiccia","Simala","Simaxis","Sini","Siris","Soddì","Solarussa","Sorradile","Suni","Tadasuni","Terralba","Tinnura","Tramatza","Tresnuraghes","Ulà Tirso","Uras","Usellus","Villa Sant'Antonio","Villa Verde","Villanova Truschedu","Villaurbana","Zeddiani","Zerfaliu"],"Pescara":["Abbateggio","Alanno","Bolognano","Brittoli","Bussi sul Tirino","Cappelle sul Tavo","Caramanico Terme","Carpineto della Nora","Castiglione a Casauria","Catignano","Cepagatti","Città Sant'Angelo","Civitaquana","Civitella Casanova","Collecorvino","Corvara","Cugnoli","Elice","Farindola","Lettomanoppello","Loreto Aprutino","Manoppello","Montebello di Bertona","Montesilvano","Moscufo","Nocciano","Penne","Pescara","Pescosansonesco","Pianella","Picciano","Pietranico","Popoli","Roccamorice","Rosciano","Salle","San Valentino in Abruzzo Citeriore","Sant'Eufemia a Maiella","Scafa","Serramonacesca","Spoltore","Tocco da Casauria","Torre de' Passeri","Turrivalignani","Vicoli","Villa Celiera"],"Pistoia":["Abetone Cutigliano","Agliana","Buggiano","Chiesina Uzzanese","Lamporecchio","Larciano","Marliana","Massa e Cozzile","Monsummano Terme","Montale","Montecatini-Terme","Pescia","Pieve a Nievole","Pistoia","Ponte Buggianese","Quarrata","Sambuca Pistoiese","San Marcello Piteglio","Serravalle Pistoiese","Uzzano"],"L'Aquila":["Acciano","Aielli","Alfedena","Anversa degli Abruzzi","Ateleta","Avezzano","Balsorano","Barete","Barisciano","Barrea","Bisegna","Bugnara","Cagnano Amiterno","Calascio","Campo di Giove","Campotosto","Canistro","Cansano","Capestrano","Capistrello","Capitignano","Caporciano","Cappadocia","Carapelle Calvisio","Carsoli","Castel del Monte","Castel di Ieri","Castel di Sangro","Castellafiume","Castelvecchio Calvisio","Castelvecchio Subequo","Celano","Cerchio","Civita d'Antino","Civitella Alfedena","Civitella Roveto","Cocullo","Collarmele","Collelongo","Collepietro","Corfinio","Fagnano Alto","Fontecchio","Fossa","Gagliano Aterno","Gioia dei Marsi","Goriano Sicoli","Introdacqua","L'Aquila","Lecce nei Marsi","Luco dei Marsi","Lucoli","Magliano de' Marsi","Massa d'Albe","Molina Aterno","Montereale","Morino","Navelli","Ocre","Ofena","Opi","Oricola","Ortona dei Marsi","Ortucchio","Ovindoli","Pacentro","Pereto","Pescasseroli","Pescina","Pescocostanzo","Pettorano sul Gizio","Pizzoli","Poggio Picenze","Prata d'Ansidonia","Pratola Peligna","Prezza","Raiano","Rivisondoli","Rocca Pia","Rocca di Botte","Rocca di Cambio","Rocca di Mezzo","Roccacasale","Roccaraso","San Benedetto dei Marsi","San Benedetto in Perillis","San Demetrio ne' Vestini","San Pio delle Camere","San Vincenzo Valle Roveto","Sant'Eusanio Forconese","Sante Marie","Santo Stefano di Sessanio","Scanno","Scontrone","Scoppito","Scurcola Marsicana","Secinaro","Sulmona","Tagliacozzo","Tione degli Abruzzi","Tornimparte","Trasacco","Villa Sant'Angelo","Villa Santa Lucia degli Abruzzi","Villalago","Villavallelonga","Villetta Barrea","Vittorito"],"Rieti":["Accumoli","Amatrice","Antrodoco","Ascrea","Belmonte in Sabina","Borbona","Borgo Velino","Borgorose","Cantalice","Cantalupo in Sabina","Casaprota","Casperia","Castel Sant'Angelo","Castel di Tora","Castelnuovo di Farfa","Cittaducale","Cittareale","Collalto Sabino","Colle di Tora","Collegiove","Collevecchio","Colli sul Velino","Concerviano","Configni","Contigliano","Cottanello","Fara in Sabina","Fiamignano","Forano","Frasso Sabino","Greccio","Labro","Leonessa","Longone Sabino","Magliano Sabina","Marcetelli","Micigliano","Mompeo","Montasola","Monte San Giovanni in Sabina","Montebuono","Monteleone Sabino","Montenero Sabino","Montopoli di Sabina","Morro Reatino","Nespolo","Orvinio","Paganico Sabino","Pescorocchiano","Petrella Salto","Poggio Bustone","Poggio Catino","Poggio Mirteto","Poggio Moiano","Poggio Nativo","Poggio San Lorenzo","Posta","Pozzaglia Sabina","Rieti","Rivodutri","Rocca Sinibalda","Roccantica","Salisano","Scandriglia","Selci","Stimigliano","Tarano","Toffia","Torri in Sabina","Torricella in Sabina","Turania","Vacone","Varco Sabino"],"Frosinone":["Acquafondata","Acuto","Alatri","Alvito","Amaseno","Anagni","Aquino","Arce","Arnara","Arpino","Atina","Ausonia","Belmonte Castello","Boville Ernica","Broccostella","Campoli Appennino","Casalattico","Casalvieri","Cassino","Castelliri","Castelnuovo Parano","Castro dei Volsci","Castrocielo","Ceccano","Ceprano","Cervaro","Colfelice","Colle San Magno","Collepardo","Coreno Ausonio","Esperia","Falvaterra","Ferentino","Filettino","Fiuggi","Fontana Liri","Fontechiari","Frosinone","Fumone","Gallinaro","Giuliano di Roma","Guarcino","Isola del Liri","Monte San Giovanni Campano","Morolo","Paliano","Pastena","Patrica","Pescosolido","Picinisco","Pico","Piedimonte San Germano","Piglio","Pignataro Interamna","Pofi","Pontecorvo","Posta Fibreno","Ripi","Rocca d'Arce","Roccasecca","San Biagio Saracinisco","San Donato Val di Comino","San Giorgio a Liri","San Giovanni Incarico","San Vittore del Lazio","Sant'Ambrogio sul Garigliano","Sant'Andrea del Garigliano","Sant'Apollinare","Sant'Elia Fiumerapido","Santopadre","Serrone","Settefrati","Sgurgola","Sora","Strangolagalli","Supino","Terelle","Torre Cajetani","Torrice","Trevi nel Lazio","Trivigliano","Vallecorsa","Vallemaio","Vallerotonda","Veroli","Vicalvi","Vico nel Lazio","Villa Latina","Villa Santa Lucia","Villa Santo Stefano","Viticuso"],"Viterbo":["Acquapendente","Arlena di Castro","Bagnoregio","Barbarano Romano","Bassano Romano","Bassano in Teverina","Blera","Bolsena","Bomarzo","Calcata","Canepina","Canino","Capodimonte","Capranica","Caprarola","Carbognano","Castel Sant'Elia","Castiglione in Teverina","Celleno","Cellere","Civita Castellana","Civitella d'Agliano","Corchiano","Fabrica di Roma","Faleria","Farnese","Gallese","Gradoli","Graffignano","Grotte di Castro","Ischia di Castro","Latera","Lubriano","Marta","Montalto di Castro","Monte Romano","Montefiascone","Monterosi","Nepi","Onano","Oriolo Romano","Orte","Piansano","Proceno","Ronciglione","San Lorenzo Nuovo","Soriano nel Cimino","Sutri","Tarquinia","Tessennano","Tuscania","Valentano","Vallerano","Vasanello","Vejano","Vetralla","Vignanello","Villa San Giovanni in Tuscia","Viterbo","Vitorchiano"],"Terni":["Acquasparta","Allerona","Alviano","Amelia","Arrone","Attigliano","Avigliano Umbro","Baschi","Calvi dell'Umbria","Castel Giorgio","Castel Viscardo","Fabro","Ferentillo","Ficulle","Giove","Guardea","Lugnano in Teverina","Montecastrilli","Montecchio","Montefranco","Montegabbione","Monteleone d'Orvieto","Narni","Orvieto","Otricoli","Parrano","Penna in Teverina","Polino","Porano","San Gemini","San Venanzo","Stroncone","Terni"],"Roma":["Affile","Agosta","Albano Laziale","Allumiere","Anguillara Sabazia","Anticoli Corrado","Anzio","Arcinazzo Romano","Ardea","Ariccia","Arsoli","Artena","Bellegra","Bracciano","Camerata Nuova","Campagnano di Roma","Canale Monterano","Canterano","Capena","Capranica Prenestina","Carpineto Romano","Casape","Castel Gandolfo","Castel Madama","Castel San Pietro Romano","Castelnuovo di Porto","Cave","Cerreto Laziale","Cervara di Roma","Cerveteri","Ciampino","Ciciliano","Cineto Romano","Civitavecchia","Civitella San Paolo","Colleferro","Colonna","Fiano Romano","Filacciano","Fiumicino","Fonte Nuova","Formello","Frascati","Gallicano nel Lazio","Gavignano","Genazzano","Genzano di Roma","Gerano","Gorga","Grottaferrata","Guidonia Montecelio","Jenne","Labico","Ladispoli","Lanuvio","Lariano","Licenza","Magliano Romano","Mandela","Manziana","Marano Equo","Marcellina","Marino","Mazzano Romano","Mentana","Monte Compatri","Monte Porzio Catone","Monteflavio","Montelanico","Montelibretti","Monterotondo","Montorio Romano","Moricone","Morlupo","Nazzano","Nemi","Nerola","Nettuno","Olevano Romano","Palestrina","Palombara Sabina","Percile","Pisoniano","Poli","Pomezia","Ponzano Romano","Riano","Rignano Flaminio","Riofreddo","Rocca Canterano","Rocca Priora","Rocca Santo Stefano","Rocca di Cave","Rocca di Papa","Roccagiovine","Roiate","Roma","Roviano","Sacrofano","Sambuci","San Cesareo","San Gregorio da Sassola","San Polo dei Cavalieri","San Vito Romano","Sant'Angelo Romano","Sant'Oreste","Santa Marinella","Saracinesco","Segni","Subiaco","Tivoli","Tolfa","Torrita Tiberina","Trevignano Romano","Vallepietra","Vallinfreda","Valmontone","Velletri","Vicovaro","Vivaro Romano","Zagarolo"],"Sassari":["Aggius","Aglientu","Alghero","Alà dei Sardi","Anela","Ardara","Arzachena","Badesi","Banari","Benetutti","Berchidda","Bessude","Bonnanaro","Bono","Bonorva","Bortigiadas","Borutta","Bottidda","Buddusò","Budoni","Bultei","Bulzi","Burgos","Calangianus","Cargeghe","Castelsardo","Cheremule","Chiaramonti","Codrongianos","Cossoine","Erula","Esporlatu","Florinas","Giave","Golfo Aranci","Illorai","Ittireddu","Ittiri","La Maddalena","Laerru","Loiri Porto San Paolo","Luogosanto","Luras","Mara","Martis","Monteleone Rocca Doria","Monti","Mores","Muros","Nughedu San Nicolò","Nule","Nulvi","Olbia","Olmedo","Oschiri","Osilo","Ossi","Ozieri","Padria","Padru","Palau","Pattada","Perfugas","Ploaghe","Porto Torres","Pozzomaggiore","Putifigari","Romana","San Teodoro","Sant'Antonio di Gallura","Santa Maria Coghinas","Santa Teresa Gallura","Sassari","Sedini","Semestene","Sennori","Siligo","Sorso","Stintino","Telti","Tempio Pausania","Tergu","Thiesi","Tissi","Torralba","Trinità d'Agultu e Vignola","Tula","Uri","Usini","Valledoria","Viddalba","Villanova Monteleone"],"Teramo":["Alba Adriatica","Ancarano","Arsita","Atri","Basciano","Bellante","Bisenti","Campli","Canzano","Castel Castagna","Castellalto","Castelli","Castiglione Messer Raimondo","Castilenti","Cellino Attanasio","Cermignano","Civitella del Tronto","Colledara","Colonnella","Controguerra","Corropoli","Cortino","Crognaleto","Fano Adriano","Giulianova","Isola del Gran Sasso d'Italia","Martinsicuro","Montefino","Montorio al Vomano","Morro d'Oro","Mosciano Sant'Angelo","Nereto","Notaresco","Penna Sant'Andrea","Pietracamela","Pineto","Rocca Santa Maria","Roseto degli Abruzzi","Sant'Egidio alla Vibrata","Sant'Omero","Silvi","Teramo","Torano Nuovo","Torricella Sicura","Tortoreto","Tossicia","Valle Castellana"],"Chieti":["Altino","Archi","Ari","Arielli","Atessa","Bomba","Borrello","Bucchianico","Canosa Sannita","Carpineto Sinello","Carunchio","Casacanditella","Casalanguida","Casalbordino","Casalincontrada","Casoli","Castel Frentano","Castelguidone","Castiglione Messer Marino","Celenza sul Trigno","Chieti","Civitaluparella","Civitella Messer Raimondo","Colledimacine","Colledimezzo","Crecchio","Cupello","Dogliola","Fallo","Fara Filiorum Petri","Fara San Martino","Filetto","Fossacesia","Fraine","Francavilla al Mare","Fresagrandinaria","Frisa","Furci","Gamberale","Gessopalena","Gissi","Giuliano Teatino","Guardiagrele","Guilmi","Lama dei Peligni","Lanciano","Lentella","Lettopalena","Liscia","Miglianico","Montazzoli","Montebello sul Sangro","Monteferrante","Montelapiano","Montenerodomo","Monteodorisio","Mozzagrogna","Orsogna","Ortona","Paglieta","Palena","Palmoli","Palombaro","Pennadomo","Pennapiedimonte","Perano","Pietraferrazzana","Pizzoferrato","Poggiofiorito","Pollutri","Pretoro","Quadri","Rapino","Ripa Teatina","Rocca San Giovanni","Roccamontepiano","Roccascalegna","Roccaspinalveti","Roio del Sangro","Rosello","San Buono","San Giovanni Lipioni","San Giovanni Teatino","San Martino sulla Marrucina","San Salvo","San Vito Chietino","Sant'Eusanio del Sangro","Santa Maria Imbaro","Scerni","Schiavi di Abruzzo","Taranta Peligna","Tollo","Torino di Sangro","Tornareccio","Torrebruna","Torrevecchia Teatina","Torricella Peligna","Treglio","Tufillo","Vacri","Vasto","Villa Santa Maria","Villalfonsina","Villamagna"],"Lucca":["Altopascio","Bagni di Lucca","Barga","Borgo a Mozzano","Camaiore","Camporgiano","Capannori","Careggine","Castelnuovo di Garfagnana","Castiglione di Garfagnana","Coreglia Antelminelli","Fabbriche di Vergemoli","Forte dei Marmi","Fosciandora","Gallicano","Lucca","Massarosa","Minucciano","Molazzana","Montecarlo","Pescaglia","Piazza al Serchio","Pietrasanta","Pieve Fosciana","Porcari","San Romano in Garfagnana","Seravezza","Sillano Giuncugnano","Stazzema","Vagli Sotto","Viareggio","Villa Basilica","Villa Collemandina"],"Arezzo":["Anghiari","Arezzo","Badia Tedalda","Bibbiena","Bucine","Capolona","Caprese Michelangelo","Castel Focognano","Castel San Niccolò","Castelfranco Piandiscò","Castiglion Fibocchi","Castiglion Fiorentino","Cavriglia","Chitignano","Chiusi della Verna","Civitella in Val di Chiana","Cortona","Foiano della Chiana","Laterina Pergine Valdarno","Loro Ciuffenna","Lucignano","Marciano della Chiana","Monte San Savino","Montemignaio","Monterchi","Montevarchi","Ortignano Raggiolo","Pieve Santo Stefano","Poppi","Pratovecchio Stia","San Giovanni Valdarno","Sansepolcro","Sestino","Subbiano","Talla","Terranuova Bracciolini"],"Latina":["Aprilia","Bassiano","Campodimele","Castelforte","Cisterna di Latina","Cori","Fondi","Formia","Gaeta","Itri","Latina","Lenola","Maenza","Minturno","Monte San Biagio","Norma","Pontinia","Ponza","Priverno","Prossedi","Rocca Massima","Roccagorga","Roccasecca dei Volsci","Sabaudia","San Felice Circeo","Santi Cosma e Damiano","Sermoneta","Sezze","Sonnino","Sperlonga","Spigno Saturnia","Terracina","Ventotene"],"Sud Sardegna":["Arbus","Armungia","Ballao","Barrali","Barumini","Buggerru","Burcei","Calasetta","Carbonia","Carloforte","Castiadas","Collinas","Decimoputzu","Dolianova","Domus de Maria","Domusnovas","Donori","Escalaplano","Escolca","Esterzili","Fluminimaggiore","Furtei","Genoni","Genuri","Gergei","Gesico","Gesturi","Giba","Goni","Gonnesa","Gonnosfanadiga","Guamaggiore","Guasila","Guspini","Iglesias","Isili","Las Plassas","Lunamatrona","Mandas","Masainas","Monastir","Muravera","Musei","Narcao","Nuragus","Nurallao","Nuraminis","Nurri","Nuxis","Orroli","Ortacesus","Pabillonis","Pauli Arbarei","Perdaxius","Pimentel","Piscinas","Portoscuso","Sadali","Samassi","Samatzai","San Basilio","San Gavino Monreale","San Giovanni Suergiu","San Nicolò Gerrei","San Sperate","San Vito","Sanluri","Sant'Andrea Frius","Sant'Anna Arresi","Sant'Antioco","Santadi","Sardara","Segariu","Selegas","Senorbì","Serdiana","Serramanna","Serrenti","Serri","Setzu","Seui","Seulo","Siddi","Siliqua","Silius","Siurgus Donigala","Soleminis","Suelli","Teulada","Tratalias","Tuili","Turri","Ussana","Ussaramanna","Vallermosa","Villacidro","Villamar","Villamassargia","Villanova Tulo","Villanovaforru","Villanovafranca","Villaperuccio","Villaputzu","Villasalto","Villasimius","Villasor","Villaspeciosa"],"Grosseto":["Arcidosso","Campagnatico","Capalbio","Castel del Piano","Castell'Azzara","Castiglione della Pescaia","Cinigiano","Civitella Paganico","Follonica","Gavorrano","Grosseto","Isola del Giglio","Magliano in Toscana","Manciano","Massa Marittima","Monte Argentario","Monterotondo Marittimo","Montieri","Orbetello","Pitigliano","Roccalbegna","Roccastrada","Santa Fiora","Scansano","Scarlino","Seggiano","Semproniano","Sorano"],"Nuoro":["Aritzo","Arzana","Atzara","Austis","Bari Sardo","Baunei","Belvì","Birori","Bitti","Bolotana","Borore","Bortigali","Cardedu","Desulo","Dorgali","Dualchi","Elini","Fonni","Gadoni","Gairo","Galtellì","Gavoi","Girasole","Ilbono","Irgoli","Jerzu","Lanusei","Lei","Loceri","Loculi","Lodine","Lodè","Lotzorai","Lula","Macomer","Mamoiada","Meana Sardo","Noragugume","Nuoro","Oliena","Ollolai","Olzai","Onanì","Onifai","Oniferi","Orani","Orgosolo","Orosei","Orotelli","Ortueri","Orune","Osidda","Osini","Ottana","Ovodda","Perdasdefogu","Posada","Sarule","Silanus","Sindia","Siniscola","Sorgono","Talana","Tertenia","Teti","Tiana","Tonara","Torpè","Tortolì","Triei","Ulassai","Urzulei","Ussassai","Villagrande Strisaili"],"Cagliari":["Assemini","Cagliari","Capoterra","Decimomannu","Elmas","Maracalagonis","Monserrato","Pula","Quartu Sant'Elena","Quartucciu","Sarroch","Selargius","Sestu","Settimo San Pietro","Sinnai","Uta","Villa San Pietro"],"Perugia":["Assisi","Bastia Umbra","Bettona","Bevagna","Campello sul Clitunno","Cannara","Cascia","Castel Ritaldi","Castiglione del Lago","Cerreto di Spoleto","Citerna","Città della Pieve","Città di Castello","Collazzone","Corciano","Costacciaro","Deruta","Foligno","Fossato di Vico","Fratta Todina","Giano dell'Umbria","Gualdo Cattaneo","Gualdo Tadino","Gubbio","Lisciano Niccone","Magione","Marsciano","Massa Martana","Monte Castello di Vibio","Monte Santa Maria Tiberina","Montefalco","Monteleone di Spoleto","Montone","Nocera Umbra","Norcia","Paciano","Panicale","Passignano sul Trasimeno","Perugia","Piegaro","Pietralunga","Poggiodomo","Preci","San Giustino","Sant'Anatolia di Narco","Scheggia e Pascelupo","Scheggino","Sellano","Sigillo","Spello","Spoleto","Todi","Torgiano","Trevi","Tuoro sul Trasimeno","Umbertide","Valfabbrica","Vallo di Nera","Valtopina"],"Massa-Carrara":["Aulla","Bagnone","Carrara","Casola in Lunigiana","Comano","Filattiera","Fivizzano","Fosdinovo","Licciana Nardi","Massa","Montignoso","Mulazzo","Podenzana","Pontremoli","Tresana","Villafranca in Lunigiana","Zeri"],"Firenze":["Bagno a Ripoli","Barberino Tavarnelle","Barberino di Mugello","Borgo San Lorenzo","Calenzano","Campi Bisenzio","Capraia e Limite","Castelfiorentino","Cerreto Guidi","Certaldo","Dicomano","Empoli","Fiesole","Figline e Incisa Valdarno","Firenze","Firenzuola","Fucecchio","Gambassi Terme","Greve in Chianti","Impruneta","Lastra a Signa","Londa","Marradi","Montaione","Montelupo Fiorentino","Montespertoli","Palazzuolo sul Senio","Pelago","Pontassieve","Reggello","Rignano sull'Arno","Rufina","San Casciano in Val di Pesa","San Godenzo","Scandicci","Scarperia e San Piero","Sesto Fiorentino","Signa","Vaglia","Vicchio","Vinci"],"Livorno":["Bibbona","Campiglia Marittima","Campo nell'Elba","Capoliveri","Capraia Isola","Castagneto Carducci","Cecina","Collesalvetti","Livorno","Marciana","Marciana Marina","Piombino","Porto Azzurro","Portoferraio","Rio","Rosignano Marittimo","San Vincenzo","Sassetta","Suvereto"],"Pisa":["Bientina","Buti","Calci","Calcinaia","Capannoli","Casale Marittimo","Casciana Terme Lari","Cascina","Castelfranco di Sotto","Castellina Marittima","Castelnuovo di Val di Cecina","Chianni","Crespina Lorenzana","Fauglia","Guardistallo","Lajatico","Montecatini Val di Cecina","Montescudaio","Monteverdi Marittimo","Montopoli in Val d'Arno","Orciano Pisano","Palaia","Peccioli","Pisa","Pomarance","Ponsacco","Pontedera","Riparbella","San Giuliano Terme","San Miniato","Santa Croce sull'Arno","Santa Luce","Santa Maria a Monte","Terricciola","Vecchiano","Vicopisano","Volterra"],"Prato":["Cantagallo","Carmignano","Montemurlo","Poggio a Caiano","Prato","Vaiano","Vernio"]};
+const provSelect = document.getElementById('f_provincia');
+const comSelect = document.getElementById('f_comune');
+regSelect.addEventListener('change', ()=>{
+  const list = PROVINCE_BY_REGIONE[regSelect.value] || [];
+  provSelect.innerHTML = list.length
+    ? '<option value="">Seleziona...</option>' + list.map(p=>`<option value="${p}">${p}</option>`).join('')
+    : '<option value="">Seleziona prima la regione...</option>';
+  comSelect.innerHTML = '<option value="">Seleziona prima la provincia...</option>';
+});
+provSelect.addEventListener('change', ()=>{
+  const list = COMUNI_BY_PROVINCIA[provSelect.value] || [];
+  comSelect.innerHTML = list.length
+    ? '<option value="">Seleziona...</option>' + list.map(c=>`<option value="${c}">${c}</option>`).join('')
+    : '<option value="">Seleziona prima la provincia...</option>';
+});
+
+/* ---------- DATA LAYER ---------- */
+const STORE_KEY = 'registroLocali_v1';
+let venues = [];
+try{ venues = JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ venues = []; }
+function persist(){ localStorage.setItem(STORE_KEY, JSON.stringify(venues)); }
+
+/* ---------- AGENZIE ---------- */
+const AGENZIE_KEY = 'registroLocali_agenzie_v1';
+let agenzie = [];
+try{ agenzie = JSON.parse(localStorage.getItem(AGENZIE_KEY)) || []; }catch(e){ agenzie = []; }
+function persistAgenzie(){ localStorage.setItem(AGENZIE_KEY, JSON.stringify(agenzie)); }
+function refreshAgenziaSelect(){
+  const sel = document.getElementById('f_agenzia');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Seleziona agenzia...</option>' + agenzie.slice().sort((a,b)=>a.localeCompare(b)).map(a=>`<option value="${a}">${a}</option>`).join('');
+  if(agenzie.includes(current)) sel.value = current;
+}
+function renderAgenzieList(){
+  const el = document.getElementById('agenzieList');
+  if(agenzie.length === 0){ el.innerHTML = emptyState('Nessuna agenzia inserita.'); return; }
+  el.innerHTML = agenzie.slice().sort((a,b)=>a.localeCompare(b)).map(a=>`
+    <div class="list-row" style="cursor:default;">
+      <div class="lr-main"><div class="lr-title">${a}</div></div>
+      <button type="button" class="close-btn" data-remove-agenzia="${a}" style="color:var(--text-muted);">${ICONS.trash}</button>
+    </div>`).join('');
+  el.querySelectorAll('[data-remove-agenzia]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      agenzie = agenzie.filter(a => a !== btn.dataset.removeAgenzia);
+      persistAgenzie(); renderAgenzieList(); refreshAgenziaSelect();
+    });
+  });
+}
+document.getElementById('btnAddAgenzia').addEventListener('click', ()=>{
+  const input = document.getElementById('f_nuova_agenzia');
+  const val = input.value.trim();
+  if(!val) return;
+  if(!agenzie.some(a=>a.toLowerCase() === val.toLowerCase())) agenzie.push(val);
+  persistAgenzie(); renderAgenzieList(); refreshAgenziaSelect();
+  input.value = '';
+});
+document.getElementById('btnSettings').addEventListener('click', ()=> openModal('modalSettings'));
+document.getElementById('btnOpenAgenzie').addEventListener('click', ()=>{
+  renderAgenzieList();
+  openModal('modalAgenzie');
+});
+refreshAgenziaSelect();
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+function allReviewsFlat(){
+  const out = [];
+  venues.forEach(v => v.reviews.forEach(r => out.push({...r, venue:v})));
+  return out;
+}
+function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+function venueAvg(v, field){ return avg(v.reviews.map(r=>r[field])); }
+function overallAvg(field){ const all = allReviewsFlat(); return avg(all.map(r=>r[field])); }
+
+/* ---------- COLORI VALUTAZIONI ---------- */
+// Medie (valore continuo 0-5, valutato in percentuale sul massimo)
+function colorForAverage(value){
+  const pct = (value/5)*100;
+  if(pct <= 30) return '#C0392B';       // rosso
+  if(pct <= 50) return '#E07B39';       // arancione
+  if(pct <= 70) return '#C7A400';       // giallo
+  return '#1E7A4A';                     // verde
+}
+// Singola recensione (voto intero 0-5)
+function colorForScore(score){
+  if(score <= 1) return '#C0392B';      // rosso
+  if(score === 2) return '#E07B39';     // arancione
+  if(score === 3) return '#E0A83E';     // sfumatura tra arancio e giallo
+  if(score === 4) return '#C7A400';     // giallo
+  return '#1E7A4A';                     // verde
+}
+
+function haversine(lat1,lon1,lat2,lon2){
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* ---------- RATING WIDGET (input) ---------- */
+function buildRatingInput(containerId){
+  const el = document.getElementById(containerId);
+  const cat = containerId.split('_')[1];
+  el.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const b = document.createElement('button');
+    b.type='button';
+    b.innerHTML = ICONS[CAT_ICON[cat]];
+    b.dataset.val = i;
+    b.addEventListener('click', ()=>{
+      el.dataset.value = i;
+      [...el.children].forEach(c=> c.classList.toggle('filled', +c.dataset.val <= i));
+    });
+    el.appendChild(b);
+  }
+  el.dataset.value = 0;
+}
+['rating_cibo','rating_servizio','rating_prezzo'].forEach(buildRatingInput);
+
+function miniBadge(field, value, count){
+  return `<div class="mini-badge">
+    <div class="mb-icon" style="color:${colorForAverage(value)};">${ICONS[CAT_ICON[field]]}</div>
+    <div class="mb-val" style="color:${colorForAverage(value)};">${value.toFixed(1)}<span style="font-size:11px;color:var(--text-muted);">/5</span></div>
+    <div class="mb-count">${CAT_LABEL[field]} · ${count} recension${count===1?'e':'i'}</div>
+  </div>`;
+}
+
+/* ---------- DASHBOARD METRICS ---------- */
+function renderMetrics(){
+  const all = allReviewsFlat();
+  const grid = document.getElementById('metricsGrid');
+  grid.innerHTML = ['cibo','servizio','prezzo'].map(f=>{
+    const a = overallAvg(f);
+    const col = colorForAverage(a);
+    return `<div class="metric-card"><div class="row">
+      <div class="icon-wrap" style="color:${col};">${ICONS[CAT_ICON[f]]}</div>
+      <div><div class="label">${CAT_LABEL[f]}</div><div class="value" style="color:${col};">${a.toFixed(1)} <span style="font-size:13px;color:var(--text-muted);">/5</span></div></div>
+    </div><div class="sub">${all.length} recensioni totali</div></div>`;
+  }).join('');
+}
+renderMetrics();
+
+
+/* ---------- MODAL HELPERS ---------- */
+let modalZCounter = 100;
+function openModal(id){
+  const el = document.getElementById(id);
+  modalZCounter++;
+  el.style.zIndex = modalZCounter;
+  el.classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('[data-close]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const target = b.dataset.close;
+    closeModal(target);
+    if(target === 'modalRegister' && editState){
+      const vid = editState.venueId;
+      editState = null;
+      openVenueDetail(vid);
+    }
+  });
+});
+document.querySelectorAll('.modal-overlay').forEach(ov=>{
+  ov.addEventListener('click', e=>{
+    if(e.target !== ov) return;
+    ov.classList.remove('open');
+    if(ov.id === 'modalRegister' && editState){
+      const vid = editState.venueId;
+      editState = null;
+      openVenueDetail(vid);
+    }
+  });
+});
+
+/* ---------- EMPTY STATE ---------- */
+function emptyState(msg){
+  return `<div class="empty-state">${ICONS.inbox}<div>${msg}</div></div>`;
+}
+
+/* ---------- PAGINATION ---------- */
+function renderPagination(containerId, total, page, perPage, onChange){
+  const el = document.getElementById(containerId);
+  const pages = Math.max(1, Math.ceil(total/perPage));
+  if(pages <= 1){ el.innerHTML=''; return; }
+  el.innerHTML = `
+    <button id="${containerId}_prev" ${page<=1?'disabled':''}>${ICONS.chevLeft}</button>
+    <span>Pagina ${page} di ${pages}</span>
+    <button id="${containerId}_next" ${page>=pages?'disabled':''}>${ICONS.chevRight}</button>`;
+  document.getElementById(containerId+'_prev').onclick = ()=> onChange(page-1);
+  document.getElementById(containerId+'_next').onclick = ()=> onChange(page+1);
+}
+
+/* ---------- REGISTRATION FORM ---------- */
+document.getElementById('f_data').valueAsDate = new Date();
+let pendingCoords = null;
+function acquireLocation(){
+  const status = document.getElementById('locStatus');
+  if(!navigator.geolocation){ status.textContent = 'Geolocalizzazione non supportata dal browser.'; return; }
+  status.textContent = 'Rilevamento in corso...'; status.classList.remove('ok');
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      pendingCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      status.textContent = `Posizione acquisita: ${pendingCoords.lat.toFixed(5)}, ${pendingCoords.lng.toFixed(5)}`;
+      status.classList.add('ok');
+    },
+    err=>{ status.textContent = 'Posizione obbligatoria: impossibile rilevarla (' + err.message + '). Premi "Rileva posizione" per riprovare.'; },
+    { enableHighAccuracy:true, timeout:10000 }
+  );
+}
+document.getElementById('btnGetLoc').addEventListener('click', acquireLocation);
+
+let editState = null; // { venueId, reviewId } quando si modifica una registrazione esistente
+
+function resetForm(){
+  document.getElementById('formRegister').reset();
+  document.getElementById('f_data').valueAsDate = new Date();
+  document.getElementById('f_provincia').innerHTML = '<option value="">Seleziona prima la regione...</option>';
+  document.getElementById('f_comune').innerHTML = '<option value="">Seleziona prima la provincia...</option>';
+  pendingCoords = null;
+  editState = null;
+  document.getElementById('registerModalTitle').textContent = 'Nuovo locale';
+  document.getElementById('btnSaveRegister').textContent = 'Salva registrazione';
+  document.getElementById('locStatus').textContent = 'Nessuna posizione acquisita';
+  document.getElementById('locStatus').classList.remove('ok');
+  ['rating_cibo','rating_servizio','rating_prezzo'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.dataset.value = 0;
+    [...el.children].forEach(c=>c.classList.remove('filled'));
+  });
+}
+
+document.getElementById('cardNew').addEventListener('click', ()=>{
+  resetForm();
+  openModal('modalRegister');
+  acquireLocation();
+});
+
+document.getElementById('btnSaveRegister').addEventListener('click', ()=>{
+  const insegna = document.getElementById('f_insegna').value.trim();
+  const indirizzo = document.getElementById('f_indirizzo').value.trim();
+  const comune = document.getElementById('f_comune').value.trim();
+  const regione = document.getElementById('f_regione').value;
+  const agenzia = document.getElementById('f_agenzia').value.trim();
+  if(!insegna || !indirizzo || !comune || !regione || !agenzia){
+    alert('Compila almeno agenzia, insegna, regione, comune e indirizzo.'); return;
+  }
+  if(!pendingCoords){
+    alert('La posizione GPS è obbligatoria. Premi "Rileva posizione" e concedi il permesso, poi riprova a salvare.');
+    return;
+  }
+  const provincia = document.getElementById('f_provincia').value.trim();
+  const telefono = document.getElementById('f_telefono').value.trim();
+  const data = document.getElementById('f_data').value;
+  const cibo = +document.getElementById('rating_cibo').dataset.value;
+  const servizio = +document.getElementById('rating_servizio').dataset.value;
+  const prezzo = +document.getElementById('rating_prezzo').dataset.value;
+
+  if(editState){
+    const venue = venues.find(v=>v.id === editState.venueId);
+    if(venue){
+      Object.assign(venue, { insegna, regione, provincia, comune, indirizzo, telefono });
+      if(pendingCoords){ venue.lat = pendingCoords.lat; venue.lng = pendingCoords.lng; }
+      const review = venue.reviews.find(r=>r.id === editState.reviewId);
+      if(review) Object.assign(review, { data, agenzia, cibo, servizio, prezzo });
+    }
+  } else {
+    const review = { id: uid(), data, agenzia, cibo, servizio, prezzo };
+    const key = (insegna+'|'+indirizzo).toLowerCase();
+    let venue = venues.find(v => (v.insegna+'|'+v.indirizzo).toLowerCase() === key);
+    if(venue){
+      venue.reviews.push(review);
+      if(!venue.telefono && telefono) venue.telefono = telefono;
+      if(!venue.lat && pendingCoords){ venue.lat = pendingCoords.lat; venue.lng = pendingCoords.lng; }
+    } else {
+      venue = {
+        id: uid(), insegna, regione, provincia, comune, indirizzo, telefono,
+        lat: pendingCoords ? pendingCoords.lat : null,
+        lng: pendingCoords ? pendingCoords.lng : null,
+        reviews: [review]
+      };
+      venues.push(venue);
+    }
+  }
+  const wasEditingVenueId = editState ? editState.venueId : null;
+  persist();
+  renderMetrics();
+  closeModal('modalRegister');
+  editState = null;
+  if(wasEditingVenueId) openVenueDetail(wasEditingVenueId);
+});
+
+/* ---------- SEARCH ---------- */
+function distinctValues(dim){
+  let vals;
+  if(dim === 'agenzia'){
+    const set = new Set();
+    venues.forEach(v=>v.reviews.forEach(r=>set.add(r.agenzia)));
+    vals = [...set];
+  } else {
+    vals = [...new Set(venues.map(v=>v[dim]).filter(Boolean))];
+  }
+  return vals.sort((a,b)=>a.localeCompare(b));
+}
+function refreshSearchValues(){
+  const dim = document.getElementById('s_dimension').value;
+  const sel = document.getElementById('s_value');
+  sel.innerHTML = '<option value="">Tutti</option>' + distinctValues(dim).map(v=>`<option value="${v}">${v}</option>`).join('');
+}
+document.getElementById('s_dimension').addEventListener('change', refreshSearchValues);
+document.getElementById('cardSearch').addEventListener('click', ()=>{
+  refreshSearchValues();
+  searchState.list = null;
+  document.getElementById('searchResults').innerHTML = emptyState('Imposta i filtri e premi "Applica filtri" per vedere i risultati.');
+  document.getElementById('searchPagination').innerHTML = '';
+  openModal('modalSearch');
+});
+
+let searchState = { list: null, page: 1, metric: 'cibo' };
+document.getElementById('btnRunSearch').addEventListener('click', ()=>{
+  const dim = document.getElementById('s_dimension').value;
+  const val = document.getElementById('s_value').value;
+  const metric = document.getElementById('s_metric').value;
+  let list = venues.filter(v=>{
+    if(!val) return true;
+    if(dim === 'agenzia') return v.reviews.some(r=>r.agenzia === val);
+    return v[dim] === val;
+  });
+  list = list.filter(v=>v.reviews.length>0);
+  list.sort((a,b)=> venueAvg(b,metric) - venueAvg(a,metric));
+  searchState = { list, page: 1, metric };
+  renderSearchResults();
+});
+function renderSearchResults(){
+  const { list, page, metric } = searchState;
+  const container = document.getElementById('searchResults');
+  if(!list || list.length === 0){
+    container.innerHTML = emptyState('Nessun locale trovato con questi filtri.');
+    document.getElementById('searchPagination').innerHTML = '';
+    return;
+  }
+  const perPage = 10;
+  const slice = list.slice((page-1)*perPage, page*perPage);
+  container.innerHTML = slice.map(v=>{
+    const a = venueAvg(v, metric);
+    return `<div class="list-row" data-venue="${v.id}">
+      <div class="lr-main">
+        <div class="lr-title">${v.insegna}</div>
+        <div class="lr-sub">${v.comune}${v.provincia? ' ('+v.provincia+')':''} · ${v.regione}</div>
+      </div>
+      <div class="lr-right">
+        <div class="lr-badge" style="color:${colorForAverage(a)};">${ICONS[CAT_ICON[metric]]} ${a.toFixed(1)}</div>
+        <div class="row-actions">
+          <button type="button" class="row-action-btn danger" data-del="${v.id}" title="Elimina locale">${ICONS.trash}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  container.querySelectorAll('.list-row').forEach(row=>{
+    row.addEventListener('click', ()=> openVenueDetail(row.dataset.venue));
+  });
+  container.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      deleteVenueWithConfirm(btn.dataset.del, ()=>{
+        searchState.list = venues.filter(v => list.includes(v));
+        renderSearchResults();
+      });
+    });
+  });
+  renderPagination('searchPagination', list.length, page, perPage, (p)=>{ searchState.page = p; renderSearchResults(); });
+}
+
+/* ---------- NEARBY ---------- */
+let nearbyState = { list: null, page: 1, radius: 5, userLat: null, userLng: null };
+document.getElementById('cardNearby').addEventListener('click', ()=>{
+  const status = document.getElementById('nearbyStatus');
+  document.getElementById('nearbyResults').innerHTML = '';
+  document.getElementById('nearbyPagination').innerHTML = '';
+  status.textContent = 'Rilevamento posizione in corso...';
+  openModal('modalNearby');
+  if(!navigator.geolocation){ status.textContent = 'Geolocalizzazione non supportata dal browser.'; return; }
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      nearbyState.userLat = pos.coords.latitude;
+      nearbyState.userLng = pos.coords.longitude;
+      status.textContent = `Posizione rilevata: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+      computeNearby();
+    },
+    err=>{ status.textContent = 'Impossibile rilevare la posizione: ' + err.message; },
+    { enableHighAccuracy:true, timeout:10000 }
+  );
+});
+function computeNearby(){
+  const { userLat, userLng, radius } = nearbyState;
+  if(userLat == null) return;
+  let list = venues
+    .filter(v=>v.lat != null && v.lng != null)
+    .map(v=>({ v, dist: haversine(userLat,userLng,v.lat,v.lng) }))
+    .filter(x=>x.dist <= radius)
+    .sort((a,b)=>a.dist-b.dist);
+  nearbyState.list = list;
+  nearbyState.page = 1;
+  renderNearbyResults();
+}
+function renderNearbyResults(){
+  const { list, page, radius } = nearbyState;
+  const container = document.getElementById('nearbyResults');
+  if(!list || list.length === 0){
+    container.innerHTML = emptyState(`Nessun locale entro ${radius} km dalla posizione attuale.`);
+    document.getElementById('nearbyPagination').innerHTML = '';
+    return;
+  }
+  const perPage = 10;
+  const slice = list.slice((page-1)*perPage, page*perPage);
+  container.innerHTML = slice.map(({v,dist})=>{
+    const a = venueAvg(v,'cibo');
+    return `<div class="list-row" data-venue="${v.id}">
+      <div class="lr-main">
+        <div class="lr-title">${v.insegna}</div>
+        <div class="lr-sub">${v.comune}${v.provincia? ' ('+v.provincia+')':''}</div>
+      </div>
+      <div class="lr-right">
+        <div class="lr-dist">${dist.toFixed(1)} km</div>
+        <div class="lr-badge" style="color:${colorForAverage(a)};">${ICONS.utensils} ${a.toFixed(1)}</div>
+        <div class="row-actions">
+          <button type="button" class="row-action-btn danger" data-del="${v.id}" title="Elimina locale">${ICONS.trash}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  container.querySelectorAll('.list-row').forEach(row=>{
+    row.addEventListener('click', ()=> openVenueDetail(row.dataset.venue));
+  });
+  container.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      deleteVenueWithConfirm(btn.dataset.del, ()=>{
+        nearbyState.list = list.filter(x => venues.includes(x.v));
+        renderNearbyResults();
+      });
+    });
+  });
+  renderPagination('nearbyPagination', list.length, page, perPage, (p)=>{ nearbyState.page = p; renderNearbyResults(); });
+}
+function syncRadius(val){
+  const v = Math.max(1, Math.min(200, +val || 5));
+  nearbyState.radius = v;
+  document.getElementById('radiusRange').value = Math.min(50,v);
+  document.getElementById('radiusNumber').value = v;
+  computeNearby();
+}
+document.getElementById('radiusRange').addEventListener('input', e=> syncRadius(e.target.value));
+document.getElementById('radiusNumber').addEventListener('input', e=> syncRadius(e.target.value));
+
+function deleteVenueWithConfirm(venueId, onDone){
+  const v = venues.find(x=>x.id === venueId);
+  if(!v) return;
+  if(!confirm(`Eliminare "${v.insegna}" e tutte le sue ${v.reviews.length} valutazioni? L'operazione non è reversibile.`)) return;
+  venues = venues.filter(x=>x.id !== venueId);
+  persist();
+  renderMetrics();
+  if(onDone) onDone();
+}
+
+/* ---------- VENUE DETAIL ---------- */
+let detailState = { venueId: null, page: 1 };
+function openVenueDetail(venueId){
+  detailState = { venueId, page: 1 };
+  renderVenueDetail();
+  openModal('modalDetail');
+}
+function renderVenueDetail(){
+  const v = venues.find(x=>x.id === detailState.venueId);
+  if(!v) return;
+  document.getElementById('detailTitle').textContent = v.insegna;
+  const mapsQuery = v.lat != null
+    ? `${v.lat},${v.lng}`
+    : `${v.indirizzo}, ${v.comune}, ${v.regione}`;
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
+  document.getElementById('detailInfo').innerHTML = `
+    <div>${ICONS.pin} <a href="${mapsUrl}" target="_blank" rel="noopener" class="link-address"><strong>${v.indirizzo}</strong></a> — ${v.comune}${v.provincia? ' ('+v.provincia+')':''}, ${v.regione}</div>
+    ${v.telefono ? `<div><a href="tel:${v.telefono.replace(/\s+/g,'')}" class="link-phone">${v.telefono}</a></div>` : ''}
+    ${v.lat != null ? `<div>Coordinate: ${v.lat.toFixed(5)}, ${v.lng.toFixed(5)}</div>` : ''}
+  `;
+  document.getElementById('detailBadges').innerHTML = ['cibo','servizio','prezzo'].map(f=>
+    miniBadge(f, venueAvg(v,f), v.reviews.length)
+  ).join('');
+  renderDetailReviews(v);
+}
+function renderDetailReviews(v){
+  const perPage = 10;
+  const reviews = [...v.reviews].sort((a,b)=> b.data.localeCompare(a.data));
+  const page = detailState.page;
+  const slice = reviews.slice((page-1)*perPage, page*perPage);
+  const body = document.getElementById('detailReviewsBody');
+  if(reviews.length === 0){
+    body.innerHTML = `<tr><td colspan="6">${emptyState('Nessuna valutazione registrata.')}</td></tr>`;
+  } else {
+    body.innerHTML = slice.map(r=>`<tr>
+      <td>${formatDate(r.data)}</td><td>${r.agenzia}</td>
+      <td class="center" style="color:${colorForScore(r.cibo)}; font-weight:600;">${r.cibo}/5</td><td class="center" style="color:${colorForScore(r.servizio)}; font-weight:600;">${r.servizio}/5</td><td class="center" style="color:${colorForScore(r.prezzo)}; font-weight:600;">${r.prezzo}/5</td>
+      <td class="center">
+        <div class="row-actions" style="justify-content:center;">
+          <button type="button" class="row-action-btn" data-edit-review="${r.id}" title="Modifica">${ICONS.pencil}</button>
+          <button type="button" class="row-action-btn danger" data-del-review="${r.id}" title="Elimina">${ICONS.trash}</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  }
+  body.querySelectorAll('[data-edit-review]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openEditReview(v.id, btn.dataset.editReview));
+  });
+  body.querySelectorAll('[data-del-review]').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteReviewWithConfirm(v.id, btn.dataset.delReview));
+  });
+  renderPagination('detailPagination', reviews.length, page, perPage, (p)=>{ detailState.page = p; renderDetailReviews(v); });
+}
+function deleteReviewWithConfirm(venueId, reviewId){
+  const v = venues.find(x=>x.id === venueId);
+  if(!v) return;
+  if(!confirm("Eliminare questa registrazione? L'operazione non è reversibile.")) return;
+  v.reviews = v.reviews.filter(r=>r.id !== reviewId);
+  if(v.reviews.length === 0){
+    venues = venues.filter(x=>x.id !== venueId);
+    persist();
+    renderMetrics();
+    closeModal('modalDetail');
+    return;
+  }
+  persist();
+  renderMetrics();
+  renderVenueDetail();
+}
+function formatDate(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function populateVenueFields(v){
+  const regSel = document.getElementById('f_regione');
+  const provSel = document.getElementById('f_provincia');
+  const comSel = document.getElementById('f_comune');
+  regSel.value = v.regione;
+  regSel.dispatchEvent(new Event('change'));
+  provSel.value = v.provincia;
+  provSel.dispatchEvent(new Event('change'));
+  comSel.value = v.comune;
+  document.getElementById('f_insegna').value = v.insegna;
+  document.getElementById('f_indirizzo').value = v.indirizzo;
+  document.getElementById('f_telefono').value = v.telefono || '';
+  if(v.lat != null){
+    pendingCoords = { lat: v.lat, lng: v.lng };
+    const status = document.getElementById('locStatus');
+    status.textContent = `Posizione già registrata: ${v.lat.toFixed(5)}, ${v.lng.toFixed(5)}`;
+    status.classList.add('ok');
+  }
+}
+function openQuickRegister(venueId){
+  const v = venues.find(x=>x.id === venueId);
+  if(!v) return;
+  resetForm();
+  populateVenueFields(v);
+  const lastReview = [...v.reviews].sort((a,b)=> b.data.localeCompare(a.data))[0];
+  if(lastReview) document.getElementById('f_agenzia').value = lastReview.agenzia;
+  closeModal('modalDetail');
+  openModal('modalRegister');
+  if(!pendingCoords) acquireLocation();
+}
+document.getElementById('btnQuickRegister').addEventListener('click', ()=> openQuickRegister(detailState.venueId));
+document.getElementById('btnDeleteVenue').addEventListener('click', ()=>{
+  deleteVenueWithConfirm(detailState.venueId, ()=> closeModal('modalDetail'));
+});
+
+function openEditReview(venueId, reviewId){
+  const v = venues.find(x=>x.id === venueId);
+  if(!v) return;
+  const review = v.reviews.find(r=>r.id === reviewId);
+  if(!review) return;
+  resetForm();
+  populateVenueFields(v);
+  document.getElementById('f_agenzia').value = review.agenzia;
+  document.getElementById('f_data').value = review.data;
+  ['cibo','servizio','prezzo'].forEach(cat=>{
+    const el = document.getElementById('rating_'+cat);
+    const val = review[cat];
+    el.dataset.value = val;
+    [...el.children].forEach(c=> c.classList.toggle('filled', +c.dataset.val <= val));
+  });
+  editState = { venueId, reviewId };
+  document.getElementById('registerModalTitle').textContent = 'Modifica registrazione';
+  document.getElementById('btnSaveRegister').textContent = 'Salva modifiche';
+  closeModal('modalDetail');
+  openModal('modalRegister');
+  if(!pendingCoords) acquireLocation();
+}
+
+/* ---------- BACKUP: EXPORT / IMPORT ---------- */
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const payload = { venues, agenzie };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'registro-locali-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('btnImport').addEventListener('click', ()=> document.getElementById('fileImport').click());
+document.getElementById('fileImport').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      let importedVenues, importedAgenzie;
+      if(Array.isArray(data)){
+        importedVenues = data;
+        importedAgenzie = agenzie;
+      } else if(data && Array.isArray(data.venues)){
+        importedVenues = data.venues;
+        importedAgenzie = Array.isArray(data.agenzie) ? data.agenzie : [];
+      } else {
+        throw new Error('formato non valido');
+      }
+      if(confirm(`Importare ${importedVenues.length} locali e ${importedAgenzie.length} agenzie? I dati attuali verranno sostituiti.`)){
+        venues = importedVenues;
+        agenzie = importedAgenzie;
+        persist();
+        persistAgenzie();
+        refreshAgenziaSelect();
+        renderMetrics();
+        alert('Importazione completata.');
+      }
+    }catch(err){ alert('File non valido: ' + err.message); }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+</script>
+</body>
+</html>
