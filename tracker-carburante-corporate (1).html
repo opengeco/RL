@@ -1,0 +1,1990 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Area Manager Fuel Tracker — Corporate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f5f8;
+    --panel:#ffffff;
+    --panel-2:#eef1f5;
+    --line:#dde3ea;
+    --text:#1c2733;
+    --muted:#6b7684;
+    --amber:#2952a3;
+    --amber-dim:#1c3766;
+    --teal:#1f8a70;
+    --red:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans',sans-serif;
+    padding:32px 20px 80px;
+    min-height:100vh;
+  }
+  .wrap{max-width:1080px;margin:0 auto;}
+  h1{
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:700;
+    font-size:28px;
+    letter-spacing:-0.01em;
+    margin:0 0 4px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .subtitle{color:var(--muted);font-size:14px;margin-bottom:28px;}
+  .pump-icon{width:26px;height:26px;flex:none;}
+
+  /* ACTION CARDS */
+  .action-cards{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-bottom:28px;
+  }
+  .action-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px 16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    color:var(--text);
+    transition:border-color .15s, transform .1s;
+  }
+  .action-card:hover{border-color:var(--amber);}
+  .action-card:active{transform:scale(0.98);}
+  .action-icon{width:28px;height:28px;color:var(--amber);}
+
+  /* HEADER + SETTINGS ICON */
+  .header-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .header-row h1{margin:0;}
+  .icon-btn{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    width:42px;
+    height:42px;
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    color:var(--text);
+  }
+  .icon-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .icon-btn-svg{width:20px;height:20px;}
+
+  /* MODALS */
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:24px;
+    max-width:560px;
+    width:100%;
+    max-height:88vh;
+    overflow-y:auto;
+  }
+  .modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  .modal-header h2{margin:0;}
+  .modal-close{
+    background:none;
+    border:none;
+    font-size:20px;
+    color:var(--muted);
+    cursor:pointer;
+    line-height:1;
+    padding:2px 4px;
+  }
+  .modal-close:hover{color:var(--red);}
+  .modal-section-title{
+    margin:0 0 12px;
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-weight:700;
+  }
+
+  /* GAUGES */
+  .gauges{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-bottom:28px;
+  }
+  .gauge-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:16px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .gauge-card .label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .gauge-card .value{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:700;
+    font-size:26px;
+    color:var(--text);
+  white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .gauge-card .unit{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:500;
+    margin-left:4px;
+  }
+  .gauge-card.accent .value{color:var(--amber);}
+  .gauge-card.accent2 .value{color:var(--teal);}
+
+  /* Dashboard needle gauge for avg consumption */
+  #statLitri{color:#3b82f6;}
+  #statEniLitri, #statEniEuro, #statQ8Litri, #statQ8Euro{color:#7dd3fc;}
+
+  /* FORM */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px;
+    margin-bottom:24px;
+  }
+  .panel h2{
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:15px;
+    margin:0 0 16px;
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+    gap:12px;
+    align-items:end;
+  }
+  .field.wide{grid-column:span 2;}
+  .field label{
+    display:block;
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  .field input,.field select{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    color:var(--text);
+    padding:10px 12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:16px;
+  }
+  .field input:focus,.field select:focus{outline:2px solid var(--amber);outline-offset:1px;}
+  .control-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .control-bar .group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .control-bar label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+  .file-btn{position:relative;overflow:hidden;display:inline-block;}
+  .file-btn input[type=file]{
+    position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+  }
+
+  /* SCONTRINO OCR */
+  .scan-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  .field input.scanned{outline:2px solid var(--amber);outline-offset:1px;}
+
+  /* LIMIT CARDS */
+  .limit-cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:16px;
+    margin-bottom:28px;
+  }
+  .limit-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px 22px;
+  }
+  .limit-card .header{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:700;
+    font-size:16px;
+    margin-bottom:16px;
+  }
+  .limit-row{margin-bottom:14px;}
+  .limit-row:last-child{margin-bottom:0;}
+  .limit-row .top{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .limit-bar-track{
+    height:6px;
+    border-radius:3px;
+    background:#e2e4e8;
+    overflow:hidden;
+  }
+  .limit-bar-fill{height:100%;border-radius:3px;transition:width .3s;background:var(--teal);}
+  .limit-row .amounts{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    margin-top:6px;
+    color:var(--text);
+  }
+  .limit-row.ok .limit-bar-fill{background:#22c55e;}
+  .limit-row.warn .limit-bar-fill{background:#f59e0b;}
+  .limit-row.over .limit-bar-fill{background:#ef4444;}
+  .limit-row.over .amounts{color:#ef4444;font-weight:700;}
+  .limit-row.warn .amounts{color:#f59e0b;}
+  .limit-row.nolimit .amounts{color:var(--muted);}
+
+  /* LIMITS SETTINGS FORM */
+  .limits-form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:24px;
+  }
+  .limits-col{display:flex;flex-direction:column;gap:12px;}
+  .limits-col-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:2px;
+  }
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+  }
+  .badge-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .badge-eni .badge-dot{background:#a67c00;}
+  .badge-eni{color:#a67c00;}
+  .badge-q8 .badge-dot{background:#c0392b;}
+  .badge-q8{color:#c0392b;}
+  .badge-altro .badge-dot{background:var(--muted);}
+  .badge-altro{color:var(--muted);}
+  .btn{
+    background:var(--amber);
+    color:#ffffff;
+    border:none;
+    border-radius:8px;
+    padding:11px 20px;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    white-space:nowrap;
+    font-family:'IBM Plex Sans',sans-serif;
+  }
+  .btn:hover{background:#1f3f80;}
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--muted);
+  }
+  .btn-ghost:hover{color:var(--red);border-color:var(--red);}
+  .helper-note{font-size:12px;color:var(--muted);margin-top:12px;}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{
+    text-align:right;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--muted);
+    padding:8px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  th:first-child,td:first-child{text-align:left;}
+  td{
+    padding:9px 10px;
+    text-align:right;
+    font-family:'IBM Plex Mono',monospace;
+    border-bottom:1px solid #262c35;
+  }
+  tr:hover td{background:#20262f;}
+  td.del{text-align:center;font-family:'IBM Plex Sans',sans-serif;}
+  td.del button{
+    background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;
+  }
+  td.del button:hover{color:var(--red);}
+  td.note{
+    text-align:left;
+    font-family:'IBM Plex Sans',sans-serif;
+    color:var(--muted);
+    max-width:160px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .empty-state{
+    text-align:center;
+    color:var(--muted);
+    padding:40px 20px;
+    font-size:14px;
+  }
+  .table-scroll{overflow-x:auto;}
+  .pagination{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    margin-top:14px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .pagination button:disabled{opacity:.4;cursor:default;}
+
+  /* ANDAMENTO */
+  .chart-box{height:320px;position:relative;}
+
+  select{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    border-radius:8px;
+    padding:8px 12px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:13px;
+  }
+  .row-between{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+
+  /* MOBILE OPTIMIZATION (portrait + landscape) */
+  @media (max-width:640px){
+    body{padding:16px 12px 60px;}
+    .wrap{max-width:100%;}
+    h1{font-size:19px;gap:8px;}
+    .pump-icon{width:22px;height:22px;}
+    .icon-btn{width:38px;height:38px;}
+    .icon-btn-svg{width:18px;height:18px;}
+    .subtitle{font-size:12.5px;margin-bottom:18px;}
+    .action-cards{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px;}
+    .action-card{padding:14px 8px;font-size:11.5px;gap:6px;}
+    .action-icon{width:22px;height:22px;}
+    .gauges{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px;}
+    .gauge-card{padding:12px 14px;border-radius:12px;}
+    .gauge-card .value{font-size:20px;}
+    .gauge-card .label{font-size:10.5px;margin-bottom:6px;}
+    .panel{padding:16px;border-radius:12px;margin-bottom:16px;}
+    .limit-card{padding:16px 18px;}
+    .modal-overlay{padding:0;align-items:flex-end;}
+    .modal-box{
+      padding:18px 16px;
+      border-radius:16px 16px 0 0;
+      max-width:100%;
+      max-height:92vh;
+    }
+    form{grid-template-columns:repeat(auto-fit,minmax(105px,1fr));}
+    .limits-form-grid{grid-template-columns:1fr;gap:18px;}
+    .chart-box{height:240px;}
+    table{font-size:12px;}
+    th,td{padding:7px 6px;}
+    .btn{padding:10px 16px;font-size:13px;}
+    .scan-row{flex-direction:column;align-items:stretch;}
+  }
+
+  @media (max-width:400px){
+    .action-cards{grid-template-columns:repeat(2,1fr);}
+    .gauges{grid-template-columns:repeat(2,1fr);}
+    form{grid-template-columns:1fr;}
+  }
+
+  @media (orientation:landscape) and (max-height:500px){
+    body{padding:12px 16px 40px;}
+    .modal-overlay{align-items:center;padding:10px;}
+    .modal-box{max-height:94vh;border-radius:16px;padding:16px;}
+    .chart-box{height:170px;}
+    .action-cards{grid-template-columns:repeat(2,1fr);}
+    .gauges{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header-row">
+    <h1>
+      <svg class="pump-icon" viewBox="0 0 24 24" fill="none" stroke="#2952a3" stroke-width="1.8">
+        <path d="M3 22V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16" stroke-linecap="round"/>
+        <path d="M3 10h8" stroke-linecap="round"/>
+        <path d="M13 8l3 2v8a1.5 1.5 0 0 0 3 0v-5.5l-2-2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 22h12" stroke-linecap="round"/>
+      </svg>
+      Area Manager Fuel Tracker
+    </h1>
+    <button type="button" class="icon-btn" id="btnOpenImpostazioni" title="Impostazioni">
+      <svg class="icon-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+  <div class="subtitle">Registro rifornimenti auto aziendale</div>
+
+  <!-- ACTION CARDS -->
+  <div class="action-cards">
+    <div class="action-card" id="btnOpenRifornimento">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 22V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16" stroke-linecap="round"/>
+        <path d="M3 10h8" stroke-linecap="round"/>
+        <path d="M13 8l3 2v8a1.5 1.5 0 0 0 3 0v-5.5l-2-2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 22h12" stroke-linecap="round"/>
+      </svg>
+      <span>+ Rifornimento</span>
+    </div>
+    <div class="action-card" id="btnOpenSpesa">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M6 2h9l3 3v17H6z" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M9 8h6M9 12h6M9 16h4" stroke-linecap="round"/>
+      </svg>
+      <span>+ Spesa</span>
+    </div>
+    <div class="action-card" id="btnOpenStoricoRifornimenti">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Storico rifornimenti</span>
+    </div>
+    <div class="action-card" id="btnOpenStoricoSpese">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"/>
+      </svg>
+      <span>Storico spese</span>
+    </div>
+    <div class="action-card" id="btnOpenLimiti">
+      <svg class="action-icon" id="limitiCardIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Limiti Fuel Card</span>
+    </div>
+    <div class="action-card" id="btnOpenNoleggio">
+      <svg class="action-icon" id="noleggioCardIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M5 11l1.5-4.5A2 2 0 0 1 8.3 5h7.4a2 2 0 0 1 1.9 1.5L19 11" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="3" y="11" width="18" height="6" rx="2" stroke-linejoin="round"/>
+        <circle cx="7.5" cy="17.5" r="1.4"/>
+        <circle cx="16.5" cy="17.5" r="1.4"/>
+      </svg>
+      <span style="font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;">
+        <span id="noleggioPctLabel">–</span><span style="color:var(--muted);font-weight:500;">Δ</span>
+        <span style="color:var(--muted);font-weight:500;">#</span>
+        <span id="noleggioKmPctLabel">–</span><span style="color:var(--muted);font-weight:500;">Km</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- GAUGES -->
+  <div class="gauges">
+    <div class="gauge-card" id="needleGaugeCard">
+      <div class="label">Km/L Medio</div>
+      <div class="value" id="gaugeAvgConsumo">–<span class="unit">km/l</span></div>
+    </div>
+    <div class="gauge-card">
+      <div class="label">€/L Medio</div>
+      <div class="value" id="statPrezzoMedio">€ 0</div>
+    </div>
+    <div class="gauge-card accent">
+      <div class="label">Litri totali</div>
+      <div class="value" id="statLitri">0 <span class="unit">L</span></div>
+    </div>
+    <div class="gauge-card">
+      <div class="label">Win-Win</div>
+      <div class="value" id="statExtra70">€ 0</div>
+    </div>
+  </div>
+
+  <!-- FORM (in popup) -->
+  <div class="modal-overlay" id="modalRifornimento">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 style="margin:0;">Nuovo rifornimento</h2>
+        <button type="button" class="modal-close" data-close="modalRifornimento">✕</button>
+      </div>
+      <div class="scan-row">
+        <label class="btn btn-ghost file-btn" style="cursor:pointer;">
+          📷 Scansiona scontrino
+          <input type="file" id="receiptInput" accept="image/*" capture="environment">
+        </label>
+        <span id="scanStatus" class="helper-note" style="margin:0;"></span>
+      </div>
+      <form id="entryForm">
+        <div class="field">
+          <label for="fData">Data</label>
+          <input type="date" id="fData" required>
+        </div>
+        <div class="field">
+          <label for="fTarga">Targa</label>
+          <input type="text" id="fTarga" list="targheList" required style="text-transform:uppercase;">
+          <datalist id="targheList"></datalist>
+        </div>
+        <div class="field">
+          <label for="fKm">Km attuali</label>
+          <input type="text" inputmode="numeric" id="fKm" placeholder="es. 84.210" required>
+        </div>
+        <div class="field">
+          <label for="fLitri">Litri</label>
+          <input type="text" inputmode="decimal" id="fLitri" placeholder="es. 42,50" required>
+        </div>
+        <div class="field">
+          <label for="fPrezzo">€ / litro</label>
+          <input type="text" inputmode="decimal" id="fPrezzo" placeholder="es. 1,789" required>
+        </div>
+        <div class="field">
+          <label for="fDistributore">Distributore</label>
+          <select id="fDistributore" required>
+            <option value="Eni">Eni</option>
+            <option value="Q8">Q8</option>
+          </select>
+        </div>
+        <div class="field wide">
+          <label for="fNote">Note (facoltativo)</label>
+          <input type="text" id="fNote" placeholder="es. viaggio Sardegna, autostrada...">
+        </div>
+        <button type="submit" class="btn">+ Aggiungi</button>
+      </form>
+      <div class="helper-note">L'importo totale e il consumo (km/l) si calcolano automaticamente. Il consumo presuppone un pieno ad ogni rifornimento.</div>
+    </div>
+  </div>
+
+  <!-- LIMITI E TOTALI ENI/Q8 (in popup) -->
+  <div class="modal-overlay" id="modalLimiti">
+    <div class="modal-box" style="max-width:720px;">
+      <div class="modal-header">
+        <h2 style="margin:0;">Limiti Fuel Card</h2>
+        <button type="button" class="modal-close" data-close="modalLimiti">✕</button>
+      </div>
+      <div class="limit-cards" id="limitCards"></div>
+      <div class="gauges" style="grid-template-columns:repeat(2,1fr);margin-top:20px;">
+        <div class="gauge-card">
+          <div class="label">Eni L</div>
+          <div class="value yellow-value" id="statEniLitri">0 L</div>
+        </div>
+        <div class="gauge-card">
+          <div class="label">Eni €</div>
+          <div class="value yellow-value" id="statEniEuro">€ 0</div>
+        </div>
+        <div class="gauge-card">
+          <div class="label">Q8 L</div>
+          <div class="value yellow-value" id="statQ8Litri">0 L</div>
+        </div>
+        <div class="gauge-card">
+          <div class="label">Q8 €</div>
+          <div class="value yellow-value" id="statQ8Euro">€ 0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOLEGGIO (in popup) -->
+  <div class="modal-overlay" id="modalNoleggio">
+    <div class="modal-box" style="max-width:480px;">
+      <div class="modal-header">
+        <h2 style="margin:0;">Noleggio</h2>
+        <button type="button" class="modal-close" data-close="modalNoleggio">✕</button>
+      </div>
+      <div id="noleggioModalBody">
+        <div class="helper-note">Nessun contratto di noleggio configurato per questo veicolo. Impostalo dalla sezione Noleggio dentro Impostazioni.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STORICO E ANDAMENTO RIFORNIMENTI (in popup) -->
+  <div class="modal-overlay" id="modalStoricoRifornimenti">
+    <div class="modal-box" style="max-width:900px;">
+      <div class="modal-header">
+        <h2 style="margin:0;">Storico rifornimenti</h2>
+        <button type="button" class="modal-close" data-close="modalStoricoRifornimenti">✕</button>
+      </div>
+      <div class="gauges" style="grid-template-columns:repeat(2,1fr);margin-bottom:20px;">
+        <div class="gauge-card">
+          <div class="label">€ Carburante totale</div>
+          <div class="value" id="statSpesa">€ 0</div>
+        </div>
+        <div class="gauge-card accent">
+          <div class="label">Litri totali</div>
+          <div class="value" id="statLitriRifModal">0 <span class="unit">L</span></div>
+        </div>
+        <div class="gauge-card">
+          <div class="label">€/L Medio</div>
+          <div class="value" id="statPrezzoMedioRifModal">€ 0</div>
+        </div>
+      </div>
+      <div class="row-between">
+        <span class="helper-note" id="countLabel" style="margin:0;"></span>
+      </div>
+      <div class="table-scroll">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Veicolo</th>
+              <th>Distributore</th>
+              <th>Km</th>
+              <th>Km percorsi</th>
+              <th>Litri</th>
+              <th>€/litro</th>
+              <th>Importo</th>
+              <th>Consumo km/l</th>
+              <th>Note</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState">Nessun rifornimento registrato. Aggiungi il primo dato qui sopra.</div>
+      </div>
+      <div class="pagination" id="paginationRif">
+        <button type="button" class="btn btn-ghost" id="prevPageRif">‹ Precedente</button>
+        <span id="pageInfoRif">Pagina 1 di 1</span>
+        <button type="button" class="btn btn-ghost" id="nextPageRif">Successiva ›</button>
+      </div>
+
+      <div class="modal-section-title" style="margin-top:24px;">Andamento rifornimenti</div>
+      <div class="row-between">
+        <select id="yearSelect"></select>
+      </div>
+      <div class="chart-box">
+        <canvas id="chartVolumeImporto"></canvas>
+        <div class="empty-state" id="chartEmptyState" style="display:none;">Nessun rifornimento registrato: aggiungine uno per vedere qui l'andamento mensile.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUOVA SPESA (in popup) -->
+  <div class="modal-overlay" id="modalSpesa">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 style="margin:0;">Nuova spesa</h2>
+        <button type="button" class="modal-close" data-close="modalSpesa">✕</button>
+      </div>
+      <form id="expenseForm">
+        <div class="field">
+          <label for="eData">Data</label>
+          <input type="date" id="eData" required>
+        </div>
+        <div class="field">
+          <label for="eImporto">Importo (€)</label>
+          <input type="text" inputmode="decimal" id="eImporto" placeholder="es. 257,00" required>
+        </div>
+        <div class="field wide">
+          <label for="eNote">Note</label>
+          <input type="text" id="eNote" placeholder="es. Canone Mensile">
+        </div>
+        <div class="field wide" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="eRicorrente" style="width:auto;">
+          <label for="eRicorrente" style="margin:0;text-transform:none;font-size:13px;">Ricorrente ogni mese (stesso giorno, importo e nota)</label>
+        </div>
+        <button type="submit" class="btn">+ Aggiungi spesa</button>
+      </form>
+      <div class="helper-note">Le spese ricorrenti si generano da sole ogni mese, dal giorno impostato in poi, quando riapri la pagina.</div>
+    </div>
+  </div>
+
+  <!-- STORICO E ANDAMENTO SPESE (in popup) -->
+  <div class="modal-overlay" id="modalStoricoSpese">
+    <div class="modal-box" style="max-width:900px;">
+      <div class="modal-header">
+        <h2 style="margin:0;">Storico spese</h2>
+        <button type="button" class="modal-close" data-close="modalStoricoSpese">✕</button>
+      </div>
+      <div class="gauges" style="grid-template-columns:repeat(2,1fr);margin-bottom:20px;">
+        <div class="gauge-card">
+          <div class="label">Totale spese</div>
+          <div class="value" id="statSpeseTotali">€ 0</div>
+        </div>
+        <div class="gauge-card">
+          <div class="label">Totale canoni</div>
+          <div class="value" id="statCanoniTotali">€ 0</div>
+        </div>
+        <div class="gauge-card">
+          <div class="label">Totale extra</div>
+          <div class="value" id="statExtraTotali">€ 0</div>
+        </div>
+      </div>
+      <div class="row-between">
+        <span class="helper-note" id="expenseCountLabel" style="margin:0;"></span>
+      </div>
+      <div class="table-scroll">
+        <table id="expenseTable">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Importo</th>
+              <th>Note</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="expenseTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="expenseEmptyState">Nessuna spesa registrata.</div>
+      </div>
+      <div class="pagination" id="paginationSpese">
+        <button type="button" class="btn btn-ghost" id="prevPageSpese">‹ Precedente</button>
+        <span id="pageInfoSpese">Pagina 1 di 1</span>
+        <button type="button" class="btn btn-ghost" id="nextPageSpese">Successiva ›</button>
+      </div>
+
+      <div class="modal-section-title" style="margin-top:24px;">Andamento spese</div>
+      <div class="row-between">
+        <select id="expenseYearSelect"></select>
+      </div>
+      <div class="chart-box">
+        <canvas id="chartSpeseAndamento"></canvas>
+        <div class="empty-state" id="chartSpeseEmptyState" style="display:none;">Nessuna spesa registrata: aggiungine una per vedere qui l'andamento mensile.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPOSTAZIONI (in popup) -->
+  <div class="modal-overlay" id="modalImpostazioni">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 style="margin:0;">Impostazioni</h2>
+        <button type="button" class="modal-close" data-close="modalImpostazioni">✕</button>
+      </div>
+
+      <div class="modal-section-title">Veicolo</div>
+      <div class="control-bar" style="margin-bottom:12px;">
+        <div class="group">
+          <label for="vehicleFilter">Veicolo</label>
+          <select id="vehicleFilter"></select>
+        </div>
+      </div>
+      <div class="field wide" style="margin-bottom:24px;">
+        <label for="defaultTargaInput">Targa predefinita</label>
+        <input type="text" id="defaultTargaInput" placeholder="es. AB123CD" style="text-transform:uppercase;">
+      </div>
+      <div class="helper-note" style="margin-bottom:24px;">Usata come suggerimento nei moduli di rifornimento e noleggio. Il file HTML non contiene nessuna targa: la imposti tu qui, salvata solo nel tuo browser.</div>
+
+      <div class="modal-section-title">Backup dati (JSON)</div>
+      <div class="control-bar" style="margin-bottom:24px;">
+        <div class="group">
+          <button type="button" class="btn btn-ghost" id="exportJsonBtn">Esporta JSON</button>
+          <span class="btn btn-ghost file-btn">Importa JSON
+            <input type="file" id="importFile" accept="application/json,.json">
+          </span>
+        </div>
+      </div>
+      <div class="helper-note" style="margin-bottom:24px;">Il file JSON include rifornimenti, spese e i massimali di spesa impostati qui sotto.</div>
+
+      <div class="modal-section-title">Massimali di spesa</div>
+      <div class="limits-form-grid">
+        <div class="limits-col">
+          <div class="limits-col-title badge-eni"><span class="badge-dot"></span>Eni</div>
+          <div class="field"><label for="limEniGiorno">Massimale giorno (€)</label><input type="number" id="limEniGiorno" min="0" step="0.01" placeholder="es. 20"></div>
+          <div class="field"><label for="limEniSettimana">Massimale settimana (€)</label><input type="number" id="limEniSettimana" min="0" step="0.01" placeholder="es. 100"></div>
+          <div class="field"><label for="limEniMese">Massimale mese (€)</label><input type="number" id="limEniMese" min="0" step="0.01" placeholder="es. 350"></div>
+        </div>
+        <div class="limits-col">
+          <div class="limits-col-title badge-q8"><span class="badge-dot"></span>Q8</div>
+          <div class="field"><label for="limQ8Giorno">Massimale giorno (€)</label><input type="number" id="limQ8Giorno" min="0" step="0.01" placeholder="es. 20"></div>
+          <div class="field"><label for="limQ8Settimana">Massimale settimana (€)</label><input type="number" id="limQ8Settimana" min="0" step="0.01" placeholder="es. 100"></div>
+          <div class="field"><label for="limQ8Mese">Massimale mese (€)</label><input type="number" id="limQ8Mese" min="0" step="0.01" placeholder="es. 350"></div>
+        </div>
+      </div>
+      <button type="button" class="btn" id="saveLimitsBtn" style="margin-top:16px;">Salva massimali</button>
+      <div class="helper-note" style="margin-bottom:24px;">Lascia vuoto un campo per non impostare un limite su quel periodo (nessun alert). I residui si calcolano su giorno corrente, settimana corrente (lun-dom) e mese corrente.</div>
+
+      <div class="modal-section-title">Noleggio</div>
+      <div class="field">
+        <label for="nolTarga">Targa</label>
+        <input type="text" id="nolTarga" list="targheList" style="text-transform:uppercase;">
+      </div>
+      <div class="field">
+        <label for="nolModello">Modello</label>
+        <input type="text" id="nolModello" placeholder="es. Fiat Panda">
+      </div>
+      <div class="field">
+        <label for="nolDataInizio">Data inizio</label>
+        <input type="date" id="nolDataInizio">
+      </div>
+      <div class="field">
+        <label for="nolMesi">Mesi contratto</label>
+        <input type="number" id="nolMesi" min="1" placeholder="es. 36">
+      </div>
+      <div class="field">
+        <label for="nolDataFine">Data fine (calcolata)</label>
+        <input type="date" id="nolDataFine" disabled>
+      </div>
+      <div class="field">
+        <label for="nolKmAnnui">Km annui</label>
+        <input type="text" inputmode="numeric" id="nolKmAnnui" placeholder="es. 20.000">
+      </div>
+      <button type="button" class="btn" id="saveNoleggioBtn" style="margin-top:8px;">Salva noleggio</button>
+      <div class="helper-note" style="margin:12px 0;">Un contratto per targa. Salvando su una targa già configurata, la aggiorni.</div>
+      <div id="noleggioList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'fuelTrackerEntries_v1';
+const LIMITS_KEY = 'fuelTrackerLimits_v1';
+const NOLEGGI_KEY = 'fuelTrackerNoleggi_v1';
+const DEFAULT_TARGA_KEY = 'fuelTrackerDefaultTarga_v1';
+let defaultTarga = '';
+
+function loadDefaultTarga(){
+  try{ defaultTarga = localStorage.getItem(DEFAULT_TARGA_KEY) || ''; }catch(e){ defaultTarga = ''; }
+}
+function saveDefaultTarga(v){
+  defaultTarga = (v||'').trim().toUpperCase();
+  localStorage.setItem(DEFAULT_TARGA_KEY, defaultTarga);
+}
+let noleggi = {};
+
+function loadNoleggi(){
+  try{ const raw = localStorage.getItem(NOLEGGI_KEY); noleggi = raw ? JSON.parse(raw) : {}; }catch(e){ noleggi = {}; }
+}
+function saveNoleggi(){ localStorage.setItem(NOLEGGI_KEY, JSON.stringify(noleggi)); }
+
+function computeDataFineNoleggio(dataInizio, mesi){
+  const d = new Date(dataInizio+'T00:00:00');
+  d.setMonth(d.getMonth()+parseInt(mesi,10));
+  return localISO(d);
+}
+
+function computeElapsedPctNoleggio(cfg){
+  if(!cfg || !cfg.dataInizio || !cfg.mesiContratto) return null;
+  const dataFine = computeDataFineNoleggio(cfg.dataInizio, cfg.mesiContratto);
+  const start = new Date(cfg.dataInizio+'T00:00:00').getTime();
+  const end = new Date(dataFine+'T00:00:00').getTime();
+  const now = Date.now();
+  if(end<=start) return 100;
+  const pct = ((now-start)/(end-start))*100;
+  return Math.max(0, Math.min(100, pct));
+}
+
+function pickActiveNoleggio(){
+  if(currentVehicleFilter && noleggi[currentVehicleFilter]){
+    return {targa: currentVehicleFilter, ...noleggi[currentVehicleFilter]};
+  }
+  let best = null, bestPct = -1;
+  Object.entries(noleggi).forEach(([targa, cfg])=>{
+    const pct = computeElapsedPctNoleggio(cfg);
+    if(pct!==null && pct>bestPct){ bestPct = pct; best = {targa, ...cfg}; }
+  });
+  return best;
+}
+
+function noleggioColorFor(pct){
+  return pct>=95 ? '#ef4444' : (pct>=76 ? '#f59e0b' : '#22c55e');
+}
+
+function getLastKmForTarga(targa){
+  const list = entries.filter(e=>e.targa===targa);
+  if(!list.length) return null;
+  return Math.max(...list.map(e=>e.km));
+}
+
+function computeKmPctNoleggio(cfg){
+  if(!cfg || !cfg.kmAnnui || !cfg.mesiContratto) return null;
+  const totaleKm = cfg.kmAnnui * (cfg.mesiContratto/12);
+  const kmAttuali = getLastKmForTarga(cfg.targa);
+  if(kmAttuali===null || totaleKm<=0) return null;
+  return Math.max(0, Math.min(100, (kmAttuali/totaleKm)*100));
+}
+
+function renderNoleggioCard(){
+  const active = pickActiveNoleggio();
+  const iconEl = document.getElementById('noleggioCardIcon');
+  const pctEl = document.getElementById('noleggioPctLabel');
+  const kmPctEl = document.getElementById('noleggioKmPctLabel');
+  if(!active){
+    iconEl.style.color = '';
+    pctEl.textContent = '–';
+    pctEl.style.color = '';
+    kmPctEl.textContent = '–';
+    kmPctEl.style.color = '';
+    return;
+  }
+  const pct = computeElapsedPctNoleggio(active);
+  const color = noleggioColorFor(pct);
+  iconEl.style.color = color;
+  pctEl.style.color = color;
+  pctEl.textContent = fmt(pct,0)+'%';
+
+  const kmPct = computeKmPctNoleggio(active);
+  if(kmPct===null){
+    kmPctEl.textContent = '–';
+    kmPctEl.style.color = '';
+  }else{
+    kmPctEl.style.color = noleggioColorFor(kmPct);
+    kmPctEl.textContent = fmt(kmPct,0)+'%';
+  }
+}
+
+function renderNoleggioModal(){
+  const active = pickActiveNoleggio();
+  const body = document.getElementById('noleggioModalBody');
+  if(!active){
+    body.innerHTML = '<div class="helper-note">Nessun contratto di noleggio configurato per questo veicolo. Impostalo dalla sezione Noleggio dentro Impostazioni.</div>';
+    return;
+  }
+  const dataFine = computeDataFineNoleggio(active.dataInizio, active.mesiContratto);
+  const todayISO = localISO(new Date());
+  const pct = computeElapsedPctNoleggio(active);
+  const color = noleggioColorFor(pct);
+  const kmPct = computeKmPctNoleggio(active);
+  const kmLine = kmPct===null
+    ? '<div class="helper-note" style="margin-top:4px;">Km percorsi: dati non disponibili</div>'
+    : `<div class="helper-note" style="margin-top:4px;color:${noleggioColorFor(kmPct)};font-weight:700;">Km percorsi: ${fmt(kmPct,0)}%</div>`;
+  body.innerHTML = `
+    <div class="field"><label>Veicolo</label><input type="text" value="${active.targa}${active.modello? ' - '+active.modello.replace(/"/g,'&quot;'):''}" disabled></div>
+    <div class="field"><label>Data odierna</label><input type="text" value="${formatDateIt(todayISO)}" disabled></div>
+    <div class="field"><label>Data inizio noleggio</label><input type="text" value="${formatDateIt(active.dataInizio)}" disabled></div>
+    <div class="field"><label>Data fine noleggio</label><input type="text" value="${formatDateIt(dataFine)}" disabled></div>
+    <div class="field"><label>Km annui</label><input type="text" value="${active.kmAnnui? fmt(active.kmAnnui,0)+' km':'—'}" disabled></div>
+    <div class="helper-note" style="margin-top:12px;color:${color};font-weight:700;">Tempo trascorso: ${fmt(pct,0)}%</div>
+    ${kmLine}
+  `;
+}
+
+function renderNoleggioList(){
+  const container = document.getElementById('noleggioList');
+  const rows = Object.entries(noleggi);
+  if(rows.length===0){ container.innerHTML=''; return; }
+  container.innerHTML = rows.map(([targa,cfg])=>{
+    const dataFine = computeDataFineNoleggio(cfg.dataInizio, cfg.mesiContratto);
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);gap:8px;">
+      <div style="font-size:13px;">
+        <strong>${targa}</strong>${cfg.modello? ' — '+cfg.modello.replace(/"/g,'&quot;'):''}<br>
+        <span class="helper-note" style="margin:0;">${formatDateIt(cfg.dataInizio)} → ${formatDateIt(dataFine)}${cfg.kmAnnui? ' · '+fmt(cfg.kmAnnui,0)+' km/anno':''}</span>
+      </div>
+      <button type="button" class="modal-close" data-del-noleggio="${targa}" title="Elimina">✕</button>
+    </div>`;
+  }).join('');
+  container.querySelectorAll('[data-del-noleggio]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      delete noleggi[btn.dataset.delNoleggio];
+      saveNoleggi();
+      renderNoleggioList();
+      renderNoleggioCard();
+    });
+  });
+}
+
+function updateNolDataFinePreview(){
+  const dataInizio = document.getElementById('nolDataInizio').value;
+  const mesi = parseInt(document.getElementById('nolMesi').value,10);
+  const fineEl = document.getElementById('nolDataFine');
+  fineEl.value = (dataInizio && !isNaN(mesi) && mesi>0) ? computeDataFineNoleggio(dataInizio, mesi) : '';
+}
+
+function populateNoleggioForm(targaOverride){
+  const targa = (targaOverride || currentVehicleFilter || defaultTarga || '').toUpperCase();
+  document.getElementById('nolTarga').value = targa;
+  const cfg = noleggi[targa];
+  document.getElementById('nolModello').value = cfg ? (cfg.modello||'') : '';
+  document.getElementById('nolDataInizio').value = cfg ? cfg.dataInizio : '';
+  document.getElementById('nolMesi').value = cfg ? cfg.mesiContratto : '';
+  document.getElementById('nolKmAnnui').value = (cfg && cfg.kmAnnui!=null) ? formatItNumber(cfg.kmAnnui,0) : '';
+  updateNolDataFinePreview();
+}
+
+let entries = [];
+let charts = {};
+let limits = { Eni:{giorno:null,settimana:null,mese:null}, Q8:{giorno:null,settimana:null,mese:null} };
+let currentVehicleFilter = '';
+let currentPageRif = 1;
+let currentPageSpese = 1;
+const PAGE_SIZE = 10;
+
+function loadLimits(){
+  try{
+    const raw = localStorage.getItem(LIMITS_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      limits = {
+        Eni: {...limits.Eni, ...(parsed.Eni||{})},
+        Q8: {...limits.Q8, ...(parsed.Q8||{})}
+      };
+    }
+  }catch(e){}
+}
+function saveLimits(){
+  localStorage.setItem(LIMITS_KEY, JSON.stringify(limits));
+}
+
+function getFilteredEntries(){
+  return currentVehicleFilter ? entries.filter(e=> (e.targa||'N/D')===currentVehicleFilter) : entries;
+}
+
+function loadEntries(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    entries = raw ? JSON.parse(raw) : [];
+  }catch(e){ entries = []; }
+}
+function saveEntries(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+function computeDerived(list){
+  const source = list || entries;
+  const byTarga = {};
+  source.forEach(e=>{
+    const t = e.targa || 'N/D';
+    if(!byTarga[t]) byTarga[t]=[];
+    byTarga[t].push(e);
+  });
+  let result = [];
+  Object.values(byTarga).forEach(group=>{
+    const sorted = [...group].sort((a,b)=> a.data.localeCompare(b.data) || a.km-b.km);
+    let prevKm = null;
+    sorted.forEach(e=>{
+      const kmPercorsi = prevKm===null ? null : (e.km - prevKm);
+      const consumo = (kmPercorsi && kmPercorsi>0) ? (kmPercorsi / e.litri) : null;
+      prevKm = e.km;
+      result.push({...e, kmPercorsi, consumo, importo: e.litri*e.prezzo});
+    });
+  });
+  return result;
+}
+
+function fmt(n, d=1){
+  const num = Number(n);
+  if(isNaN(num)) return '–';
+  const neg = num < 0;
+  const fixed = Math.abs(num).toFixed(d);
+  const [intPart, decPart] = fixed.split('.');
+  const withDots = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const out = d>0 ? withDots + ',' + decPart : withDots;
+  return neg ? '-' + out : out;
+}
+
+function render(){
+  populateVehicleControls();
+  renderLimitCards();
+  const derived = computeDerived(getFilteredEntries());
+
+  // summary stats
+  const totLitri = derived.reduce((s,e)=>s+e.litri,0);
+  const totSpesa = derived.reduce((s,e)=>s+e.importo,0);
+  const totKm = derived.reduce((s,e)=> s + (e.kmPercorsi>0? e.kmPercorsi:0), 0);
+  const validConsumi = derived.filter(e=>e.consumo && e.consumo>0);
+  const avgConsumo = validConsumi.length
+    ? validConsumi.reduce((s,e)=>s+e.consumo,0)/validConsumi.length
+    : null;
+
+  document.getElementById('statLitri').innerHTML = fmt(totLitri,1)+' <span class="unit">L</span>';
+  document.getElementById('statSpesa').textContent = '€ '+fmt(totSpesa,2);
+
+  const eniEntries = derived.filter(e=>e.distributore==='Eni');
+  const q8Entries = derived.filter(e=>e.distributore==='Q8');
+  document.getElementById('statEniLitri').textContent = fmt(eniEntries.reduce((s,e)=>s+e.litri,0),1)+' L';
+  document.getElementById('statEniEuro').textContent = '€ '+fmt(eniEntries.reduce((s,e)=>s+e.importo,0),2);
+  document.getElementById('statQ8Litri').textContent = fmt(q8Entries.reduce((s,e)=>s+e.litri,0),1)+' L';
+  document.getElementById('statQ8Euro').textContent = '€ '+fmt(q8Entries.reduce((s,e)=>s+e.importo,0),2);
+  updateExtra70Card();
+  document.getElementById('gaugeAvgConsumo').innerHTML = (avgConsumo? fmt(avgConsumo,1):'–')+' <span class="unit">km/l</span>';
+  const prezzoMedio = totLitri>0 ? totSpesa/totLitri : 0;
+  document.getElementById('statPrezzoMedio').textContent = '€ '+fmt(prezzoMedio,3);
+
+  const displayList = [...derived].sort((a,b)=> b.data.localeCompare(a.data) || b.km-a.km);
+  const lastEntry = displayList.length ? displayList[0] : null;
+
+  const kmlEl = document.getElementById('gaugeAvgConsumo');
+  if(avgConsumo && lastEntry && lastEntry.consumo){
+    kmlEl.style.color = (avgConsumo < lastEntry.consumo) ? 'var(--teal)' : 'var(--red)';
+  }else{
+    kmlEl.style.color = '';
+  }
+  const eurLEl = document.getElementById('statPrezzoMedio');
+  if(totLitri>0 && lastEntry){
+    eurLEl.style.color = (prezzoMedio < lastEntry.prezzo) ? 'var(--teal)' : 'var(--red)';
+  }else{
+    eurLEl.style.color = '';
+  }
+
+  document.getElementById('statLitriRifModal').innerHTML = fmt(totLitri,1)+' <span class="unit">L</span>';
+  const eurLEl2 = document.getElementById('statPrezzoMedioRifModal');
+  eurLEl2.textContent = '€ '+fmt(prezzoMedio,3);
+  eurLEl2.style.color = eurLEl.style.color;
+
+  // table
+  const tbody = document.getElementById('tableBody');
+  const emptyState = document.getElementById('emptyState');
+  tbody.innerHTML='';
+  emptyState.style.display = displayList.length ? 'none':'block';
+  document.getElementById('countLabel').textContent = displayList.length ? fmt(displayList.length,0)+' rifornimenti registrati' : '';
+
+  const totalPagesRif = Math.max(1, Math.ceil(displayList.length / PAGE_SIZE));
+  if(currentPageRif > totalPagesRif) currentPageRif = totalPagesRif;
+  if(currentPageRif < 1) currentPageRif = 1;
+  const pageStartRif = (currentPageRif-1)*PAGE_SIZE;
+  const pageItemsRif = displayList.slice(pageStartRif, pageStartRif+PAGE_SIZE);
+  document.getElementById('pageInfoRif').textContent = `Pagina ${currentPageRif} di ${totalPagesRif}`;
+  document.getElementById('prevPageRif').disabled = currentPageRif<=1;
+  document.getElementById('nextPageRif').disabled = currentPageRif>=totalPagesRif;
+
+  pageItemsRif.forEach(e=>{
+    const tr = document.createElement('tr');
+    const distClass = e.distributore==='Eni' ? 'badge-eni' : (e.distributore==='Q8' ? 'badge-q8' : 'badge-altro');
+    tr.innerHTML = `
+      <td>${formatDateIt(e.data)}</td>
+      <td>${e.targa||'—'}</td>
+      <td><span class="badge ${distClass}"><span class="badge-dot"></span>${e.distributore||'—'}</span></td>
+      <td>${fmt(e.km,0)}</td>
+      <td>${e.kmPercorsi!==null? fmt(e.kmPercorsi,0):'—'}</td>
+      <td>${fmt(e.litri,2)}</td>
+      <td>${fmt(e.prezzo,3)}</td>
+      <td>€ ${fmt(e.importo,2)}</td>
+      <td>${e.consumo? fmt(e.consumo,1):'—'}</td>
+      <td class="note" title="${(e.note||'').replace(/"/g,'&quot;')}">${e.note||'—'}</td>
+      <td class="del"><button title="Elimina" data-id="${e.id}">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('button[data-id]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      entries = entries.filter(e=>e.id !== btn.dataset.id);
+      saveEntries();
+      render();
+    });
+  });
+
+  renderYearSelect(derived);
+  renderCharts(derived);
+  renderNoleggioCard();
+}
+
+function localISO(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function getWeekBounds(d){
+  const day = d.getDay();
+  const diff = day===0 ? 6 : day-1;
+  const monday = new Date(d);
+  monday.setDate(d.getDate()-diff);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+  return [monday, sunday];
+}
+function computeSpesaPeriodo(distributore){
+  const today = new Date();
+  const todayISO = localISO(today);
+  const [monday, sunday] = getWeekBounds(today);
+  const mondayISO = localISO(monday), sundayISO = localISO(sunday);
+  const monthKey = todayISO.slice(0,7);
+  const list = entries.filter(e=> e.distributore===distributore);
+  const giorno = list.filter(e=> e.data===todayISO).reduce((s,e)=>s+e.litri*e.prezzo,0);
+  const settimana = list.filter(e=> e.data>=mondayISO && e.data<=sundayISO).reduce((s,e)=>s+e.litri*e.prezzo,0);
+  const mese = list.filter(e=> e.data.slice(0,7)===monthKey).reduce((s,e)=>s+e.litri*e.prezzo,0);
+  return {giorno, settimana, mese};
+}
+function renderLimitCards(){
+  const container = document.getElementById('limitCards');
+  const periods = [['giorno','Oggi'],['settimana','Questa settimana'],['mese','Questo mese']];
+  container.innerHTML = ['Eni','Q8'].map(dist=>{
+    const spent = computeSpesaPeriodo(dist);
+    const cap = limits[dist];
+    const distClass = dist==='Eni' ? 'badge-eni' : 'badge-q8';
+    const rows = periods.map(([key,label])=>{
+      const capVal = cap[key];
+      const spentVal = spent[key];
+      if(capVal===null || capVal===undefined || isNaN(capVal)){
+        return `<div class="limit-row ok">
+          <div class="top"><span>${label}</span><span>nessun limite</span></div>
+          <div class="limit-bar-track"><div class="limit-bar-fill" style="width:100%;"></div></div>
+          <div class="amounts">Speso: € ${fmt(spentVal,2)}</div>
+        </div>`;
+      }
+      const residuo = capVal - spentVal;
+      const pct = capVal>0 ? Math.min(100,(spentVal/capVal)*100) : 100;
+      const cls = pct>=95 ? 'over' : (pct>=76 ? 'warn' : 'ok');
+      const residuoLabel = residuo<0
+        ? `Superato di € ${fmt(Math.abs(residuo),2)}`
+        : `Residuo € ${fmt(residuo,2)}`;
+      return `<div class="limit-row ${cls}">
+        <div class="top"><span>${label}</span><span>€ ${fmt(spentVal,2)} / € ${fmt(capVal,2)}</span></div>
+        <div class="limit-bar-track"><div class="limit-bar-fill" style="width:${pct}%;"></div></div>
+        <div class="amounts">${residuoLabel}</div>
+      </div>`;
+    }).join('');
+    return `<div class="limit-card">
+      <div class="header ${distClass}"><span class="badge-dot"></span>${dist}</div>
+      ${rows}
+    </div>`;
+  }).join('');
+
+  const eniSpentWeek = computeSpesaPeriodo('Eni').settimana;
+  const q8SpentWeek = computeSpesaPeriodo('Q8').settimana;
+  const eniCapWeek = limits.Eni.settimana;
+  const q8CapWeek = limits.Q8.settimana;
+  const combinedSpent = eniSpentWeek + q8SpentWeek;
+  const combinedCap = (eniCapWeek||0) + (q8CapWeek||0);
+  const iconEl = document.getElementById('limitiCardIcon');
+  if(combinedCap<=0){
+    iconEl.style.color = '#22c55e';
+  }else{
+    const iconPct = Math.min(100,(combinedSpent/combinedCap)*100);
+    iconEl.style.color = iconPct>=95 ? '#ef4444' : (iconPct>=76 ? '#f59e0b' : '#22c55e');
+  }
+}
+function populateLimitsForm(){
+  document.getElementById('limEniGiorno').value = limits.Eni.giorno ?? '';
+  document.getElementById('limEniSettimana').value = limits.Eni.settimana ?? '';
+  document.getElementById('limEniMese').value = limits.Eni.mese ?? '';
+  document.getElementById('limQ8Giorno').value = limits.Q8.giorno ?? '';
+  document.getElementById('limQ8Settimana').value = limits.Q8.settimana ?? '';
+  document.getElementById('limQ8Mese').value = limits.Q8.mese ?? '';
+}
+
+function populateVehicleControls(){
+  const targhe = [...new Set(entries.map(e=> e.targa || 'N/D'))].sort();
+  if(defaultTarga && !targhe.includes(defaultTarga)) targhe.unshift(defaultTarga);
+
+  const sel = document.getElementById('vehicleFilter');
+  const currentSel = sel.value || currentVehicleFilter;
+  sel.innerHTML = '<option value="">Tutti i veicoli</option>' +
+    targhe.map(t=>`<option value="${t}">${t}</option>`).join('');
+  sel.value = targhe.includes(currentSel) ? currentSel : '';
+  currentVehicleFilter = sel.value;
+
+  const datalist = document.getElementById('targheList');
+  datalist.innerHTML = targhe.map(t=>`<option value="${t}">`).join('');
+}
+
+function formatDateIt(iso){
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function renderYearSelect(derived){
+  const years = [...new Set(derived.map(e=>e.data.slice(0,4)))].sort((a,b)=>b-a);
+  const sel = document.getElementById('yearSelect');
+  const current = sel.value;
+  sel.innerHTML='';
+  if(years.length===0){
+    const opt=document.createElement('option'); opt.textContent='Nessun dato'; sel.appendChild(opt);
+    return;
+  }
+  years.forEach(y=>{
+    const opt=document.createElement('option'); opt.value=y; opt.textContent=y; sel.appendChild(opt);
+  });
+  sel.value = years.includes(current) ? current : years[0];
+}
+
+function destroyChart(key){ if(charts[key]){ charts[key].destroy(); } }
+
+function renderCharts(derived){
+  const yearSel = document.getElementById('yearSelect');
+  const year = yearSel.value;
+  const canvasEl = document.getElementById('chartVolumeImporto');
+  const emptyEl = document.getElementById('chartEmptyState');
+  if(derived.length===0 || !year){
+    if(charts.volumeImporto){ charts.volumeImporto.destroy(); charts.volumeImporto=null; }
+    canvasEl.style.display='none';
+    emptyEl.style.display='block';
+    return;
+  }
+  canvasEl.style.display='block';
+  emptyEl.style.display='none';
+  const monthNames = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+  const yearData = derived.filter(e=> e.data.slice(0,4) === year);
+  const speseMese = Array(12).fill(0);
+  const litriMese = Array(12).fill(0);
+  yearData.forEach(e=>{
+    const m = parseInt(e.data.slice(5,7),10)-1;
+    speseMese[m]+= e.importo;
+    litriMese[m]+= e.litri;
+  });
+
+  const gridColor = '#dde3ea';
+  const textColor = '#6b7684';
+  Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+  Chart.defaults.color = textColor;
+
+  destroyChart('volumeImporto');
+  charts.volumeImporto = new Chart(document.getElementById('chartVolumeImporto'), {
+    type:'bar',
+    data:{
+      labels: monthNames,
+      datasets:[
+        { type:'bar', label:'Litri', data:litriMese, backgroundColor:'#86efac', borderRadius:4, yAxisID:'yLitri', order:2 },
+        { type:'line', label:'Importo €', data:speseMese, borderColor:'#7dd3fc', backgroundColor:'#7dd3fc33', tension:.3, pointRadius:3, yAxisID:'yImporto', order:1 }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ display:true, labels:{color:textColor, font:{size:12}} },
+        title:{ display:true, text:`Andamento rifornimenti ${year}`, color:'#1c2733', font:{family:"'IBM Plex Sans', sans-serif", size:13, weight:'600'}, padding:{bottom:12} },
+        tooltip:{ callbacks:{ label: ctx => {
+          return ctx.dataset.yAxisID==='yImporto' ? `Importo: € ${fmt(ctx.parsed.y,2)}` : `Litri: ${fmt(ctx.parsed.y,2)} L`;
+        } } }
+      },
+      scales:{
+        x:{ grid:{color:gridColor}, ticks:{font:{size:11}} },
+        yLitri:{ position:'left', grid:{color:gridColor}, beginAtZero:true,
+          ticks:{font:{size:11}, callback:v=>fmt(v,0)},
+          title:{display:true, text:'Litri', font:{size:11}}
+        },
+        yImporto:{ position:'right', grid:{drawOnChartArea:false}, beginAtZero:true,
+          ticks:{font:{size:11}, callback:v=>'€ '+fmt(v,0)},
+          title:{display:true, text:'Importo €', font:{size:11}}
+        }
+      }
+    }
+  });
+}
+
+
+// --- SPESE VARIE (con ricorrenza mensile) ---
+const SPESE_KEY = 'fuelTrackerSpese_v1';
+const RICORRENTI_KEY = 'fuelTrackerRicorrenti_v1';
+let spese = [];
+let ricorrenti = [];
+
+function loadSpese(){
+  try{ const raw = localStorage.getItem(SPESE_KEY); spese = raw ? JSON.parse(raw) : []; }catch(e){ spese = []; }
+}
+function saveSpese(){ localStorage.setItem(SPESE_KEY, JSON.stringify(spese)); }
+function loadRicorrenti(){
+  try{ const raw = localStorage.getItem(RICORRENTI_KEY); ricorrenti = raw ? JSON.parse(raw) : []; }catch(e){ ricorrenti = []; }
+}
+function saveRicorrenti(){ localStorage.setItem(RICORRENTI_KEY, JSON.stringify(ricorrenti)); }
+
+function daysInMonth(year, month){ return new Date(year, month, 0).getDate(); }
+
+function generateRecurringOccurrences(){
+  const today = new Date();
+  const todayISO = localISO(today);
+  let changed = false;
+  ricorrenti.forEach(rule=>{
+    const [startY, startM] = rule.dataInizio.split('-').map(Number);
+    let y = startY, m = startM;
+    const curY = today.getFullYear(), curM = today.getMonth()+1;
+    while(y < curY || (y===curY && m<=curM)){
+      const dim = daysInMonth(y,m);
+      const day = Math.min(rule.giorno, dim);
+      const occDate = `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      if(occDate <= todayISO){
+        const monthKey = `${y}-${String(m).padStart(2,'0')}`;
+        const excluded = (rule.escluse||[]).includes(monthKey);
+        const exists = spese.some(s=> s.ruleId===rule.id && s.data.slice(0,7)===monthKey);
+        if(!excluded && !exists){
+          spese.push({ id: crypto.randomUUID(), data: occDate, importo: rule.importo, note: rule.note, ruleId: rule.id });
+          changed = true;
+        }
+      }
+      m++;
+      if(m>12){ m=1; y++; }
+    }
+  });
+  if(changed) saveSpese();
+}
+
+function renderSpese(){
+  generateRecurringOccurrences();
+  const tbody = document.getElementById('expenseTableBody');
+  const emptyState = document.getElementById('expenseEmptyState');
+  tbody.innerHTML='';
+  const sorted = [...spese].sort((a,b)=> b.data.localeCompare(a.data));
+  emptyState.style.display = sorted.length? 'none':'block';
+  document.getElementById('expenseCountLabel').textContent = sorted.length? fmt(sorted.length,0)+' spese registrate' : '';
+
+  const totalPagesSpese = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  if(currentPageSpese > totalPagesSpese) currentPageSpese = totalPagesSpese;
+  if(currentPageSpese < 1) currentPageSpese = 1;
+  const pageStartSpese = (currentPageSpese-1)*PAGE_SIZE;
+  const pageItemsSpese = sorted.slice(pageStartSpese, pageStartSpese+PAGE_SIZE);
+  document.getElementById('pageInfoSpese').textContent = `Pagina ${currentPageSpese} di ${totalPagesSpese}`;
+  document.getElementById('prevPageSpese').disabled = currentPageSpese<=1;
+  document.getElementById('nextPageSpese').disabled = currentPageSpese>=totalPagesSpese;
+
+  pageItemsSpese.forEach(s=>{
+    const tr = document.createElement('tr');
+    const ricorrenteTag = s.ruleId ? ' <span style="color:var(--muted);font-size:11px;">(ricorrente)</span>' : '';
+    tr.innerHTML = `
+      <td>${formatDateIt(s.data)}</td>
+      <td>€ ${fmt(s.importo,2)}</td>
+      <td class="note" title="${(s.note||'').replace(/"/g,'&quot;')}">${s.note||'—'}${ricorrenteTag}</td>
+      <td class="del"><button title="Elimina" data-id="${s.id}">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('button[data-id]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      const s = spese.find(x=>x.id===id);
+      if(s && s.ruleId){
+        const deleteAll = confirm("Questa e' una spesa ricorrente.\n\nOK = elimina anche tutte le occorrenze future (l'intera ricorrenza)\nAnnulla = elimina solo questa occorrenza (non verra' rigenerata)");
+        if(deleteAll){
+          ricorrenti = ricorrenti.filter(r=>r.id !== s.ruleId);
+          spese = spese.filter(x=>x.ruleId !== s.ruleId);
+          saveRicorrenti();
+        }else{
+          const rule = ricorrenti.find(r=>r.id===s.ruleId);
+          if(rule){
+            rule.escluse = rule.escluse || [];
+            rule.escluse.push(s.data.slice(0,7));
+            saveRicorrenti();
+          }
+          spese = spese.filter(x=>x.id !== id);
+        }
+      }else{
+        spese = spese.filter(x=>x.id !== id);
+      }
+      saveSpese();
+      renderSpese();
+    });
+  });
+
+  const totSpese = spese.reduce((sum,s)=>sum+s.importo,0);
+  const totCanoni = spese.filter(s=>s.ruleId).reduce((sum,s)=>sum+s.importo,0);
+  const totExtra = totSpese - totCanoni;
+  document.getElementById('statSpeseTotali').textContent = '€ '+fmt(totSpese,2);
+  document.getElementById('statCanoniTotali').textContent = '€ '+fmt(totCanoni,2);
+  document.getElementById('statExtraTotali').textContent = '€ '+fmt(totExtra,2);
+  updateExtra70Card();
+  renderSpeseChart();
+}
+
+function renderSpeseChart(){
+  const yearSel = document.getElementById('expenseYearSelect');
+  const years = [...new Set(spese.map(s=>s.data.slice(0,4)))].sort((a,b)=>b-a);
+  const current = yearSel.value;
+  yearSel.innerHTML='';
+  if(years.length===0){
+    const opt=document.createElement('option'); opt.textContent='Nessun dato'; yearSel.appendChild(opt);
+  }else{
+    years.forEach(y=>{
+      const opt=document.createElement('option'); opt.value=y; opt.textContent=y; yearSel.appendChild(opt);
+    });
+    yearSel.value = years.includes(current) ? current : years[0];
+  }
+
+  const year = yearSel.value;
+  const canvasEl = document.getElementById('chartSpeseAndamento');
+  const emptyEl = document.getElementById('chartSpeseEmptyState');
+  if(spese.length===0 || !year){
+    if(charts.speseAndamento){ charts.speseAndamento.destroy(); charts.speseAndamento=null; }
+    canvasEl.style.display='none';
+    emptyEl.style.display='block';
+    return;
+  }
+  canvasEl.style.display='block';
+  emptyEl.style.display='none';
+
+  const monthNames = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  const yearSpese = spese.filter(s=> s.data.slice(0,4)===year);
+  const canoneMese = Array(12).fill(0);
+  const extraMese = Array(12).fill(0);
+  yearSpese.forEach(s=>{
+    const m = parseInt(s.data.slice(5,7),10)-1;
+    if(s.ruleId) canoneMese[m]+=s.importo;
+    else extraMese[m]+=s.importo;
+  });
+
+  const gridColor = '#dde3ea';
+  const textColor = '#6b7684';
+  Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+  Chart.defaults.color = textColor;
+
+  if(charts.speseAndamento){ charts.speseAndamento.destroy(); }
+  charts.speseAndamento = new Chart(document.getElementById('chartSpeseAndamento'), {
+    type:'bar',
+    data:{
+      labels: monthNames,
+      datasets:[
+        { label:'Canone', data:canoneMese, backgroundColor:'#86efac', borderRadius:4, stack:'spese' },
+        { label:'Extra', data:extraMese, backgroundColor:'#c4b5fd', borderRadius:4, stack:'spese' }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:true, labels:{color:textColor, font:{size:12}} },
+        title:{ display:true, text:`Andamento spese ${year}`, color:'#1c2733', font:{family:"'IBM Plex Sans', sans-serif", size:13, weight:'600'}, padding:{bottom:12} },
+        tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label}: € ${fmt(ctx.parsed.y,2)}` } }
+      },
+      scales:{
+        x:{ grid:{color:gridColor}, ticks:{font:{size:11}}, stacked:true },
+        y:{ grid:{color:gridColor}, ticks:{font:{size:11}, callback:v=>'€ '+fmt(v,0)}, beginAtZero:true, stacked:true }
+      }
+    }
+  });
+}
+
+document.getElementById('expenseYearSelect').addEventListener('change', ()=>{
+  renderSpeseChart();
+});
+
+document.getElementById('prevPageSpese').addEventListener('click', ()=>{
+  currentPageSpese--;
+  renderSpese();
+});
+document.getElementById('nextPageSpese').addEventListener('click', ()=>{
+  currentPageSpese++;
+  renderSpese();
+});
+
+function updateExtra70Card(){
+  const totSpesaCarb = computeDerived(getFilteredEntries()).reduce((s,e)=>s+e.importo,0);
+  const totCanoni = spese.filter(s=>s.ruleId).reduce((s,x)=>s+x.importo,0);
+  const val = totSpesaCarb*0.7 - totCanoni;
+  const el = document.getElementById('statExtra70');
+  el.textContent = '€ '+fmt(val,2);
+  el.style.color = val>=0 ? 'var(--teal)' : 'var(--red)';
+}
+
+document.getElementById('expenseForm').addEventListener('submit', (ev)=>{
+  ev.preventDefault();
+  const data = document.getElementById('eData').value;
+  const importo = parseItNumber(document.getElementById('eImporto').value);
+  const note = document.getElementById('eNote').value.trim();
+  const ricorrente = document.getElementById('eRicorrente').checked;
+  if(!data || isNaN(importo)) return;
+
+  if(ricorrente){
+    const giorno = parseInt(data.slice(8,10),10);
+    ricorrenti.push({ id: crypto.randomUUID(), giorno, importo, note, dataInizio: data });
+    saveRicorrenti();
+  }else{
+    spese.push({ id: crypto.randomUUID(), data, importo, note, ruleId:null });
+    saveSpese();
+  }
+  ev.target.reset();
+  renderSpese();
+  closeModal('modalSpesa');
+});
+
+document.getElementById('entryForm').addEventListener('submit', (ev)=>{
+  ev.preventDefault();
+  const data = document.getElementById('fData').value;
+  const targa = document.getElementById('fTarga').value.trim().toUpperCase() || defaultTarga || '';
+  const km = parseItNumber(document.getElementById('fKm').value);
+  const litri = parseItNumber(document.getElementById('fLitri').value);
+  const prezzo = parseItNumber(document.getElementById('fPrezzo').value);
+  const distributore = document.getElementById('fDistributore').value;
+  const note = document.getElementById('fNote').value.trim();
+  if(!data || isNaN(km) || isNaN(litri) || isNaN(prezzo)) return;
+
+  entries.push({ id: crypto.randomUUID(), data, targa, km, litri, prezzo, distributore, note });
+  saveEntries();
+  ev.target.reset();
+  document.getElementById('fTarga').value = defaultTarga || '';
+  render();
+  closeModal('modalRifornimento');
+});
+
+document.getElementById('yearSelect').addEventListener('change', ()=>{
+  renderCharts(computeDerived(getFilteredEntries()));
+});
+
+document.getElementById('vehicleFilter').addEventListener('change', (ev)=>{
+  currentVehicleFilter = ev.target.value;
+  currentPageRif = 1;
+  render();
+  renderNoleggioCard();
+});
+
+document.getElementById('prevPageRif').addEventListener('click', ()=>{
+  currentPageRif--;
+  render();
+});
+document.getElementById('nextPageRif').addEventListener('click', ()=>{
+  currentPageRif++;
+  render();
+});
+
+document.getElementById('exportJsonBtn').addEventListener('click', ()=>{
+  const payload = { rifornimenti: entries, spese: spese, ricorrenti: ricorrenti, limiti: limits, noleggi: noleggi, targaPredefinita: defaultTarga };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  downloadBlob(blob, `carburante-export-${todayStamp()}.json`);
+});
+
+document.getElementById('importFile').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const imported = JSON.parse(reader.result);
+      let countEntries = 0, countSpese = 0, countRicorrenti = 0;
+
+      const importEntries = Array.isArray(imported) ? imported : (imported.rifornimenti || []);
+      importEntries.forEach(item=>{
+        if(item && typeof item.km==='number' && typeof item.litri==='number' && typeof item.prezzo==='number' && item.data){
+          entries.push({
+            id: crypto.randomUUID(),
+            data:item.data, targa:item.targa||defaultTarga||'', km:item.km, litri:item.litri,
+            prezzo:item.prezzo, distributore:item.distributore||'', note:item.note||''
+          });
+          countEntries++;
+        }
+      });
+      saveEntries();
+
+      if(!Array.isArray(imported)){
+        const ruleIdMap = {};
+        (imported.ricorrenti||[]).forEach(r=>{
+          if(r && typeof r.importo==='number' && r.giorno && r.dataInizio){
+            const newId = crypto.randomUUID();
+            ruleIdMap[r.id] = newId;
+            ricorrenti.push({ id:newId, giorno:r.giorno, importo:r.importo, note:r.note||'', dataInizio:r.dataInizio, escluse:r.escluse||[] });
+            countRicorrenti++;
+          }
+        });
+        saveRicorrenti();
+
+        (imported.spese||[]).forEach(s=>{
+          if(s && typeof s.importo==='number' && s.data){
+            spese.push({
+              id: crypto.randomUUID(),
+              data:s.data, importo:s.importo, note:s.note||'',
+              ruleId: s.ruleId && ruleIdMap[s.ruleId] ? ruleIdMap[s.ruleId] : null
+            });
+            countSpese++;
+          }
+        });
+        saveSpese();
+
+        if(imported.limiti){
+          limits = {
+            Eni: {...limits.Eni, ...(imported.limiti.Eni||{})},
+            Q8: {...limits.Q8, ...(imported.limiti.Q8||{})}
+          };
+          saveLimits();
+          populateLimitsForm();
+        }
+
+        if(imported.noleggi){
+          noleggi = {...noleggi, ...imported.noleggi};
+          saveNoleggi();
+          renderNoleggioList();
+          renderNoleggioCard();
+        }
+
+        if(imported.targaPredefinita){
+          saveDefaultTarga(imported.targaPredefinita);
+          document.getElementById('defaultTargaInput').value = defaultTarga;
+          populateVehicleControls();
+        }
+      }
+
+      render();
+      renderSpese();
+      alert(`Importati: ${countEntries} rifornimenti, ${countSpese} spese, ${countRicorrenti} ricorrenze.`);
+    }catch(err){
+      alert('File non valido. Serve un export JSON generato da questa app.');
+    }
+    ev.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('saveLimitsBtn').addEventListener('click', ()=>{
+  const parseOrNull = (id)=>{
+    const v = document.getElementById(id).value;
+    return v==='' ? null : parseFloat(v);
+  };
+  limits = {
+    Eni:{ giorno: parseOrNull('limEniGiorno'), settimana: parseOrNull('limEniSettimana'), mese: parseOrNull('limEniMese') },
+    Q8:{ giorno: parseOrNull('limQ8Giorno'), settimana: parseOrNull('limQ8Settimana'), mese: parseOrNull('limQ8Mese') }
+  };
+  saveLimits();
+  render();
+});
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function todayStamp(){
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+
+
+// --- FORMATTAZIONE NUMERI IT (punto migliaia, virgola decimali) ---
+function parseItNumber(str){
+  if(str===null || str===undefined) return NaN;
+  const cleaned = String(str).trim().replace(/\./g,'').replace(',', '.');
+  return cleaned==='' ? NaN : parseFloat(cleaned);
+}
+function formatItNumber(num, decimals){
+  if(num===null || num===undefined || isNaN(num)) return '';
+  return Number(num).toLocaleString('it-IT', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+}
+function attachItFormatting(id, decimals){
+  const el = document.getElementById(id);
+  el.addEventListener('focus', ()=>{
+    const num = parseItNumber(el.value);
+    el.value = isNaN(num) ? '' : String(num).replace('.', ',');
+  });
+  el.addEventListener('blur', ()=>{
+    const num = parseItNumber(el.value);
+    el.value = isNaN(num) ? el.value : formatItNumber(num, decimals);
+  });
+}
+attachItFormatting('fKm', 0);
+attachItFormatting('fLitri', 2);
+attachItFormatting('fPrezzo', 3);
+attachItFormatting('nolKmAnnui', 0);
+
+// --- OCR SCONTRINO ---
+let tesseractScriptLoading = null;
+function loadTesseractScript(){
+  if(window.Tesseract) return Promise.resolve();
+  if(tesseractScriptLoading) return tesseractScriptLoading;
+  tesseractScriptLoading = new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload = ()=> resolve();
+    s.onerror = ()=> reject(new Error('modulo OCR non disponibile (serve connessione internet)'));
+    document.head.appendChild(s);
+  });
+  return tesseractScriptLoading;
+}
+
+function parseReceiptText(text){
+  const result = { date:null, km:null, litri:null, prezzo:null };
+  const lines = text.split(/\r?\n/);
+
+  function numbersInLine(line){
+    return line.match(/\d+(?:[.,]\d+)?/g) || [];
+  }
+  function findValue(regexList){
+    for(const regex of regexList){
+      for(let i=0;i<lines.length;i++){
+        if(regex.test(lines[i])){
+          let nums = numbersInLine(lines[i]);
+          if(nums.length===0 && lines[i+1]) nums = numbersInLine(lines[i+1]);
+          if(nums.length) return nums[nums.length-1];
+        }
+      }
+    }
+    return null;
+  }
+
+  const dateMatch = text.match(/(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})/);
+  if(dateMatch){
+    let [, dd, mm, yy] = dateMatch;
+    if(yy.length===2) yy = (parseInt(yy,10)>50 ? '19' : '20') + yy;
+    result.date = `${yy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+  }
+
+  const kmStr = findValue([/^\s*(KM|KILOMETR|CHILOMETR)/i]);
+  if(kmStr) result.km = parseInt(kmStr.replace(/[.,]/g,''),10);
+
+  const litriStr = findValue([/^\s*(LITR|VOLUME)/i, /^\s*L\s+\d/i]);
+  if(litriStr) result.litri = parseFloat(litriStr.replace(',','.'));
+
+  const prezzoStr = findValue([/^\s*(PREZZO|P\.U\.|€\s*\/\s*L|EUR\s*\/\s*L)/i, /^\s*EUR\s+\d/i]);
+  if(prezzoStr) result.prezzo = parseFloat(prezzoStr.replace(',','.'));
+
+  return result;
+}
+
+function applyScannedData(text){
+  const r = parseReceiptText(text);
+  const decimalsById = { fKm:0, fLitri:2, fPrezzo:3 };
+  const map = { fData:r.date, fKm:r.km, fLitri:r.litri, fPrezzo:r.prezzo };
+  let found = 0;
+  Object.entries(map).forEach(([id,val])=>{
+    const el = document.getElementById(id);
+    el.classList.remove('scanned');
+    if(val!==null && val!==undefined && !(typeof val==='number' && isNaN(val))){
+      el.value = (id in decimalsById) ? formatItNumber(val, decimalsById[id]) : val;
+      el.classList.add('scanned');
+      found++;
+    }
+  });
+  const statusEl = document.getElementById('scanStatus');
+  statusEl.textContent = found>0
+    ? `Riconosciuti ${found}/4 campi dallo scontrino: verifica i valori evidenziati prima di aggiungere.`
+    : 'Non sono riuscito a leggere i dati dallo scontrino. Inseriscili manualmente.';
+}
+
+['fData','fKm','fLitri','fPrezzo'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=> document.getElementById(id).classList.remove('scanned'));
+});
+
+async function getOrientedImageSource(file){
+  try{
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0);
+    return canvas;
+  }catch(e){
+    return file;
+  }
+}
+
+document.getElementById('receiptInput').addEventListener('change', async (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('scanStatus');
+  statusEl.textContent = 'Caricamento modulo OCR...';
+  try{
+    await loadTesseractScript();
+    statusEl.textContent = 'Lettura scontrino in corso (la prima volta può richiedere qualche secondo in più)...';
+    const imgSource = await getOrientedImageSource(file);
+    const worker = await Tesseract.createWorker('ita');
+    const { data:{ text } } = await worker.recognize(imgSource);
+    await worker.terminate();
+    applyScannedData(text);
+  }catch(err){
+    statusEl.textContent = 'Errore durante la lettura: ' + err.message;
+  }
+  ev.target.value = '';
+});
+
+// --- MODALI ---
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+document.getElementById('btnOpenRifornimento').addEventListener('click', ()=>{
+  if(!document.getElementById('fTarga').value) document.getElementById('fTarga').value = defaultTarga || '';
+  openModal('modalRifornimento');
+});
+document.getElementById('btnOpenSpesa').addEventListener('click', ()=> openModal('modalSpesa'));
+document.getElementById('btnOpenImpostazioni').addEventListener('click', ()=>{
+  populateLimitsForm();
+  populateNoleggioForm();
+  renderNoleggioList();
+  document.getElementById('defaultTargaInput').value = defaultTarga;
+  openModal('modalImpostazioni');
+});
+document.getElementById('defaultTargaInput').addEventListener('change', (ev)=>{
+  saveDefaultTarga(ev.target.value);
+  populateVehicleControls();
+});
+document.getElementById('btnOpenNoleggio').addEventListener('click', ()=>{
+  renderNoleggioModal();
+  openModal('modalNoleggio');
+});
+document.getElementById('nolTarga').addEventListener('change', (ev)=> populateNoleggioForm(ev.target.value));
+document.getElementById('nolDataInizio').addEventListener('input', updateNolDataFinePreview);
+document.getElementById('nolMesi').addEventListener('input', updateNolDataFinePreview);
+document.getElementById('saveNoleggioBtn').addEventListener('click', ()=>{
+  const targa = document.getElementById('nolTarga').value.trim().toUpperCase();
+  const modello = document.getElementById('nolModello').value.trim();
+  const dataInizio = document.getElementById('nolDataInizio').value;
+  const mesi = parseInt(document.getElementById('nolMesi').value,10);
+  const kmAnnui = parseItNumber(document.getElementById('nolKmAnnui').value);
+  if(!targa || !dataInizio || isNaN(mesi) || mesi<1){
+    alert('Compila almeno targa, data inizio e mesi contratto.');
+    return;
+  }
+  noleggi[targa] = { modello, dataInizio, mesiContratto: mesi, kmAnnui: isNaN(kmAnnui) ? null : kmAnnui };
+  saveNoleggi();
+  renderNoleggioList();
+  renderNoleggioCard();
+});
+document.getElementById('btnOpenStoricoRifornimenti').addEventListener('click', ()=>{
+  openModal('modalStoricoRifornimenti');
+  if(charts.volumeImporto) charts.volumeImporto.resize();
+});
+document.getElementById('btnOpenStoricoSpese').addEventListener('click', ()=>{
+  openModal('modalStoricoSpese');
+  if(charts.speseAndamento) charts.speseAndamento.resize();
+});
+document.getElementById('btnOpenLimiti').addEventListener('click', ()=> openModal('modalLimiti'));
+
+document.querySelectorAll('.modal-close').forEach(btn=>{
+  btn.addEventListener('click', ()=> closeModal(btn.dataset.close));
+});
+document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click', (ev)=>{
+    if(ev.target === overlay) closeModal(overlay.id);
+  });
+});
+
+loadDefaultTarga();
+loadEntries();
+loadLimits();
+populateLimitsForm();
+render();
+
+loadSpese();
+loadRicorrenti();
+renderSpese();
+
+loadNoleggi();
+renderNoleggioCard();
+
+</script>
+</body>
+</html>
