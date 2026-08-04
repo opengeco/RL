@@ -440,20 +440,20 @@
   <!-- HOME -->
   <section id="tab-home" class="section active">
     <div class="dashboard-grid">
-      <div class="dash-box info">
+      <div class="dash-box info nav" onclick="apriBoxInfo('reggenze')">
         <span class="dash-label">Reggenze</span>
         <span class="dash-value" id="dash-info-reggenza">0</span>
       </div>
-      <div class="dash-box info">
-        <span class="dash-label">A scadenza</span>
+      <div class="dash-box info nav" onclick="apriBoxInfo('scadenza')">
+        <span class="dash-label">In Scadenza</span>
         <span class="dash-value" id="dash-info-verso65">0</span>
       </div>
-      <div class="dash-box info">
-        <span class="dash-label">Proroga</span>
+      <div class="dash-box info nav" onclick="apriBoxInfo('proroga')">
+        <span class="dash-label">In Proroga</span>
         <span class="dash-value" id="dash-info-over65proroga">0</span>
       </div>
-      <div class="dash-box info">
-        <span class="dash-label">Prova</span>
+      <div class="dash-box info nav" onclick="apriBoxInfo('prova')">
+        <span class="dash-label">In Prova</span>
         <span class="dash-value" id="dash-info-prova">0</span>
       </div>
       <div class="dash-box nav" onclick="switchTab('rubrica'); switchRubrica('agenzie');">
@@ -638,6 +638,14 @@
   <div class="modal wide">
     <h2><span>Impostazioni</span><button class="modal-close" onclick="closeModal('modal-settings-backdrop')">&#10005;</button></h2>
     <div id="settings-body"></div>
+  </div>
+</div>
+
+<!-- INFO BOX MODAL -->
+<div class="modal-backdrop" id="modal-infobox-backdrop">
+  <div class="modal">
+    <h2 id="infobox-title"><span></span><button class="modal-close" onclick="closeModal('modal-infobox-backdrop')">&#10005;</button></h2>
+    <div id="infobox-body"></div>
   </div>
 </div>
 
@@ -887,6 +895,70 @@ function resetFilters(kind){
   if(kind==='scadenze') updateProvinciaOptions(document.getElementById('f-sc-regione'), document.getElementById('f-sc-provincia'),'Tutte');
   pages[kind] = 1;
   ({agenzie:renderAgenzie, mandatari:renderMandatari, visite:renderVisite, scadenze:renderScadenze})[kind]();
+}
+
+function apriBoxInfo(kind){
+  let titolo = '';
+  let righe = [];
+
+  if(kind==='reggenze'){
+    titolo = 'Agenzie in Reggenza';
+    righe = db.agenzie.filter(a=>a.stato==='Reggenza').map(a=>({
+      label: a.nome,
+      sub: [a.provincia, a.regione].filter(Boolean).join(' · '),
+      onClick: ()=>{ closeModal('modal-infobox-backdrop'); showAgenziaDetail(a.id); }
+    }));
+  }
+
+  if(kind==='scadenza'){
+    titolo = 'Mandatari In Scadenza (65 anni entro 12 mesi)';
+    const oggi = oggiIso();
+    const tra12 = aggiungiAnni(oggi, 1);
+    righe = db.mandatari.filter(m=>{
+      if(!m.dataNascita) return false;
+      const d65 = aggiungiAnni(m.dataNascita, 65);
+      return d65 && d65 > oggi && d65 <= tra12;
+    }).map(m=>({
+      label: m.cognome + ' ' + m.nome,
+      sub: [m.agenziaId?agenziaName(m.agenziaId):null, 'Compie 65 anni il ' + formatDate(aggiungiAnni(m.dataNascita, 65))].filter(Boolean).join(' · '),
+      onClick: ()=>{ closeModal('modal-infobox-backdrop'); showMandatarioDetail(m.id); }
+    }));
+  }
+
+  if(kind==='proroga'){
+    titolo = 'Mandatari Over 65 In Proroga';
+    righe = db.mandatari.filter(m=>{
+      const eta = calcolaEta(m.dataNascita);
+      return eta!==null && eta > 65 && m.stato==='Proroga';
+    }).map(m=>({
+      label: m.cognome + ' ' + m.nome,
+      sub: [m.agenziaId?agenziaName(m.agenziaId):null, 'Età ' + calcolaEta(m.dataNascita)].filter(Boolean).join(' · '),
+      onClick: ()=>{ closeModal('modal-infobox-backdrop'); showMandatarioDetail(m.id); }
+    }));
+  }
+
+  if(kind==='prova'){
+    titolo = 'Mandatari In Prova (entro i due anni dal contratto)';
+    righe = db.scadenze.filter(s=>s.ruleKey==='contratto2anni' && s.mandatarioId).map(s=>{
+      const m = db.mandatari.find(x=>x.id===s.mandatarioId);
+      if(!m) return null;
+      return {
+        label: m.cognome + ' ' + m.nome,
+        sub: [m.agenziaId?agenziaName(m.agenziaId):null, 'Scadenza contratto: ' + formatDate(s.scadenza)].filter(Boolean).join(' · '),
+        onClick: ()=>{ closeModal('modal-infobox-backdrop'); showMandatarioDetail(m.id); }
+      };
+    }).filter(Boolean);
+  }
+
+  document.querySelector('#infobox-title span').textContent = titolo;
+  const body = document.getElementById('infobox-body');
+  body.innerHTML = righe.length
+    ? righe.map(r=>`<div class="mini-list-item" style="cursor:pointer;">
+        <span>${escapeHtml(r.label)}</span><span>${escapeHtml(r.sub||'')}</span>
+      </div>`).join('')
+    : '<div class="empty-state"><h3>Nessun elemento</h3><p>Non ci sono elementi da mostrare per questo indicatore.</p></div>';
+  Array.from(body.children).forEach((el, i)=>{ if(righe[i]) el.onclick = righe[i].onClick; });
+  openModal('modal-infobox-backdrop');
 }
 
 function iconAlertSottoSoglia(){
