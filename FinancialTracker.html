@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanze — Finanziamenti &amp; Abbonamenti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F3F7;
+    --surface:#FFFFFF;
+    --ink:#171B26;
+    --muted:#6B7280;
+    --muted-2:#9AA1AE;
+    --border:#E4E7EC;
+    --border-soft:#EDEFF3;
+    --accent-fin:#2B3E6B;
+    --accent-fin-soft:#EAEDF6;
+    --accent-sub:#1F6F63;
+    --accent-sub-soft:#E7F3F0;
+    --danger:#B3382C;
+    --danger-soft:#FBEAE8;
+    --ok:#1F6F63;
+    --prog-red:#C0392B;
+    --prog-orange:#DD8C2E;
+    --prog-yellow:#D1A612;
+    --prog-green:#2F9E44;
+    --fineco:#3FA9D0;
+    --mps:#E0779E;
+    --radius:14px;
+    --radius-sm:9px;
+    --shadow:0 1px 2px rgba(23,27,38,0.04), 0 8px 24px -12px rgba(23,27,38,0.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 80px;}
+
+  /* header */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+  .brand{display:flex;flex-direction:column;gap:2px;}
+  .brand-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);font-weight:600;}
+  .brand h1{font-size:26px;margin:0;font-weight:800;letter-spacing:-0.02em;}
+  .gear-btn{
+    width:44px;height:44px;border-radius:50%;
+    background:var(--surface);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:19px;color:var(--muted);
+    transition:transform .35s ease, color .2s ease, border-color .2s ease;
+    box-shadow:var(--shadow);
+  }
+  .gear-btn:hover{color:var(--ink);border-color:var(--muted-2);transform:rotate(45deg);}
+
+  /* mini totals strip */
+  .mini-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(150px,1fr));gap:14px;margin-bottom:22px;}
+  .mini-box{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:15px 17px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .mini-box[onclick]:hover{transform:translateY(-2px);border-color:var(--muted-2);}
+  .mini-box::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;}
+  .mini-box.total::before{background:var(--ink);}
+  .mini-box.fineco::before{background:var(--fineco);}
+  .mini-box.mps::before{background:var(--mps);}
+  .mini-box.extra::before{background:var(--extra-color, #9AA1AE);}
+  .mini-k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-2);font-weight:700;margin-bottom:6px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mini-v{font-size:20px;font-weight:700;}
+
+  /* cards grid */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:680px){.grid{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    position:relative;
+    overflow:hidden;
+    padding:22px 22px 20px;
+  }
+  .card::before{
+    content:"";
+    position:absolute;top:0;left:0;right:0;height:4px;
+  }
+  .card.fin::before{background:var(--accent-fin);}
+  .card.sub::before{background:var(--accent-sub);}
+  .card-stub{
+    position:absolute; top:14px; right:-1px;
+    width:26px;height:26px;border-radius:50%;
+    background:var(--bg); border:1px solid var(--border);
+  }
+  .card-label{display:flex;align-items:center;gap:9px;margin-bottom:16px;}
+  .icon-badge{
+    width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .card.fin .icon-badge{background:var(--accent-fin-soft);color:var(--accent-fin);}
+  .card.sub .icon-badge{background:var(--accent-sub-soft);color:var(--accent-sub);}
+  .card-label span{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+
+  .amount-row{display:flex;align-items:baseline;gap:8px;margin-bottom:2px;}
+  .amount{font-size:34px;font-weight:700;letter-spacing:-0.01em;}
+  .amount-unit{font-size:13px;color:var(--muted);font-weight:500;}
+  .card-sub{font-size:12.5px;color:var(--muted-2);margin-bottom:18px;}
+
+  .dash-line{border:none;border-top:1px dashed var(--border);margin:0 0 16px;}
+
+  .card-actions{display:flex;gap:10px;}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    border-radius:var(--radius-sm);
+    border:1px solid transparent;
+    font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;padding:10px 14px;
+    transition:filter .15s ease, background .15s ease, border-color .15s ease;
+    flex:1;
+  }
+  .btn svg{width:15px;height:15px;flex-shrink:0;}
+  .btn-primary.fin{background:var(--accent-fin);color:#fff;}
+  .btn-primary.sub{background:var(--accent-sub);color:#fff;}
+  .btn-primary:hover{filter:brightness(1.12);}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--muted-2);background:var(--bg);}
+
+  /* chart card */
+  .chart-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:22px 22px 20px;margin-top:18px;
+  }
+  .chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+  .chart-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .chart-legend{display:flex;gap:14px;flex-wrap:wrap;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+  .legend-dot{width:9px;height:9px;border-radius:3px;display:inline-block;flex-shrink:0;}
+
+  .chart-tooltip{
+    font-size:12.5px;color:var(--muted);margin-bottom:16px;padding:10px 13px;
+    background:var(--bg);border:1px solid var(--border);border-radius:8px;
+    min-height:16px;
+  }
+  .chart-tooltip b{color:var(--ink);}
+  .chart-tooltip .tt-sep{color:var(--muted-2);margin:0 6px;}
+
+  .chart-plot{position:relative;}
+  .chart-yaxis{position:absolute;left:0;top:0;width:100%;height:150px;pointer-events:none;}
+  .yaxis-row{position:absolute;left:56px;right:0;border-top:1px dashed var(--border-soft);}
+  .yaxis-row .lbl{
+    position:absolute;left:-56px;width:48px;top:-6px;text-align:right;
+    font-size:10px;color:var(--muted-2);font-family:'JetBrains Mono',monospace;
+  }
+  .chart-bars{
+    display:flex;align-items:flex-end;gap:8px;height:150px;
+    margin-left:56px;border-bottom:1px solid var(--border);position:relative;z-index:1;
+  }
+  .bar-stack{
+    flex:1;min-width:20px;max-width:34px;display:flex;flex-direction:column;justify-content:flex-end;
+    height:150px;cursor:pointer;border-radius:4px 4px 0 0;overflow:hidden;
+    transition:opacity .15s ease, outline-color .15s ease;
+  }
+  .bar-stack:hover{opacity:.82;}
+  .bar-stack.active-col{outline:2px solid var(--ink);outline-offset:2px;}
+  .seg{width:100%;}
+  .chart-xaxis{display:flex;gap:8px;margin-left:56px;margin-top:8px;}
+  .xaxis-col{flex:1;min-width:20px;max-width:34px;text-align:center;font-size:10px;color:var(--muted-2);text-transform:capitalize;}
+
+  /* modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(20,23,31,0.45);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:5vh 16px; z-index:100; overflow-y:auto;
+    backdrop-filter:blur(2px);
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--surface);border-radius:16px;max-width:520px;width:100%;
+    box-shadow:0 20px 60px -12px rgba(15,18,26,0.35);
+    animation:pop .18s ease;
+  }
+  .modal.wide{max-width:720px;}
+  @keyframes pop{from{opacity:0;transform:translateY(6px) scale(.985);}to{opacity:1;transform:none;}}
+  .modal-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 22px;border-bottom:1px solid var(--border-soft);
+  }
+  .modal-head h2{font-size:16.5px;margin:0;font-weight:700;display:flex;align-items:center;gap:9px;}
+  .modal-head h2 svg{width:18px;height:18px;}
+  .close-btn{
+    width:30px;height:30px;border-radius:50%;border:none;background:var(--bg);
+    color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .close-btn:hover{color:var(--ink);}
+  .modal-body{padding:22px;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px;}
+  .field input, .field select{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;
+    font-family:inherit;font-size:14px;color:var(--ink);background:#fff;
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--accent-fin);outline-offset:1px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .hint{font-size:11.5px;color:var(--muted-2);margin-top:5px;}
+  .hint a{color:var(--accent-fin);cursor:pointer;text-decoration:underline;}
+
+  .form-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+
+  /* list / storico */
+  .list-empty{padding:36px 10px;text-align:center;color:var(--muted-2);font-size:13.5px;}
+  .row-item{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 6px;border-bottom:1px solid var(--border-soft);
+    cursor:pointer; border-radius:8px;
+    transition:background .12s ease;
+  }
+  .row-item:hover{background:var(--bg);}
+  .row-item:last-child{border-bottom:none;}
+  .row-main{flex:1;min-width:0;}
+  .row-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .row-title .name-link{color:var(--ink);text-decoration:none;border-bottom:1px dashed var(--muted-2);}
+  .row-title .name-link:hover{color:var(--accent-fin);border-bottom-color:var(--accent-fin);}
+  .row-title .badge{
+    font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:20px;text-transform:uppercase;
+  }
+  .badge.active{background:var(--accent-sub-soft);color:var(--accent-sub);}
+  .badge.done{background:var(--border-soft);color:var(--muted-2);}
+  .row-note{font-size:12.5px;color:var(--muted);margin-top:4px;font-style:italic;}
+  .row-note.empty{color:var(--muted-2);}
+  .row-amount{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:14.5px;white-space:nowrap;margin-left:8px;}
+  .row-tools{display:flex;gap:4px;flex-shrink:0;}
+  .icon-btn{
+    width:30px;height:30px;border-radius:8px;border:1px solid transparent;background:transparent;
+    color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .icon-btn svg{width:15px;height:15px;}
+  .icon-btn:hover{background:var(--surface);color:var(--ink);border-color:var(--border);}
+  .icon-btn.del:hover{background:var(--danger-soft);color:var(--danger);border-color:transparent;}
+
+  /* settings */
+  .settings-block{margin-bottom:22px;}
+  .settings-block h3{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 10px;}
+  .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .chip{
+    display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);
+    border-radius:20px;padding:6px 8px 6px 13px;font-size:13px;
+  }
+  .chip button{
+    width:18px;height:18px;border-radius:50%;border:none;background:transparent;color:var(--muted-2);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .chip button:hover{color:var(--danger);}
+  .add-inline{display:flex;gap:8px;}
+  .add-inline input{flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px;}
+  .add-inline button{
+    padding:8px 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);
+    font-size:13px;font-weight:600;cursor:pointer;color:var(--ink);
+  }
+  .add-inline button:hover{background:var(--bg);}
+  .empty-settings{font-size:12.5px;color:var(--muted-2);font-style:italic;}
+
+  /* detail / recap */
+  .recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;margin-bottom:20px;}
+  .recap-item{}
+  .recap-item .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-2);font-weight:600;margin-bottom:3px;}
+  .recap-item .v{font-size:14px;font-weight:600;}
+  .recap-item .v.mono{font-family:'JetBrains Mono',monospace;}
+  .recap-item.full{grid-column:1 / -1;}
+
+  .detail-head-name{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+  .progress-wrap{margin-top:4px;}
+  .progress-labels{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:7px;}
+  .progress-labels b{font-family:'JetBrains Mono',monospace;color:var(--ink);font-size:13px;}
+  .progress-track{
+    width:100%;height:10px;border-radius:20px;background:var(--border-soft);overflow:hidden;
+  }
+  .progress-fill{height:100%;border-radius:20px;transition:width .3s ease;}
+  .progress-fill.red{background:var(--prog-red);}
+  .progress-fill.orange{background:var(--prog-orange);}
+  .progress-fill.yellow{background:var(--prog-yellow);}
+  .progress-fill.green{background:var(--prog-green);}
+  .progress-footer{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted-2);margin-top:6px;}
+
+  .paid-banner{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--bg);border:1px solid var(--border);border-radius:10px;
+    padding:14px 16px;margin-bottom:16px;
+  }
+  .paid-banner .k{font-size:12px;color:var(--muted);}
+  .paid-banner .v{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:17px;}
+
+  .detail-actions{display:flex;gap:10px;margin-top:4px;}
+
+  .agg-total{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;
+  }
+  .agg-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+  .agg-box .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-2);font-weight:700;margin-bottom:5px;}
+  .agg-box .v{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:19px;}
+  .agg-list-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:4px 0 8px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-eyebrow">Registro personale</span>
+      <h1>Finanze</h1>
+    </div>
+    <button class="gear-btn" id="btnSettings" title="Impostazioni" aria-label="Impostazioni">⚙</button>
+  </div>
+
+  <div class="mini-grid" id="miniGrid"></div>
+
+  <div class="grid">
+    <!-- FINANZIAMENTI -->
+    <div class="card fin">
+      <div class="card-stub"></div>
+      <div class="card-label">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M4 10v9M8 10v9M12 10v9M16 10v9M20 10v9"/><path d="M2 21h20"/></svg>
+        </div>
+        <span>Finanziamenti</span>
+      </div>
+      <div class="amount-row"><span class="amount mono" id="finTotal">€0,00</span><span class="amount-unit">/ mese</span></div>
+      <div class="card-sub" id="finCount">0 attivi</div>
+      <hr class="dash-line">
+      <div class="card-actions">
+        <button class="btn btn-primary fin" onclick="openFinForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuovo
+        </button>
+        <button class="btn btn-ghost" onclick="openFinList()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          Storico
+        </button>
+      </div>
+    </div>
+
+    <!-- ABBONAMENTI -->
+    <div class="card sub">
+      <div class="card-stub"></div>
+      <div class="card-label">
+        <div class="icon-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 14-5.2M20 4v3.3h-3.3"/><path d="M20 12a8 8 0 0 1-14 5.2M4 20v-3.3h3.3"/></svg>
+        </div>
+        <span>Abbonamenti</span>
+      </div>
+      <div class="amount-row"><span class="amount mono" id="subTotal">€0,00</span><span class="amount-unit">/ mese</span></div>
+      <div class="card-sub" id="subCount">0 attivi</div>
+      <hr class="dash-line">
+      <div class="card-actions">
+        <button class="btn btn-primary sub" onclick="openSubForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuovo
+        </button>
+        <button class="btn btn-ghost" onclick="openSubList()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          Storico
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <span class="chart-title">Andamento ultimi 6 mesi</span>
+      <div class="chart-legend" id="chartLegend"></div>
+    </div>
+    <div class="chart-tooltip" id="chartTooltip">Tocca una colonna per vedere il dettaglio del mese.</div>
+    <div class="chart-plot">
+      <div class="chart-yaxis" id="chartYAxis"></div>
+      <div class="chart-bars" id="chartBars"></div>
+    </div>
+    <div class="chart-xaxis" id="chartXAxis"></div>
+  </div>
+</div>
+
+<!-- MODAL: form finanziamento -->
+<div class="overlay" id="ovFinForm">
+  <div class="modal">
+    <div class="modal-head">
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M4 10v9M8 10v9M12 10v9M16 10v9M20 10v9"/><path d="M2 21h20"/></svg><span id="finFormTitle">Nuovo finanziamento</span></h2>
+      <button class="close-btn" onclick="closeModal('ovFinForm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="finId">
+      <div class="field" id="finIstitutoField">
+        <label>Istituto</label>
+        <select id="finIstituto"></select>
+        <div class="hint">Nessun istituto in elenco? <a onclick="openSettings('ist')">Aggiungilo dalle impostazioni</a></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Data inizio</label>
+          <input type="date" id="finData">
+        </div>
+        <div class="field">
+          <label>Durata (mesi)</label>
+          <input type="number" id="finMesi" min="1" placeholder="es. 24">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Importo mensile</label>
+          <input type="number" id="finImporto" min="0" step="0.01" placeholder="es. 180.00">
+        </div>
+        <div class="field">
+          <label>Tasso (%)</label>
+          <input type="number" id="finTasso" min="0" step="0.01" placeholder="es. 5.90">
+        </div>
+      </div>
+      <div class="field">
+        <label>Conto</label>
+        <select id="finConto"></select>
+      </div>
+      <div class="field">
+        <label>Descrizione / note</label>
+        <input type="text" id="finDescrizione" placeholder="es. Auto aziendale">
+      </div>
+      <div class="hint" id="finRicorrenzaPreview" style="margin-bottom:14px;"></div>
+      <div class="form-footer">
+        <button class="btn btn-ghost" onclick="closeModal('ovFinForm')" style="flex:none;">Annulla</button>
+        <button class="btn btn-primary fin" onclick="saveFin()" style="flex:none;">Salva finanziamento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: form abbonamento -->
+<div class="overlay" id="ovSubForm">
+  <div class="modal">
+    <div class="modal-head">
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 14-5.2M20 4v3.3h-3.3"/><path d="M20 12a8 8 0 0 1-14 5.2M4 20v-3.3h3.3"/></svg><span id="subFormTitle">Nuovo abbonamento</span></h2>
+      <button class="close-btn" onclick="closeModal('ovSubForm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="subId">
+      <div class="field">
+        <label>Società</label>
+        <select id="subSocieta"></select>
+        <div class="hint">Nessuna società in elenco? <a onclick="openSettings('soc')">Aggiungila dalle impostazioni</a></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Data</label>
+          <input type="date" id="subData">
+        </div>
+        <div class="field">
+          <label>Importo mensile</label>
+          <input type="number" id="subImporto" min="0" step="0.01" placeholder="es. 12.99">
+        </div>
+      </div>
+      <div class="field">
+        <label>Conto</label>
+        <select id="subConto"></select>
+      </div>
+      <div class="field">
+        <label>Descrizione / note</label>
+        <input type="text" id="subDescrizione" placeholder="es. Piano cloud storage">
+      </div>
+      <div class="form-footer">
+        <button class="btn btn-ghost" onclick="closeModal('ovSubForm')" style="flex:none;">Annulla</button>
+        <button class="btn btn-primary sub" onclick="saveSub()" style="flex:none;">Salva abbonamento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: storico finanziamenti -->
+<div class="overlay" id="ovFinList">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>Storico finanziamenti</h2>
+      <button class="close-btn" onclick="closeModal('ovFinList')">✕</button>
+    </div>
+    <div class="modal-body" id="finListBody" style="max-height:60vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- MODAL: storico abbonamenti -->
+<div class="overlay" id="ovSubList">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 14-5.2M20 4v3.3h-3.3"/><path d="M20 12a8 8 0 0 1-14 5.2M4 20v-3.3h3.3"/></svg>Storico abbonamenti</h2>
+      <button class="close-btn" onclick="closeModal('ovSubList')">✕</button>
+    </div>
+    <div class="modal-body" id="subListBody" style="max-height:60vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- MODAL: dettaglio singolo finanziamento -->
+<div class="overlay" id="ovFinDetail">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 class="detail-head-name" id="finDetailTitle"></h2>
+      <button class="close-btn" onclick="closeModal('ovFinDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="finDetailBody"></div>
+  </div>
+</div>
+
+<!-- MODAL: dettaglio singolo abbonamento -->
+<div class="overlay" id="ovSubDetail">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 class="detail-head-name" id="subDetailTitle"></h2>
+      <button class="close-btn" onclick="closeModal('ovSubDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="subDetailBody"></div>
+  </div>
+</div>
+
+<!-- MODAL: aggregato istituto -->
+<div class="overlay" id="ovIstitutoDetail">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="istitutoDetailTitle"></h2>
+      <button class="close-btn" onclick="closeModal('ovIstitutoDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="istitutoDetailBody" style="max-height:65vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- MODAL: aggregato società -->
+<div class="overlay" id="ovSocietaDetail">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="societaDetailTitle"></h2>
+      <button class="close-btn" onclick="closeModal('ovSocietaDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="societaDetailBody" style="max-height:65vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- MODAL: aggregato conto -->
+<div class="overlay" id="ovContoDetail">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="contoDetailTitle"></h2>
+      <button class="close-btn" onclick="closeModal('ovContoDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="contoDetailBody" style="max-height:65vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- MODAL: impostazioni -->
+<div class="overlay" id="ovSettings">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>⚙ Impostazioni</h2>
+      <button class="close-btn" onclick="closeModal('ovSettings')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-block">
+        <h3>Istituti (finanziamenti)</h3>
+        <div class="chip-list" id="listIst"></div>
+        <div class="add-inline">
+          <input type="text" id="newIst" placeholder="Nome istituto">
+          <button onclick="addSetting('ist')">Aggiungi</button>
+        </div>
+      </div>
+      <div class="settings-block">
+        <h3>Società (abbonamenti)</h3>
+        <div class="chip-list" id="listSoc"></div>
+        <div class="add-inline">
+          <input type="text" id="newSoc" placeholder="Nome società">
+          <button onclick="addSetting('soc')">Aggiungi</button>
+        </div>
+      </div>
+      <div class="settings-block">
+        <h3>Conti</h3>
+        <div class="chip-list" id="listConto"></div>
+        <div class="add-inline">
+          <input type="text" id="newConto" placeholder="Nome conto (es. Fineco, MPS, Revolut...)">
+          <button onclick="addSetting('conto')">Aggiungi</button>
+        </div>
+        <div class="hint">"Fineco" e "MPS" hanno un box e un colore fisso. Ogni altro conto aggiunto qui riceve automaticamente un box in alto e un colore proprio nel grafico.</div>
+      </div>
+      <div class="settings-block" style="margin-bottom:2px;">
+        <h3>Backup dati</h3>
+        <div class="add-inline">
+          <button onclick="exportData()">Esporta JSON</button>
+          <button onclick="document.getElementById('importFile').click()">Importa JSON</button>
+          <input type="file" id="importFile" accept="application/json,.json" style="display:none;" onchange="importData(event)">
+        </div>
+        <div class="hint">L'esportazione salva finanziamenti, abbonamenti e impostazioni in un unico file. L'importazione sostituisce tutti i dati attuali con quelli del file scelto.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- storage ---------- */
+const K = { fin:'finanze_fin', sub:'finanze_sub', set:'finanze_settings' };
+
+function load(key, fallback){
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e){ return fallback; }
+}
+function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+let financings = load(K.fin, []);
+let subscriptions = load(K.sub, []);
+let settings = load(K.set, { ist:[], soc:[], conto:[] });
+
+/* ---------- helpers ---------- */
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function fmtEUR(n){
+  n = Number(n) || 0;
+  return n.toLocaleString('it-IT', { style:'currency', currency:'EUR', useGrouping:'always' });
+}
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' });
+}
+function todayMidnight(){ return new Date(new Date().toDateString()); }
+function addMonths(dateStr, n){
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDate();
+  d.setMonth(d.getMonth() + n);
+  if(d.getDate() < day) d.setDate(0); // handle month-length overflow
+  return d;
+}
+function finEndDate(fin){ return addMonths(fin.dataInizio, Number(fin.mesi)); }
+function finIsActive(fin){ return finEndDate(fin) >= todayMidnight(); }
+
+/* number of monthly payments already due (inclusive of start month), capped at maxMonths if provided */
+function paymentsMadeCount(startDate, maxMonths){
+  const today = todayMidnight();
+  let count = 0;
+  for(let n=0; maxMonths===undefined || n<maxMonths; n++){
+    const payDate = addMonths(startDate, n);
+    if(payDate <= today) count++; else break;
+  }
+  return count;
+}
+
+function computeFinProgress(fin){
+  const mesi = Number(fin.mesi) || 0;
+  const rate = Number(fin.importoMensile) || 0;
+  const total = mesi * rate;
+  const paidCount = paymentsMadeCount(fin.dataInizio, mesi);
+  const paid = Math.min(total, paidCount * rate);
+  const remaining = Math.max(0, total - paid);
+  const percent = total > 0 ? Math.min(100, (paid/total)*100) : 0;
+  return { total, paid, remaining, percent, paidCount, mesi };
+}
+function progressColor(pct){
+  if(pct >= 100) return 'green';
+  if(pct >= 71) return 'yellow';
+  if(pct >= 36) return 'orange';
+  return 'red';
+}
+function computeSubPaid(sub){
+  const rate = Number(sub.importo) || 0;
+  const paidCount = paymentsMadeCount(sub.data, undefined);
+  return { paid: paidCount * rate, paidCount };
+}
+function bankKeyOf(conto){ return String(conto||'').trim().toLowerCase(); }
+
+const EXTRA_PALETTE = ['#8E7CC3','#E0A45C','#6FB98F','#C9A11E','#7C93C9','#B57EDC','#5CA7A0','#D98880'];
+
+/* dynamic bank list: Fineco + MPS always present, plus any other conto from settings */
+function computeBankList(){
+  const banks = [
+    { key:'fineco', name:'Fineco', color:'var(--fineco)', cls:'fineco' },
+    { key:'mps', name:'MPS', color:'var(--mps)', cls:'mps' }
+  ];
+  const seen = new Set(['fineco','mps']);
+  let paletteIdx = 0;
+  settings.conto.forEach(c=>{
+    const key = bankKeyOf(c);
+    if(!key || seen.has(key)) return;
+    seen.add(key);
+    banks.push({ key, name: c.trim(), color: EXTRA_PALETTE[paletteIdx % EXTRA_PALETTE.length], cls:'extra' });
+    paletteIdx++;
+  });
+  return banks;
+}
+
+/* ---------- modal generics ---------- */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(ov=>{
+  ov.addEventListener('click', e=>{ if(e.target === ov) closeModal(ov.id); });
+});
+
+/* ---------- select population ---------- */
+function fillSelect(sel, items, current, placeholder){
+  sel.innerHTML = '';
+  if(placeholder){
+    const ph = document.createElement('option');
+    ph.value = ''; ph.textContent = placeholder;
+    if(!current) ph.selected = true;
+    sel.appendChild(ph);
+  }
+  if(items.length === 0 && !placeholder){
+    const o = document.createElement('option');
+    o.textContent = 'Nessuna voce disponibile'; o.value = '';
+    sel.appendChild(o);
+    return;
+  }
+  items.forEach(v=>{
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    if(v === current) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+/* ---------- FINANZIAMENTI: form ---------- */
+function openFinForm(id){
+  fillSelect(document.getElementById('finIstituto'), settings.ist, null, 'Seleziona istituto…');
+  fillSelect(document.getElementById('finConto'), settings.conto);
+  document.getElementById('finId').value = '';
+  document.getElementById('finData').value = '';
+  document.getElementById('finMesi').value = '';
+  document.getElementById('finImporto').value = '';
+  document.getElementById('finTasso').value = '';
+  document.getElementById('finDescrizione').value = '';
+  document.getElementById('finRicorrenzaPreview').textContent = '';
+  document.getElementById('finFormTitle').textContent = 'Nuovo finanziamento';
+
+  if(id){
+    const f = financings.find(x=>x.id===id);
+    if(f){
+      document.getElementById('finId').value = f.id;
+      fillSelect(document.getElementById('finIstituto'), settings.ist, f.istituto, 'Seleziona istituto…');
+      fillSelect(document.getElementById('finConto'), settings.conto, f.conto);
+      document.getElementById('finData').value = f.dataInizio;
+      document.getElementById('finMesi').value = f.mesi;
+      document.getElementById('finImporto').value = f.importoMensile;
+      document.getElementById('finTasso').value = f.tasso;
+      document.getElementById('finDescrizione').value = f.descrizione;
+      document.getElementById('finFormTitle').textContent = 'Modifica finanziamento';
+      updateFinPreview();
+    }
+  }
+  closeModal('ovFinList');
+  closeModal('ovFinDetail');
+  openModal('ovFinForm');
+}
+['finData','finMesi'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateFinPreview);
+});
+function updateFinPreview(){
+  const data = document.getElementById('finData').value;
+  const mesi = Number(document.getElementById('finMesi').value);
+  const box = document.getElementById('finRicorrenzaPreview');
+  if(data && mesi > 0){
+    const end = addMonths(data, mesi);
+    box.textContent = `Ricorrenza automatica: addebito mensile dal ${fmtDate(data)} fino al ${end.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})} (${mesi} rate).`;
+  } else {
+    box.textContent = '';
+  }
+}
+function saveFin(){
+  const id = document.getElementById('finId').value || uid();
+  const istituto = document.getElementById('finIstituto').value;
+  const dataInizio = document.getElementById('finData').value;
+  const mesi = Number(document.getElementById('finMesi').value);
+  const importoMensile = Number(document.getElementById('finImporto').value);
+  const tasso = Number(document.getElementById('finTasso').value) || 0;
+  const conto = document.getElementById('finConto').value;
+  const descrizione = document.getElementById('finDescrizione').value.trim();
+
+  if(!istituto){ alert('Seleziona un istituto (aggiungilo dalle impostazioni se non è in elenco).'); return; }
+  if(!dataInizio){ alert('Inserisci la data di inizio.'); return; }
+  if(!mesi || mesi <= 0){ alert('Inserisci una durata in mesi valida.'); return; }
+  if(!importoMensile || importoMensile <= 0){ alert('Inserisci un importo mensile valido.'); return; }
+  if(!conto){ alert('Seleziona un conto (aggiungilo dalle impostazioni se non è in elenco).'); return; }
+
+  const record = { id, istituto, dataInizio, mesi, importoMensile, tasso, conto, descrizione };
+  const idx = financings.findIndex(x=>x.id===id);
+  if(idx>=0) financings[idx] = record; else financings.push(record);
+  save(K.fin, financings);
+  closeModal('ovFinForm');
+  renderAll();
+}
+function deleteFin(id){
+  if(!confirm('Eliminare definitivamente questo finanziamento dallo storico?')) return;
+  financings = financings.filter(x=>x.id!==id);
+  save(K.fin, financings);
+  closeModal('ovFinDetail');
+  renderAll();
+  if(document.getElementById('ovFinList').classList.contains('open')) renderFinListBody();
+}
+
+/* ---------- ABBONAMENTI: form ---------- */
+function openSubForm(id){
+  fillSelect(document.getElementById('subSocieta'), settings.soc, null, 'Seleziona società…');
+  fillSelect(document.getElementById('subConto'), settings.conto);
+  document.getElementById('subId').value = '';
+  document.getElementById('subData').value = '';
+  document.getElementById('subImporto').value = '';
+  document.getElementById('subDescrizione').value = '';
+  document.getElementById('subFormTitle').textContent = 'Nuovo abbonamento';
+
+  if(id){
+    const s = subscriptions.find(x=>x.id===id);
+    if(s){
+      document.getElementById('subId').value = s.id;
+      fillSelect(document.getElementById('subSocieta'), settings.soc, s.societa, 'Seleziona società…');
+      fillSelect(document.getElementById('subConto'), settings.conto, s.conto);
+      document.getElementById('subData').value = s.data;
+      document.getElementById('subImporto').value = s.importo;
+      document.getElementById('subDescrizione').value = s.descrizione;
+      document.getElementById('subFormTitle').textContent = 'Modifica abbonamento';
+    }
+  }
+  closeModal('ovSubList');
+  closeModal('ovSubDetail');
+  openModal('ovSubForm');
+}
+function saveSub(){
+  const id = document.getElementById('subId').value || uid();
+  const societa = document.getElementById('subSocieta').value;
+  const data = document.getElementById('subData').value;
+  const importo = Number(document.getElementById('subImporto').value);
+  const conto = document.getElementById('subConto').value;
+  const descrizione = document.getElementById('subDescrizione').value.trim();
+
+  if(!societa){ alert('Seleziona una società (aggiungila dalle impostazioni se non è in elenco).'); return; }
+  if(!data){ alert('Inserisci la data.'); return; }
+  if(!importo || importo <= 0){ alert('Inserisci un importo valido.'); return; }
+  if(!conto){ alert('Seleziona un conto (aggiungilo dalle impostazioni se non è in elenco).'); return; }
+
+  const record = { id, societa, data, importo, conto, descrizione };
+  const idx = subscriptions.findIndex(x=>x.id===id);
+  if(idx>=0) subscriptions[idx] = record; else subscriptions.push(record);
+  save(K.sub, subscriptions);
+  closeModal('ovSubForm');
+  renderAll();
+}
+function deleteSub(id){
+  if(!confirm('Eliminare definitivamente questo abbonamento dallo storico?')) return;
+  subscriptions = subscriptions.filter(x=>x.id!==id);
+  save(K.sub, subscriptions);
+  closeModal('ovSubDetail');
+  renderAll();
+  if(document.getElementById('ovSubList').classList.contains('open')) renderSubListBody();
+}
+
+/* ---------- liste storico (solo note, stato, importo, azioni) ---------- */
+function openFinList(){ renderFinListBody(); openModal('ovFinList'); }
+function openSubList(){ renderSubListBody(); openModal('ovSubList'); }
+
+function renderFinListBody(){
+  const box = document.getElementById('finListBody');
+  if(financings.length === 0){
+    box.innerHTML = '<div class="list-empty">Ancora nessun finanziamento registrato.</div>';
+    return;
+  }
+  const sorted = [...financings].sort((a,b)=> new Date(b.dataInizio) - new Date(a.dataInizio));
+  box.innerHTML = sorted.map(f=>{
+    const active = finIsActive(f);
+    return `
+    <div class="row-item" onclick="openFinDetail('${f.id}')">
+      <div class="row-main">
+        <div class="row-title">
+          <a class="name-link" onclick="event.stopPropagation(); openIstitutoModal('${escapeAttr(f.istituto)}')">${escapeHtml(f.istituto)}</a>
+          <span class="badge ${active?'active':'done'}">${active?'Attivo':'Concluso'}</span>
+        </div>
+        <div class="row-note ${f.descrizione?'':'empty'}">${f.descrizione ? escapeHtml(f.descrizione) : 'Nessuna nota'}</div>
+      </div>
+      <div class="row-amount">${fmtEUR(f.importoMensile)}</div>
+      <div class="row-tools">
+        <button class="icon-btn" title="Modifica" onclick="event.stopPropagation(); openFinForm('${f.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(45 12 12)"><rect x="10" y="2" width="4" height="14" rx="1"/><polygon points="10,16 14,16 12,20"/></g></svg>
+        </button>
+        <button class="icon-btn del" title="Elimina" onclick="event.stopPropagation(); deleteFin('${f.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M7 7l1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSubListBody(){
+  const box = document.getElementById('subListBody');
+  if(subscriptions.length === 0){
+    box.innerHTML = '<div class="list-empty">Ancora nessun abbonamento registrato.</div>';
+    return;
+  }
+  const sorted = [...subscriptions].sort((a,b)=> new Date(b.data) - new Date(a.data));
+  box.innerHTML = sorted.map(s=>`
+    <div class="row-item" onclick="openSubDetail('${s.id}')">
+      <div class="row-main">
+        <div class="row-title">
+          <a class="name-link" onclick="event.stopPropagation(); openSocietaModal('${escapeAttr(s.societa)}')">${escapeHtml(s.societa)}</a>
+          <span class="badge active">Attivo</span>
+        </div>
+        <div class="row-note ${s.descrizione?'':'empty'}">${s.descrizione ? escapeHtml(s.descrizione) : 'Nessuna nota'}</div>
+      </div>
+      <div class="row-amount">${fmtEUR(s.importo)}</div>
+      <div class="row-tools">
+        <button class="icon-btn" title="Modifica" onclick="event.stopPropagation(); openSubForm('${s.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(45 12 12)"><rect x="10" y="2" width="4" height="14" rx="1"/><polygon points="10,16 14,16 12,20"/></g></svg>
+        </button>
+        <button class="icon-btn del" title="Elimina" onclick="event.stopPropagation(); deleteSub('${s.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M7 7l1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12"/></svg>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+/* ---------- dettaglio singolo (recap + barra avanzamento) ---------- */
+function openFinDetail(id){
+  const f = financings.find(x=>x.id===id);
+  if(!f) return;
+  const active = finIsActive(f);
+  const prog = computeFinProgress(f);
+  const color = progressColor(prog.percent);
+
+  document.getElementById('finDetailTitle').innerHTML = `
+    <a class="name-link" style="font-size:16.5px;" onclick="closeModal('ovFinDetail'); openIstitutoModal('${escapeAttr(f.istituto)}')">${escapeHtml(f.istituto)}</a>
+    <span class="badge ${active?'active':'done'}">${active?'Attivo':'Concluso'}</span>
+  `;
+
+  document.getElementById('finDetailBody').innerHTML = `
+    <div class="recap-grid">
+      <div class="recap-item"><div class="k">Data inizio</div><div class="v">${fmtDate(f.dataInizio)}</div></div>
+      <div class="recap-item"><div class="k">Durata</div><div class="v">${f.mesi} mesi</div></div>
+      <div class="recap-item"><div class="k">Importo mensile</div><div class="v mono">${fmtEUR(f.importoMensile)}</div></div>
+      <div class="recap-item"><div class="k">Tasso</div><div class="v">${f.tasso || 0}%</div></div>
+      <div class="recap-item"><div class="k">Conto</div><div class="v">${escapeHtml(f.conto)}</div></div>
+      <div class="recap-item"><div class="k">Fine prevista</div><div class="v">${finEndDate(f).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})}</div></div>
+      <div class="recap-item full"><div class="k">Note</div><div class="v" style="font-weight:500;">${f.descrizione ? escapeHtml(f.descrizione) : '—'}</div></div>
+    </div>
+
+    <div class="agg-total" style="margin-bottom:14px;">
+      <div class="agg-box"><div class="k">Pagato</div><div class="v">${fmtEUR(prog.paid)}</div></div>
+      <div class="agg-box"><div class="k">Da versare</div><div class="v">${fmtEUR(prog.remaining)}</div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill ${color}" style="width:${prog.percent}%;"></div></div>
+      <div class="progress-footer"><span>${prog.paidCount} di ${prog.mesi} rate versate</span><span>${prog.percent.toFixed(0)}%</span></div>
+    </div>
+
+    <div class="detail-actions">
+      <button class="btn btn-ghost" onclick="openFinForm('${f.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(45 12 12)"><rect x="10" y="2" width="4" height="14" rx="1"/><polygon points="10,16 14,16 12,20"/></g></svg>Modifica</button>
+      <button class="btn btn-ghost" onclick="deleteFin('${f.id}')" style="color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M7 7l1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12"/></svg>Elimina</button>
+    </div>
+  `;
+  openModal('ovFinDetail');
+}
+
+function openSubDetail(id){
+  const s = subscriptions.find(x=>x.id===id);
+  if(!s) return;
+  const paidInfo = computeSubPaid(s);
+
+  document.getElementById('subDetailTitle').innerHTML = `
+    <a class="name-link" style="font-size:16.5px;" onclick="closeModal('ovSubDetail'); openSocietaModal('${escapeAttr(s.societa)}')">${escapeHtml(s.societa)}</a>
+    <span class="badge active">Attivo</span>
+  `;
+
+  document.getElementById('subDetailBody').innerHTML = `
+    <div class="recap-grid">
+      <div class="recap-item"><div class="k">Dal</div><div class="v">${fmtDate(s.data)}</div></div>
+      <div class="recap-item"><div class="k">Importo mensile</div><div class="v mono">${fmtEUR(s.importo)}</div></div>
+      <div class="recap-item"><div class="k">Conto</div><div class="v">${escapeHtml(s.conto)}</div></div>
+      <div class="recap-item"><div class="k">Rate versate</div><div class="v">${paidInfo.paidCount}</div></div>
+      <div class="recap-item full"><div class="k">Note</div><div class="v" style="font-weight:500;">${s.descrizione ? escapeHtml(s.descrizione) : '—'}</div></div>
+    </div>
+
+    <div class="agg-total" style="margin-bottom:14px;">
+      <div class="agg-box"><div class="k">Pagato</div><div class="v">${fmtEUR(paidInfo.paid)}</div></div>
+      <div class="agg-box"><div class="k">Spesa mensile</div><div class="v">${fmtEUR(s.importo)}</div></div>
+    </div>
+    <div class="hint" style="margin-bottom:16px;">Abbonamento ricorrente: nessuna scadenza, si rinnova automaticamente ogni mese.</div>
+
+    <div class="detail-actions">
+      <button class="btn btn-ghost" onclick="openSubForm('${s.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(45 12 12)"><rect x="10" y="2" width="4" height="14" rx="1"/><polygon points="10,16 14,16 12,20"/></g></svg>Modifica</button>
+      <button class="btn btn-ghost" onclick="deleteSub('${s.id}')" style="color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M7 7l1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12"/></svg>Elimina</button>
+    </div>
+  `;
+  openModal('ovSubDetail');
+}
+
+/* ---------- aggregati per istituto / società ---------- */
+function openIstitutoModal(nome){
+  const items = financings.filter(f=>f.istituto === nome);
+  document.getElementById('istitutoDetailTitle').textContent = nome;
+
+  const totalPaid = items.reduce((s,f)=>s + computeFinProgress(f).paid, 0);
+  const activeItems = items.filter(finIsActive);
+  const totalRemaining = activeItems.reduce((s,f)=>s + computeFinProgress(f).remaining, 0);
+
+  let html = `
+    <div class="agg-total">
+      <div class="agg-box"><div class="k">Pagato finora</div><div class="v">${fmtEUR(totalPaid)}</div></div>
+      <div class="agg-box"><div class="k">${activeItems.length>0 ? 'Rimane da versare' : 'Scadenze in corso'}</div><div class="v">${activeItems.length>0 ? fmtEUR(totalRemaining) : 'Nessuna'}</div></div>
+    </div>
+  `;
+  if(items.length === 0){
+    html += '<div class="list-empty">Nessun finanziamento associato a questo istituto.</div>';
+  } else {
+    html += '<div class="agg-list-title">Finanziamenti</div>';
+    const sorted = [...items].sort((a,b)=> new Date(b.dataInizio) - new Date(a.dataInizio));
+    html += sorted.map(f=>{
+      const prog = computeFinProgress(f);
+      const active = finIsActive(f);
+      return `
+      <div class="row-item" onclick="closeModal('ovIstitutoDetail'); openFinDetail('${f.id}')">
+        <div class="row-main">
+          <div class="row-title">${f.descrizione ? escapeHtml(f.descrizione) : 'Finanziamento'}<span class="badge ${active?'active':'done'}">${active?'Attivo':'Concluso'}</span></div>
+          <div class="row-note">${prog.percent.toFixed(0)}% versato · ${fmtDate(f.dataInizio)}</div>
+        </div>
+        <div class="row-amount">${fmtEUR(f.importoMensile)}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('istitutoDetailBody').innerHTML = html;
+  openModal('ovIstitutoDetail');
+}
+
+function openSocietaModal(nome){
+  const items = subscriptions.filter(s=>s.societa === nome);
+  document.getElementById('societaDetailTitle').textContent = nome;
+
+  const totalPaid = items.reduce((s,x)=>s + computeSubPaid(x).paid, 0);
+  const monthly = items.reduce((s,x)=>s + Number(x.importo||0), 0);
+
+  let html = `
+    <div class="agg-total">
+      <div class="agg-box"><div class="k">Pagato finora</div><div class="v">${fmtEUR(totalPaid)}</div></div>
+      <div class="agg-box"><div class="k">Spesa mensile attuale</div><div class="v">${fmtEUR(monthly)}</div></div>
+    </div>
+  `;
+  if(items.length === 0){
+    html += '<div class="list-empty">Nessun abbonamento associato a questa società.</div>';
+  } else {
+    html += '<div class="agg-list-title">Abbonamenti</div>';
+    const sorted = [...items].sort((a,b)=> new Date(b.data) - new Date(a.data));
+    html += sorted.map(s=>{
+      const paidInfo = computeSubPaid(s);
+      return `
+      <div class="row-item" onclick="closeModal('ovSocietaDetail'); openSubDetail('${s.id}')">
+        <div class="row-main">
+          <div class="row-title">${s.descrizione ? escapeHtml(s.descrizione) : 'Abbonamento'}<span class="badge active">Attivo</span></div>
+          <div class="row-note">${paidInfo.paidCount} rate versate · dal ${fmtDate(s.data)}</div>
+        </div>
+        <div class="row-amount">${fmtEUR(s.importo)}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('societaDetailBody').innerHTML = html;
+  openModal('ovSocietaDetail');
+}
+
+function openContoModal(key, name){
+  const finItems = financings.filter(f=>bankKeyOf(f.conto)===key);
+  const subItems = subscriptions.filter(s=>bankKeyOf(s.conto)===key);
+
+  const totalPaid = finItems.reduce((s,f)=>s + computeFinProgress(f).paid, 0)
+                  + subItems.reduce((s,x)=>s + computeSubPaid(x).paid, 0);
+  const activeFinItems = finItems.filter(finIsActive);
+  const totalRemaining = activeFinItems.reduce((s,f)=>s + computeFinProgress(f).remaining, 0);
+
+  document.getElementById('contoDetailTitle').textContent = name;
+
+  let html = `
+    <div class="agg-total">
+      <div class="agg-box"><div class="k">Pagato</div><div class="v">${fmtEUR(totalPaid)}</div></div>
+      <div class="agg-box"><div class="k">Rimanente</div><div class="v">${fmtEUR(totalRemaining)}</div></div>
+    </div>
+  `;
+
+  const activeItems = [
+    ...activeFinItems.map(f=>({ type:'fin', date:f.dataInizio, data:f })),
+    ...subItems.map(s=>({ type:'sub', date:s.data, data:s }))
+  ].sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+  if(activeItems.length === 0){
+    html += '<div class="list-empty">Nessun finanziamento o abbonamento attivo su questo conto.</div>';
+  } else {
+    html += '<div class="agg-list-title">Attivi</div>';
+    html += activeItems.map(item=>{
+      if(item.type === 'fin'){
+        const f = item.data;
+        const prog = computeFinProgress(f);
+        return `
+        <div class="row-item" onclick="closeModal('ovContoDetail'); openFinDetail('${f.id}')">
+          <div class="row-main">
+            <div class="row-title">${escapeHtml(f.istituto)}<span class="badge active">Finanziamento</span></div>
+            <div class="row-note">${prog.percent.toFixed(0)}% versato · ${fmtDate(f.dataInizio)}</div>
+          </div>
+          <div class="row-amount">${fmtEUR(f.importoMensile)}</div>
+        </div>`;
+      } else {
+        const s = item.data;
+        const paidInfo = computeSubPaid(s);
+        return `
+        <div class="row-item" onclick="closeModal('ovContoDetail'); openSubDetail('${s.id}')">
+          <div class="row-main">
+            <div class="row-title">${escapeHtml(s.societa)}<span class="badge active">Abbonamento</span></div>
+            <div class="row-note">${paidInfo.paidCount} rate versate · dal ${fmtDate(s.data)}</div>
+          </div>
+          <div class="row-amount">${fmtEUR(s.importo)}</div>
+        </div>`;
+      }
+    }).join('');
+  }
+
+  document.getElementById('contoDetailBody').innerHTML = html;
+  openModal('ovContoDetail');
+}
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s){
+  return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+/* ---------- impostazioni ---------- */
+document.getElementById('btnSettings').addEventListener('click', ()=>openSettings());
+function openSettings(){
+  renderSettingsLists();
+  openModal('ovSettings');
+}
+function renderSettingsLists(){
+  renderChipList('listIst', settings.ist, 'ist');
+  renderChipList('listSoc', settings.soc, 'soc');
+  renderChipList('listConto', settings.conto, 'conto');
+}
+function renderChipList(elId, arr, type){
+  const el = document.getElementById(elId);
+  if(arr.length === 0){ el.innerHTML = '<span class="empty-settings">Nessuna voce ancora.</span>'; return; }
+  el.innerHTML = arr.map((v,i)=>`
+    <div class="chip">${escapeHtml(v)}<button onclick="removeSetting('${type}',${i})" title="Rimuovi">✕</button></div>
+  `).join('');
+}
+function addSetting(type){
+  const inputId = type==='ist' ? 'newIst' : type==='soc' ? 'newSoc' : 'newConto';
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if(!val) return;
+  if(settings[type].includes(val)){ input.value=''; return; }
+  settings[type].push(val);
+  save(K.set, settings);
+  input.value = '';
+  renderSettingsLists();
+  renderAll();
+}
+function removeSetting(type, i){
+  settings[type].splice(i,1);
+  save(K.set, settings);
+  renderSettingsLists();
+  renderAll();
+}
+
+/* ---------- backup: export / import JSON ---------- */
+function exportData(){
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    financings, subscriptions, settings
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `finanze-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data || typeof data !== 'object') throw new Error('invalid file');
+      const newFin = Array.isArray(data.financings) ? data.financings : [];
+      const newSub = Array.isArray(data.subscriptions) ? data.subscriptions : [];
+      const rawSet = (data.settings && typeof data.settings === 'object') ? data.settings : {};
+      const newSettings = {
+        ist: Array.isArray(rawSet.ist) ? rawSet.ist : [],
+        soc: Array.isArray(rawSet.soc) ? rawSet.soc : [],
+        conto: Array.isArray(rawSet.conto) ? rawSet.conto : []
+      };
+      if(!confirm('Importare questo file sostituirà tutti i dati attuali (finanziamenti, abbonamenti e impostazioni). Continuare?')){
+        event.target.value = '';
+        return;
+      }
+      financings = newFin;
+      subscriptions = newSub;
+      settings = newSettings;
+      save(K.fin, financings);
+      save(K.sub, subscriptions);
+      save(K.set, settings);
+      renderSettingsLists();
+      renderAll();
+      alert('Importazione completata.');
+    }catch(err){
+      alert('File non valido: assicurati che sia un export JSON generato da questa app.');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- andamento ultimi 12 mesi per banca ---------- */
+function monthKey(dateObj){ return dateObj.getFullYear()*12 + dateObj.getMonth(); }
+
+function computeLast12MonthsBankData(banks){
+  const currentKey = monthKey(new Date());
+  const months = [];
+  for(let i=5; i>=0; i--){
+    const key = currentKey - i;
+    const year = Math.floor(key/12);
+    const month = ((key % 12) + 12) % 12;
+    const labelDate = new Date(year, month, 1);
+    const bankValues = {};
+    banks.forEach(b=>{ bankValues[b.key] = 0; });
+    months.push({ key, label: labelDate.toLocaleDateString('it-IT',{month:'short',year:'2-digit'}), bankValues });
+  }
+  const byKey = {};
+  months.forEach(m=>{ byKey[m.key] = m; });
+
+  financings.forEach(f=>{
+    const k = bankKeyOf(f.conto);
+    if(!banks.some(b=>b.key===k)) return;
+    const startKey = monthKey(new Date(f.dataInizio + 'T00:00:00'));
+    const mesi = Number(f.mesi) || 0;
+    for(let n=0; n<mesi; n++){
+      const kk = startKey + n;
+      if(byKey[kk]) byKey[kk].bankValues[k] += Number(f.importoMensile)||0;
+    }
+  });
+
+  subscriptions.forEach(s=>{
+    const k = bankKeyOf(s.conto);
+    if(!banks.some(b=>b.key===k)) return;
+    const startKey = monthKey(new Date(s.data + 'T00:00:00'));
+    months.forEach(m=>{
+      if(m.key >= startKey) m.bankValues[k] += Number(s.importo)||0;
+    });
+  });
+
+  months.forEach(m=>{
+    m.total = banks.reduce((s,b)=>s + m.bankValues[b.key], 0);
+    m.parts = banks.map(b=>({ name:b.name, value:m.bankValues[b.key] }));
+  });
+  return months;
+}
+
+let lastChartMonths = [];
+let lastChartBanks = [];
+
+function renderChartLegend(banks){
+  document.getElementById('chartLegend').innerHTML = banks.map(b=>
+    `<span class="legend-item"><i class="legend-dot" style="background:${b.color};"></i>${escapeHtml(b.name)}</span>`
+  ).join('');
+}
+
+function renderYAxis(maxTotal){
+  const steps = [1, 0.75, 0.5, 0.25];
+  document.getElementById('chartYAxis').innerHTML = steps.map(frac=>{
+    const bottomPx = Math.round(150 * frac);
+    const value = maxTotal * frac;
+    return `<div class="yaxis-row" style="bottom:${bottomPx}px;"><span class="lbl">${fmtEUR(value)}</span></div>`;
+  }).join('');
+}
+
+function renderChart(){
+  const banks = computeBankList();
+  const months = computeLast12MonthsBankData(banks);
+  lastChartMonths = months;
+  lastChartBanks = banks;
+
+  renderChartLegend(banks);
+
+  const maxTotal = Math.max(1, ...months.map(m=>m.total));
+  renderYAxis(maxTotal);
+  const scale = 150 / maxTotal;
+
+  const reversedBanks = [...banks].reverse();
+
+  document.getElementById('chartBars').innerHTML = months.map((m, idx)=>{
+    const segs = reversedBanks.map(b=>{
+      const val = m.bankValues[b.key] || 0;
+      const h = Math.round(val * scale);
+      return `<div class="seg" style="height:${h}px;background:${b.color};"></div>`;
+    }).join('');
+    return `<div class="bar-stack" id="barcol-${idx}" onclick="showMonthDetail(${idx})">${segs}</div>`;
+  }).join('');
+
+  document.getElementById('chartXAxis').innerHTML = months.map(m=>
+    `<div class="xaxis-col">${m.label}</div>`
+  ).join('');
+}
+
+function showMonthDetail(idx){
+  const m = lastChartMonths[idx];
+  if(!m) return;
+  document.querySelectorAll('.bar-stack').forEach(el=>el.classList.remove('active-col'));
+  const el = document.getElementById('barcol-'+idx);
+  if(el) el.classList.add('active-col');
+
+  const breakdown = m.parts.filter(p=>p.value>0).map(p=>`${escapeHtml(p.name)} ${fmtEUR(p.value)}`).join(' · ');
+  document.getElementById('chartTooltip').innerHTML =
+    `<b>Tot. ${fmtEUR(m.total)}</b>${breakdown ? ' <span class="tt-sep">|</span> '+breakdown : ' <span class="tt-sep">|</span> nessuna uscita registrata'}`;
+}
+
+/* ---------- mini box dinamici ---------- */
+function renderMiniBoxes(){
+  const banks = computeBankList();
+  const activeFin = financings.filter(finIsActive);
+  const totalOut = activeFin.reduce((s,f)=>s+Number(f.importoMensile||0),0) + subscriptions.reduce((s,x)=>s+Number(x.importo||0),0);
+
+  let html = `<div class="mini-box total"><div class="mini-k">Totale uscite</div><div class="mini-v mono">${fmtEUR(totalOut)}</div></div>`;
+
+  banks.forEach(b=>{
+    const finSum = activeFin.filter(f=>bankKeyOf(f.conto)===b.key).reduce((s,f)=>s+Number(f.importoMensile||0),0);
+    const subSum = subscriptions.filter(s=>bankKeyOf(s.conto)===b.key).reduce((s,x)=>s+Number(x.importo||0),0);
+    const extraStyle = b.cls === 'extra' ? `--extra-color:${b.color};` : '';
+    html += `<div class="mini-box ${b.cls}" style="${extraStyle}cursor:pointer;" onclick="openContoModal('${b.key}','${escapeAttr(b.name)}')"><div class="mini-k">${escapeHtml(b.name)}</div><div class="mini-v mono">${fmtEUR(finSum+subSum)}</div></div>`;
+  });
+
+  document.getElementById('miniGrid').innerHTML = html;
+}
+
+/* ---------- render dashboard ---------- */
+function renderAll(){
+  const activeFin = financings.filter(finIsActive);
+  const finTotal = activeFin.reduce((s,f)=>s+Number(f.importoMensile||0),0);
+  document.getElementById('finTotal').textContent = fmtEUR(finTotal);
+  document.getElementById('finCount').textContent = `${activeFin.length} attiv${activeFin.length===1?'o':'i'} · ${financings.length} totali`;
+
+  const subTotal = subscriptions.reduce((s,x)=>s+Number(x.importo||0),0);
+  document.getElementById('subTotal').textContent = fmtEUR(subTotal);
+  document.getElementById('subCount').textContent = `${subscriptions.length} attiv${subscriptions.length===1?'o':'i'}`;
+
+  renderMiniBoxes();
+  renderChart();
+}
+
+renderAll();
+</script>
+</body>
+</html>
