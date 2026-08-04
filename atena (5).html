@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atena — Hub Agenzie e Mandatari</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --ink:#1B2A4A;
+    --ink-2:#233A63;
+    --gold:#B08D57;
+    --gold-light:#E4D4B4;
+    --paper:#F7F5F0;
+    --paper-2:#EFEBE2;
+    --slate:#5B6472;
+    --line:#DDD6C7;
+    --success:#3F7659;
+    --success-bg:#E7F0EA;
+    --warning:#C97B2E;
+    --warning-bg:#FBEEE0;
+    --danger:#B5462F;
+    --danger-bg:#F8E9E4;
+    --blue:#2F5EA8;
+    --blue-bg:#E5EDF7;
+    --yellow:#9C7A0A;
+    --yellow-bg:#FBF3D9;
+    --white:#FFFFFF;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  header.app-header{
+    background:var(--white);
+    border-bottom:1px solid var(--line);
+    padding:14px 20px;
+    position:sticky;
+    top:0;
+    z-index:30;
+  }
+  .header-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    max-width:1100px;
+    margin:0 auto;
+  }
+  .brand-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:24px;
+    font-weight:700;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin:0;
+    line-height:1;
+    color:var(--ink);
+  }
+  .brand-sub{
+    font-size:10.5px;
+    color:var(--slate);
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    margin-top:3px;
+  }
+  .gear-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--slate);
+    padding:7px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .gear-btn:hover{ background:var(--paper-2); color:var(--ink); }
+  .gear-btn svg{width:21px;height:21px;}
+
+  nav.tabs{
+    max-width:1100px;
+    margin:0 auto;
+    display:flex;
+    gap:4px;
+    background:var(--white);
+    border-bottom:1px solid var(--line);
+    padding:0 20px;
+  }
+  nav.tabs button{
+    background:transparent;
+    border:none;
+    color:var(--slate);
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    padding:11px 14px;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    transition:all .15s ease;
+  }
+  nav.tabs button:hover{ color:var(--ink); }
+  nav.tabs button.active{
+    color:var(--ink);
+    border-bottom-color:var(--gold);
+  }
+  main{
+    max-width:1100px;
+    margin:0 auto;
+    padding:22px 20px 80px;
+  }
+  .section{display:none;}
+  .section.active{display:block;}
+
+  .dashboard-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:26px;
+  }
+  .dash-box{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    min-height:100px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .dash-box.info{
+    border-style:dashed;
+    background:transparent;
+  }
+  .dash-box.nav{
+    cursor:pointer;
+    transition:box-shadow .15s ease, border-color .15s ease;
+  }
+  .dash-box.nav:hover{
+    box-shadow:0 3px 10px rgba(27,42,74,.08);
+    border-color:var(--gold-light);
+  }
+  .dash-label{ font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--slate); font-weight:700; }
+  .dash-value{ font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:700; color:var(--ink); }
+  @media (max-width:640px){
+    .dashboard-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+
+  .toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .subtoggle{
+    display:flex;
+    background:var(--paper-2);
+    border-radius:8px;
+    padding:3px;
+    gap:2px;
+  }
+  .subtoggle button{
+    border:none;
+    background:transparent;
+    padding:8px 16px;
+    border-radius:6px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--slate);
+    cursor:pointer;
+  }
+  .subtoggle button.active{
+    background:var(--white);
+    color:var(--ink);
+    box-shadow:0 1px 3px rgba(27,42,74,.15);
+  }
+  .btn{
+    border:none;
+    border-radius:8px;
+    padding:10px 16px;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--ink); color:var(--white);}
+  .btn-primary:hover{background:var(--ink-2);}
+  .btn-ghost{background:var(--white); color:var(--ink); border:1px solid var(--line);}
+  .btn-gold{background:var(--gold); color:var(--white);}
+  .btn-danger{background:var(--danger); color:var(--white);}
+  .btn-sm{padding:6px 11px; font-size:12.5px; border-radius:6px;}
+
+  .filter-panel{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    margin-bottom:16px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:10px;
+    align-items:end;
+  }
+  .filter-field label{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    color:var(--slate);
+    text-transform:uppercase;
+    letter-spacing:.4px;
+    margin-bottom:4px;
+  }
+  .filter-field input, .filter-field select{
+    width:100%;
+    padding:8px 9px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    font-size:13.5px;
+    font-family:'Inter',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .filter-actions{
+    grid-column:1/-1;
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-top:2px;
+  }
+  .count-pill{
+    font-size:12.5px;
+    color:var(--slate);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .card-list{display:flex; flex-direction:column; gap:8px;}
+  .rec-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:13px 15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    transition:box-shadow .15s ease, border-color .15s ease;
+  }
+  .rec-card:hover{box-shadow:0 3px 10px rgba(27,42,74,.08); border-color:var(--gold-light);}
+  .rec-main{min-width:0;}
+  .rec-title{font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:2px;}
+  .rec-sub{font-size:12.5px; color:var(--slate); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .rec-right{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .tag{
+    font-size:11px;
+    font-weight:700;
+    padding:4px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+  }
+  .tag-attiva, .tag-titolare, .tag-effettuata, .tag-rinnovata{background:var(--success-bg); color:var(--success);}
+  .tag-reggenza, .tag-reggente{background:var(--blue-bg); color:var(--blue);}
+  .tag-programmata, .tag-in-scadenza, .tag-proroga{background:var(--warning-bg); color:var(--warning);}
+  .tag-soppressa, .tag-dimissionario, .tag-rinunciatario, .tag-pensionato, .tag-revocato, .tag-annullata, .tag-scaduta, .tag-rinviata{background:var(--danger-bg); color:var(--danger);}
+  .tag-interpello{background:var(--blue-bg); color:var(--blue);}
+  .tag-proposta{background:var(--yellow-bg); color:var(--yellow);}
+  .tag-neutro{background:var(--paper-2); color:var(--slate);}
+
+  .empty-state{
+    text-align:center;
+    padding:50px 20px;
+    color:var(--slate);
+    background:var(--white);
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+  }
+  .empty-state h3{font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--ink); margin:0 0 6px;}
+
+  .pagination{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    margin-top:16px;
+    font-size:13px;
+    color:var(--slate);
+  }
+  .pagination button{
+    border:1px solid var(--line);
+    background:var(--white);
+    border-radius:6px;
+    padding:6px 12px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .pagination button:disabled{opacity:.35; cursor:not-allowed;}
+
+  .modal-backdrop{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(27,42,74,.45);
+    z-index:100;
+    align-items:flex-start;
+    justify-content:center;
+    overflow-y:auto;
+    padding:40px 16px;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal{
+    background:var(--white);
+    border-radius:14px;
+    max-width:520px;
+    width:100%;
+    padding:22px 24px 24px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+  }
+  .modal.wide{ max-width:620px; }
+  .modal h2{
+    font-family:'Cormorant Garamond',serif;
+    font-size:24px;
+    margin:0 0 16px;
+    color:var(--ink);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .modal-close{
+    background:none; border:none; font-size:20px; cursor:pointer; color:var(--slate);
+  }
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .form-field{display:flex; flex-direction:column; gap:4px;}
+  .form-field.full{grid-column:1/-1;}
+  .form-field label{font-size:11.5px; font-weight:600; color:var(--slate); text-transform:uppercase; letter-spacing:.3px;}
+  .form-field input, .form-field select, .form-field textarea{
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+    background:var(--paper);
+  }
+  .form-field textarea{resize:vertical; min-height:60px;}
+  .checkbox-field{ display:flex; align-items:center; gap:8px; flex-direction:row !important; }
+  .checkbox-field input{ width:auto; padding:0; }
+  .checkbox-field label{ text-transform:none; font-size:13.5px; font-weight:500; color:var(--ink); }
+  .val-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; grid-column:1/-1; }
+  .val-group-title{ grid-column:1/-1; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--gold); font-weight:700; margin-top:6px; }
+  .modal-actions{
+    display:flex;
+    justify-content:space-between;
+    margin-top:20px;
+    gap:8px;
+  }
+  .detail-block{margin-bottom:14px;}
+  .detail-block h4{
+    font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--gold);
+    margin:0 0 8px; font-weight:700;
+  }
+  .detail-row{display:flex; justify-content:space-between; font-size:13.5px; padding:6px 0; border-bottom:1px solid var(--paper-2);}
+  .detail-row span:first-child{color:var(--slate);}
+  .detail-row span:last-child{font-weight:600; text-align:right;}
+  .mini-list-item{
+    font-size:13px; padding:8px 10px; background:var(--paper); border-radius:7px; margin-bottom:6px;
+    display:flex; justify-content:space-between; gap:8px;
+  }
+
+  .settings-section{ margin-bottom:20px; padding-bottom:18px; border-bottom:1px solid var(--paper-2); }
+  .settings-section:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .settings-section h4{ font-size:11.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--gold); font-weight:700; margin:0 0 10px; }
+  .settings-section p.hint{ font-size:12px; color:var(--slate); margin:-4px 0 10px; }
+  .chip-list{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .chip{ background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:5px 6px 5px 12px; font-size:12.5px; display:flex; align-items:center; gap:6px; }
+  .chip button{ background:none; border:none; cursor:pointer; color:var(--slate); font-size:13px; line-height:1; padding:2px 4px; }
+  .chip button:hover{ color:var(--danger); }
+  .inline-add{ display:flex; gap:6px; }
+  .inline-add input, .inline-add select{ flex:1; padding:8px 9px; border:1px solid var(--line); border-radius:7px; font-size:13px; background:var(--paper); }
+  .settings-list-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:var(--paper); border-radius:7px; margin-bottom:6px; font-size:13px; }
+  .settings-list-row button{ background:none; border:none; cursor:pointer; color:var(--slate); font-size:13px; }
+  .settings-list-row button:hover{ color:var(--danger); }
+  .settings-grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .file-input-label{
+    display:inline-block; padding:9px 15px; border:1px solid var(--line); border-radius:8px;
+    font-size:13px; font-weight:600; cursor:pointer; background:var(--white); color:var(--ink);
+  }
+
+  input, select, textarea, option,
+  .rec-title, .rec-sub, .tag, .detail-row span:last-child, .dash-value,
+  .chip, .settings-list-row, .mini-list-item, .count-pill{
+    text-transform:uppercase;
+  }
+  .detail-row span:last-child p{ text-transform:uppercase; }
+
+  @media (max-width:640px){
+    .form-grid, .settings-grid-2{grid-template-columns:1fr;}
+    .brand-title{font-size:20px;}
+    .rec-sub{white-space:normal;}
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-row">
+    <div>
+      <p class="brand-title">Atena</p>
+      <p class="brand-sub">Hub Agenzie &amp; Mandatari Area Centro</p>
+    </div>
+    <button class="gear-btn" title="Impostazioni" onclick="openSettings()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">Home</button>
+    <button class="tab-btn" data-tab="rubrica" onclick="switchTab('rubrica')">Rubrica</button>
+    <button class="tab-btn" data-tab="scadenzario" onclick="switchTab('scadenzario')">Scadenzario</button>
+    <button class="tab-btn" data-tab="visite" onclick="switchTab('visite')">Diario</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section id="tab-home" class="section active">
+    <div class="dashboard-grid">
+      <div class="dash-box info nav" onclick="apriBoxInfo('reggenze')">
+        <span class="dash-label">Reggenze</span>
+        <span class="dash-value" id="dash-info-reggenza">0</span>
+      </div>
+      <div class="dash-box info nav" onclick="apriBoxInfo('scadenza')">
+        <span class="dash-label">In Scadenza</span>
+        <span class="dash-value" id="dash-info-verso65">0</span>
+      </div>
+      <div class="dash-box info nav" onclick="apriBoxInfo('proroga')">
+        <span class="dash-label">In Proroga</span>
+        <span class="dash-value" id="dash-info-over65proroga">0</span>
+      </div>
+      <div class="dash-box info nav" onclick="apriBoxInfo('prova')">
+        <span class="dash-label">In Prova</span>
+        <span class="dash-value" id="dash-info-prova">0</span>
+      </div>
+      <div class="dash-box nav" onclick="switchTab('rubrica'); switchRubrica('agenzie');">
+        <span class="dash-label">Agenzie</span>
+        <span class="dash-value" id="dash-count-agenzie">0</span>
+      </div>
+      <div class="dash-box nav" onclick="switchTab('rubrica'); switchRubrica('mandatari');">
+        <span class="dash-label">Mandatari</span>
+        <span class="dash-value" id="dash-count-mandatari">0</span>
+      </div>
+      <div class="dash-box nav" onclick="switchTab('scadenzario')">
+        <span class="dash-label">Scadenzario</span>
+        <span class="dash-value" id="dash-count-scadenze">0</span>
+      </div>
+      <div class="dash-box nav" onclick="switchTab('visite')">
+        <span class="dash-label">Diario</span>
+        <span class="dash-value" id="dash-count-visite">0</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- RUBRICA -->
+  <section id="tab-rubrica" class="section">
+    <div class="toolbar">
+      <div class="subtoggle">
+        <button class="active" id="sub-agenzie-btn" onclick="switchRubrica('agenzie')">Agenzie</button>
+        <button id="sub-mandatari-btn" onclick="switchRubrica('mandatari')">Mandatari</button>
+      </div>
+      <button class="btn btn-primary" id="rubrica-add-btn" onclick="openAgenziaForm()">+ Nuova agenzia</button>
+    </div>
+
+    <div id="filter-agenzie" class="filter-panel">
+      <div class="filter-field"><label>Agenzia</label><input type="text" id="f-ag-nome" oninput="renderAgenzie()"></div>
+      <div class="filter-field"><label>Zona</label>
+        <select id="f-ag-zona" onchange="renderAgenzie()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Regione</label>
+        <select id="f-ag-regione" onchange="renderAgenzie()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Provincia</label>
+        <select id="f-ag-provincia" onchange="renderAgenzie()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Mandatario</label>
+        <select id="f-ag-mandatario" onchange="renderAgenzie()"><option value="">Tutti</option></select>
+      </div>
+      <div class="filter-field"><label>Stato</label>
+        <select id="f-ag-stato" onchange="renderAgenzie()"><option value="">Tutti</option></select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-ghost btn-sm" onclick="resetFilters('agenzie')">Azzera filtri</button>
+      </div>
+    </div>
+
+    <div id="filter-mandatari" class="filter-panel" style="display:none;">
+      <div class="filter-field"><label>Cognome</label><input type="text" id="f-md-cognome" oninput="renderMandatari()"></div>
+      <div class="filter-field"><label>Nome</label><input type="text" id="f-md-nome" oninput="renderMandatari()"></div>
+      <div class="filter-field"><label>Agenzia</label>
+        <select id="f-md-agenzia" onchange="renderMandatari()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Zona</label>
+        <select id="f-md-zona" onchange="renderMandatari()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Regione</label>
+        <select id="f-md-regione" onchange="renderMandatari()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Provincia</label>
+        <select id="f-md-provincia" onchange="renderMandatari()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Stato</label>
+        <select id="f-md-stato" onchange="renderMandatari()"><option value="">Tutti</option></select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-ghost btn-sm" onclick="resetFilters('mandatari')">Azzera filtri</button>
+      </div>
+    </div>
+
+    <div class="count-pill" id="count-agenzie"></div>
+    <div class="card-list" id="list-agenzie"></div>
+    <div class="pagination" id="page-agenzie"></div>
+
+    <div class="count-pill" id="count-mandatari" style="display:none;"></div>
+    <div class="card-list" id="list-mandatari" style="display:none;"></div>
+    <div class="pagination" id="page-mandatari" style="display:none;"></div>
+  </section>
+
+  <!-- SCADENZARIO -->
+  <section id="tab-scadenzario" class="section">
+    <div class="toolbar">
+      <h2 style="font-family:'Cormorant Garamond',serif; margin:0; font-size:22px;">Scadenzario</h2>
+      <button class="btn btn-primary" onclick="openScadenzaForm()">+ Nuova scadenza</button>
+    </div>
+    <div class="filter-panel">
+      <div class="filter-field"><label>Agenzia</label>
+        <select id="f-sc-agenzia" onchange="renderScadenze()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Nome mandatario</label><input type="text" id="f-sc-nome" oninput="renderScadenze()"></div>
+      <div class="filter-field"><label>Cognome mandatario</label><input type="text" id="f-sc-cognome" oninput="renderScadenze()"></div>
+      <div class="filter-field"><label>Stato</label>
+        <select id="f-sc-stato" onchange="renderScadenze()"><option value="">Tutti</option></select>
+      </div>
+      <div class="filter-field"><label>Età mandatario &gt;</label><input type="number" id="f-sc-eta" min="0" oninput="renderScadenze()"></div>
+      <div class="filter-field"><label>Regione</label>
+        <select id="f-sc-regione" onchange="renderScadenze()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Provincia</label>
+        <select id="f-sc-provincia" onchange="renderScadenze()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Sesso mandatario</label>
+        <select id="f-sc-sesso" onchange="renderScadenze()"><option value="">Tutti</option><option value="M">M</option><option value="F">F</option></select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-ghost btn-sm" onclick="resetFilters('scadenze')">Azzera filtri</button>
+      </div>
+    </div>
+    <div class="count-pill" id="count-scadenze"></div>
+    <div class="card-list" id="list-scadenze"></div>
+    <div class="pagination" id="page-scadenze"></div>
+  </section>
+
+  <!-- VISITE -->
+  <section id="tab-visite" class="section">
+    <div class="toolbar">
+      <h2 style="font-family:'Cormorant Garamond',serif; margin:0; font-size:22px;">Diario</h2>
+      <button class="btn btn-primary" onclick="openVisitaForm()">+ Nuova visita</button>
+    </div>
+    <div class="filter-panel">
+      <div class="filter-field"><label>Anno</label>
+        <select id="f-vi-anno" onchange="renderVisite()"><option value="">Tutti</option></select>
+      </div>
+      <div class="filter-field"><label>Mese</label>
+        <select id="f-vi-mese" onchange="renderVisite()"><option value="">Tutti</option></select>
+      </div>
+      <div class="filter-field"><label>Agenzia</label>
+        <select id="f-vi-agenzia" onchange="renderVisite()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Nome mandatario</label><input type="text" id="f-vi-nome" oninput="renderVisite()"></div>
+      <div class="filter-field"><label>Cognome mandatario</label><input type="text" id="f-vi-cognome" oninput="renderVisite()"></div>
+      <div class="filter-field"><label>Regione</label>
+        <select id="f-vi-regione" onchange="renderVisite()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Provincia</label>
+        <select id="f-vi-provincia" onchange="renderVisite()"><option value="">Tutte</option></select>
+      </div>
+      <div class="filter-field"><label>Stato</label>
+        <select id="f-vi-stato" onchange="renderVisite()"><option value="">Tutti</option></select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-ghost btn-sm" onclick="resetFilters('visite')">Azzera filtri</button>
+      </div>
+    </div>
+    <div class="count-pill" id="count-visite"></div>
+    <div class="card-list" id="list-visite"></div>
+    <div class="pagination" id="page-visite"></div>
+  </section>
+
+</main>
+
+<!-- FORM MODAL -->
+<div class="modal-backdrop" id="modal-form-backdrop">
+  <div class="modal">
+    <h2 id="form-title"><span></span><button class="modal-close" onclick="closeModal('modal-form-backdrop')">&#10005;</button></h2>
+    <div id="form-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="form-delete-btn" style="display:none;" onclick="deleteCurrentRecord()">Elimina</button>
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" onclick="closeModal('modal-form-backdrop')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveCurrentRecord()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-backdrop" id="modal-detail-backdrop">
+  <div class="modal">
+    <h2 id="detail-title"><span></span><button class="modal-close" onclick="closeModal('modal-detail-backdrop')">&#10005;</button></h2>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-backdrop" id="modal-settings-backdrop">
+  <div class="modal wide">
+    <h2><span>Impostazioni</span><button class="modal-close" onclick="closeModal('modal-settings-backdrop')">&#10005;</button></h2>
+    <div id="settings-body"></div>
+  </div>
+</div>
+
+<!-- INFO BOX MODAL -->
+<div class="modal-backdrop" id="modal-infobox-backdrop">
+  <div class="modal">
+    <h2 id="infobox-title"><span></span><button class="modal-close" onclick="closeModal('modal-infobox-backdrop')">&#10005;</button></h2>
+    <div id="infobox-body"></div>
+  </div>
+</div>
+
+<script>
+/* ---------------- DATI DI BASE ---------------- */
+const REGIONI = ['Abruzzo','Lazio','Sardegna','Toscana','Umbria'];
+const PROVINCE = {
+  'Abruzzo': ["L'Aquila","Chieti","Pescara","Teramo"],
+  'Lazio': ["Roma","Frosinone","Latina","Rieti","Viterbo"],
+  'Sardegna': ["Cagliari","Sassari","Nuoro","Oristano","Sud Sardegna"],
+  'Toscana': ["Arezzo","Firenze","Grosseto","Livorno","Lucca","Massa-Carrara","Pisa","Pistoia","Prato","Siena"],
+  'Umbria': ["Perugia","Terni"]
+};
+const DEFAULT_STATO_AGENZIE = ['Attiva','Reggenza','Soppressa'];
+const DEFAULT_STATO_MANDATARI = ['Titolare','Reggente','Dimissionario','Rinunciatario','Pensionato','Revocato','Proroga'];
+const VISITA_STATI = ['Programmata','Effettuata','Annullata','Rinviata'];
+const SCADENZA_STATI = ['Attiva','In scadenza','Scaduta','Rinnovata'];
+const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+const PAGE_SIZE = 10;
+const STORAGE_KEY = 'atena-hub-data';
+
+let db = {
+  agenzie: [], mandatari: [], visite: [], scadenze: [],
+  settings: {
+    zone: [],
+    rdz: [],
+    statoAgenzie: DEFAULT_STATO_AGENZIE.slice(),
+    statoMandatari: DEFAULT_STATO_MANDATARI.slice(),
+    contratto: { limiteEta: null },
+    altro: '',
+    sogliaVisite: null,
+    pesiValutazione: { incassi:20, presidio:20, erario:20, territorio:20, profilo:20 }
+  }
+};
+let pages = { agenzie:1, mandatari:1, visite:1, scadenze:1 };
+let currentForm = null;
+
+function settings(){ return db.settings; }
+function getStatoAgenzie(){ return (settings().statoAgenzie && settings().statoAgenzie.length) ? settings().statoAgenzie : DEFAULT_STATO_AGENZIE; }
+function getStatoMandatari(){ return (settings().statoMandatari && settings().statoMandatari.length) ? settings().statoMandatari : DEFAULT_STATO_MANDATARI; }
+function getZone(){ return settings().zone || []; }
+
+function calcolaEta(dataNascita){
+  if(!dataNascita) return null;
+  const b = new Date(dataNascita);
+  if(isNaN(b.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - b.getFullYear();
+  const m = now.getMonth() - b.getMonth();
+  if(m < 0 || (m===0 && now.getDate() < b.getDate())) age--;
+  return age;
+}
+
+function aggiungiAnni(iso, anni){
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return null;
+  d.setFullYear(d.getFullYear()+anni);
+  return d.toISOString().slice(0,10);
+}
+
+function oggiIso(){ return new Date().toISOString().slice(0,10); }
+
+function rimuoviScadenzaAuto(mandatarioId, ruleKey){
+  db.scadenze = db.scadenze.filter(s=> !(s.auto && s.mandatarioId===mandatarioId && s.ruleKey===ruleKey));
+}
+
+function sincronizzaScadenzeAutomatiche(mandatario){
+  const oggi = oggiIso();
+
+  rimuoviScadenzaAuto(mandatario.id, 'contratto2anni');
+  if(mandatario.dataContratto){
+    const scad = aggiungiAnni(mandatario.dataContratto, 2);
+    if(scad && scad > oggi){
+      db.scadenze.push({
+        id: uid(),
+        tipo: 'Scadenza contratto (2 anni)',
+        scadenza: scad,
+        stato: 'Attiva',
+        agenziaId: mandatario.agenziaId || null,
+        mandatarioId: mandatario.id,
+        note: '',
+        auto: true,
+        ruleKey: 'contratto2anni'
+      });
+    }
+  }
+
+  rimuoviScadenzaAuto(mandatario.id, 'eta65');
+  if(mandatario.dataNascita){
+    const scad = aggiungiAnni(mandatario.dataNascita, 65);
+    if(scad && scad > oggi){
+      db.scadenze.push({
+        id: uid(),
+        tipo: 'Compimento 65 anni',
+        scadenza: scad,
+        stato: 'Attiva',
+        agenziaId: mandatario.agenziaId || null,
+        mandatarioId: mandatario.id,
+        note: '',
+        auto: true,
+        ruleKey: 'eta65'
+      });
+    }
+  }
+}
+
+/* ---------------- PERSISTENZA ---------------- */
+function defaultSettings(){
+  return {
+    zone: [], rdz: [],
+    statoAgenzie: DEFAULT_STATO_AGENZIE.slice(),
+    statoMandatari: DEFAULT_STATO_MANDATARI.slice(),
+    contratto: { limiteEta: null },
+    altro: '',
+    sogliaVisite: null,
+    pesiValutazione: { incassi:20, presidio:20, erario:20, territorio:20, profilo:20 }
+  };
+}
+async function loadData(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const loaded = JSON.parse(res.value);
+      db.agenzie = loaded.agenzie || [];
+      db.mandatari = loaded.mandatari || [];
+      db.visite = loaded.visite || [];
+      db.scadenze = loaded.scadenze || [];
+      db.settings = Object.assign(defaultSettings(), loaded.settings || {});
+      if(!db.settings.contratto) db.settings.contratto = { limiteEta: null };
+    }
+  }catch(e){
+    console.log('Nessun dato salvato trovato, si parte da zero.', e);
+  }
+}
+async function saveData(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(db), false);
+  }catch(e){
+    console.error('Errore nel salvataggio dei dati', e);
+  }
+}
+
+function uid(){ return 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+
+/* ---------------- UTILI SELECT ---------------- */
+function fillSelect(sel, values, placeholder){
+  sel.innerHTML = '<option value="">'+placeholder+'</option>' + values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+}
+function updateProvinciaOptions(regioneSel, provinciaSel, placeholder){
+  const r = regioneSel.value;
+  const opts = r ? PROVINCE[r] : [...new Set(Object.values(PROVINCE).flat())].sort();
+  fillSelect(provinciaSel, opts, placeholder);
+}
+
+function initStaticFilters(){
+  ['f-ag-regione','f-md-regione','f-vi-regione','f-sc-regione'].forEach(id=>{
+    fillSelect(document.getElementById(id), REGIONI, 'Tutte');
+  });
+  document.getElementById('f-ag-regione').onchange = ()=>{ updateProvinciaOptions(document.getElementById('f-ag-regione'), document.getElementById('f-ag-provincia'),'Tutte'); renderAgenzie(); };
+  document.getElementById('f-md-regione').onchange = ()=>{ updateProvinciaOptions(document.getElementById('f-md-regione'), document.getElementById('f-md-provincia'),'Tutte'); renderMandatari(); };
+  document.getElementById('f-vi-regione').onchange = ()=>{ updateProvinciaOptions(document.getElementById('f-vi-regione'), document.getElementById('f-vi-provincia'),'Tutte'); renderVisite(); };
+  document.getElementById('f-sc-regione').onchange = ()=>{ updateProvinciaOptions(document.getElementById('f-sc-regione'), document.getElementById('f-sc-provincia'),'Tutte'); renderScadenze(); };
+
+  refreshStatoSelects();
+  fillSelect(document.getElementById('f-vi-stato'), VISITA_STATI, 'Tutti');
+  fillSelect(document.getElementById('f-sc-stato'), SCADENZA_STATI, 'Tutti');
+  fillSelect(document.getElementById('f-vi-mese'), MESI, 'Tutti');
+}
+
+function refreshStatoSelects(){
+  const curAg = document.getElementById('f-ag-stato').value;
+  fillSelect(document.getElementById('f-ag-stato'), getStatoAgenzie(), 'Tutti');
+  document.getElementById('f-ag-stato').value = curAg;
+  const curMd = document.getElementById('f-md-stato').value;
+  fillSelect(document.getElementById('f-md-stato'), getStatoMandatari(), 'Tutti');
+  document.getElementById('f-md-stato').value = curMd;
+}
+
+function refreshZoneSelects(){
+  ['f-ag-zona','f-md-zona'].forEach(id=>{
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    fillSelect(sel, getZone(), id==='f-ag-zona'?'Tutte':'Tutte');
+    sel.value = cur;
+  });
+}
+
+function refreshDynamicSelects(){
+  const anni = [...new Set(db.visite.map(v=>v.anno))].sort((a,b)=>b-a);
+  fillSelect(document.getElementById('f-vi-anno'), anni, 'Tutti');
+
+  const agenzieOpts = db.agenzie.slice().sort((a,b)=>a.nome.localeCompare(b.nome));
+  const mdSel = document.getElementById('f-ag-mandatario');
+  const curMd = mdSel.value;
+  mdSel.innerHTML = '<option value="">Tutti</option>' + db.mandatari.slice().sort((a,b)=>a.cognome.localeCompare(b.cognome))
+    .map(m=>`<option value="${m.id}">${escapeHtml(m.cognome)} ${escapeHtml(m.nome)}</option>`).join('');
+  mdSel.value = curMd;
+
+  ['f-md-agenzia','f-sc-agenzia','f-vi-agenzia'].forEach(id=>{
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Tutte</option>' + agenzieOpts.map(a=>`<option value="${a.id}">${escapeHtml(a.nome)}</option>`).join('');
+    sel.value = cur;
+  });
+
+  refreshZoneSelects();
+}
+
+function agenziaName(id){ const a = db.agenzie.find(x=>x.id===id); return a ? a.nome : '—'; }
+function mandatarioName(id){ const m = db.mandatari.find(x=>x.id===id); return m ? (m.cognome+' '+m.nome) : '—'; }
+function tagClass(stato){ return stato ? ('tag tag-' + stato.toLowerCase().replace(/\s+/g,'-')) : 'tag tag-neutro'; }
+
+/* ---------------- TABS ---------------- */
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('main > .section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+function switchRubrica(which){
+  const isAg = which==='agenzie';
+  document.getElementById('sub-agenzie-btn').classList.toggle('active', isAg);
+  document.getElementById('sub-mandatari-btn').classList.toggle('active', !isAg);
+  document.getElementById('filter-agenzie').style.display = isAg ? 'grid':'none';
+  document.getElementById('filter-mandatari').style.display = !isAg ? 'grid':'none';
+  document.getElementById('count-agenzie').style.display = isAg ? 'block':'none';
+  document.getElementById('list-agenzie').style.display = isAg ? 'flex':'none';
+  document.getElementById('page-agenzie').style.display = isAg ? 'flex':'none';
+  document.getElementById('count-mandatari').style.display = !isAg ? 'block':'none';
+  document.getElementById('list-mandatari').style.display = !isAg ? 'flex':'none';
+  document.getElementById('page-mandatari').style.display = !isAg ? 'flex':'none';
+  document.getElementById('rubrica-add-btn').textContent = isAg ? '+ Nuova agenzia' : '+ Nuovo mandatario';
+  document.getElementById('rubrica-add-btn').onclick = isAg ? ()=>openAgenziaForm() : ()=>openMandatarioForm();
+}
+
+function resetFilters(kind){
+  const map = {
+    agenzie: ['f-ag-nome','f-ag-zona','f-ag-regione','f-ag-provincia','f-ag-mandatario','f-ag-stato'],
+    mandatari: ['f-md-cognome','f-md-nome','f-md-agenzia','f-md-zona','f-md-regione','f-md-provincia','f-md-stato'],
+    visite: ['f-vi-anno','f-vi-mese','f-vi-agenzia','f-vi-nome','f-vi-cognome','f-vi-regione','f-vi-provincia','f-vi-stato'],
+    scadenze: ['f-sc-agenzia','f-sc-nome','f-sc-cognome','f-sc-stato','f-sc-eta','f-sc-regione','f-sc-provincia','f-sc-sesso']
+  };
+  map[kind].forEach(id=>{ document.getElementById(id).value=''; });
+  if(kind==='agenzie') updateProvinciaOptions(document.getElementById('f-ag-regione'), document.getElementById('f-ag-provincia'),'Tutte');
+  if(kind==='mandatari') updateProvinciaOptions(document.getElementById('f-md-regione'), document.getElementById('f-md-provincia'),'Tutte');
+  if(kind==='visite') updateProvinciaOptions(document.getElementById('f-vi-regione'), document.getElementById('f-vi-provincia'),'Tutte');
+  if(kind==='scadenze') updateProvinciaOptions(document.getElementById('f-sc-regione'), document.getElementById('f-sc-provincia'),'Tutte');
+  pages[kind] = 1;
+  ({agenzie:renderAgenzie, mandatari:renderMandatari, visite:renderVisite, scadenze:renderScadenze})[kind]();
+}
+
+function apriBoxInfo(kind){
+  let titolo = '';
+  let righe = [];
+
+  if(kind==='reggenze'){
+    titolo = 'Agenzie in Reggenza';
+    righe = db.agenzie.filter(a=>a.stato==='Reggenza').map(a=>({
+      label: a.nome,
+      sub: [a.provincia, a.regione].filter(Boolean).join(' · '),
+      onClick: ()=>{ closeModal('modal-infobox-backdrop'); showAgenziaDetail(a.id); }
+    }));
+  }
+
+  if(kind==='scadenza'){
+    titolo = 'Mandatari In Scadenza (65 anni entro 12 mesi)';
+    const oggi = oggiIso();
+    const tra12 = aggiungiAnni(oggi, 1);
+    righe = db.mandatari.filter(m=>{
+      if(!m.dataNascita) return false;
+      const d65 = aggiungiAnni(m.dataNascita, 65);
+      return d65 && d65 > oggi && d65 <= tra12;
+    }).map(m=>({
+      label: m.cognome + ' ' + m.nome,
+      sub: [m.agenziaId?agenziaName(m.agenziaId):null, 'Compie 65 anni il ' + formatDate(aggiungiAnni(m.dataNascita, 65))].filter(Boolean).join(' · '),
+      onClick: ()=>{ closeModal('modal-infobox-backdrop'); showMandatarioDetail(m.id); }
+    }));
+  }
+
+  if(kind==='proroga'){
+    titolo = 'Mandatari Over 65 In Proroga';
+    righe = db.mandatari.filter(m=>{
+      const eta = calcolaEta(m.dataNascita);
+      return eta!==null && eta > 65 && m.stato==='Proroga';
+    }).map(m=>({
+      label: m.cognome + ' ' + m.nome,
+      sub: [m.agenziaId?agenziaName(m.agenziaId):null, 'Età ' + calcolaEta(m.dataNascita)].filter(Boolean).join(' · '),
+      onClick: ()=>{ closeModal('modal-infobox-backdrop'); showMandatarioDetail(m.id); }
+    }));
+  }
+
+  if(kind==='prova'){
+    titolo = 'Mandatari In Prova (entro i due anni dal contratto)';
+    righe = db.scadenze.filter(s=>s.ruleKey==='contratto2anni' && s.mandatarioId).map(s=>{
+      const m = db.mandatari.find(x=>x.id===s.mandatarioId);
+      if(!m) return null;
+      return {
+        label: m.cognome + ' ' + m.nome,
+        sub: [m.agenziaId?agenziaName(m.agenziaId):null, 'Scadenza contratto: ' + formatDate(s.scadenza)].filter(Boolean).join(' · '),
+        onClick: ()=>{ closeModal('modal-infobox-backdrop'); showMandatarioDetail(m.id); }
+      };
+    }).filter(Boolean);
+  }
+
+  document.querySelector('#infobox-title span').textContent = titolo;
+  const body = document.getElementById('infobox-body');
+  body.innerHTML = righe.length
+    ? righe.map(r=>`<div class="mini-list-item" style="cursor:pointer;">
+        <span>${escapeHtml(r.label)}</span><span>${escapeHtml(r.sub||'')}</span>
+      </div>`).join('')
+    : '<div class="empty-state"><h3>Nessun elemento</h3><p>Non ci sono elementi da mostrare per questo indicatore.</p></div>';
+  Array.from(body.children).forEach((el, i)=>{ if(righe[i]) el.onclick = righe[i].onClick; });
+  openModal('modal-infobox-backdrop');
+}
+
+function iconAlertSottoSoglia(){
+  return ` <span class="alert-icon" title="Sotto soglia visite" style="display:inline-flex;vertical-align:middle;color:var(--danger);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>`;
+}
+function iconRdz(){
+  return `<span title="Visita con RdZ" style="display:inline-flex;vertical-align:middle;color:var(--gold);margin-right:2px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>`;
+}
+
+/* ---------------- RENDER: AGENZIE ---------------- */
+function renderAgenzie(){
+  const f = {
+    nome: document.getElementById('f-ag-nome').value.trim().toLowerCase(),
+    zona: document.getElementById('f-ag-zona').value,
+    regione: document.getElementById('f-ag-regione').value,
+    provincia: document.getElementById('f-ag-provincia').value,
+    mandatario: document.getElementById('f-ag-mandatario').value,
+    stato: document.getElementById('f-ag-stato').value
+  };
+  let rows = db.agenzie.filter(a=>
+    (!f.nome || a.nome.toLowerCase().includes(f.nome)) &&
+    (!f.zona || a.zona===f.zona) &&
+    (!f.regione || a.regione===f.regione) &&
+    (!f.provincia || a.provincia===f.provincia) &&
+    (!f.mandatario || a.mandatarioId===f.mandatario) &&
+    (!f.stato || a.stato===f.stato)
+  ).sort((a,b)=>a.nome.localeCompare(b.nome));
+
+  document.getElementById('count-agenzie').textContent = rows.length + (rows.length===1?' agenzia trovata':' agenzie trovate');
+  renderList('agenzie', rows, (a)=>({
+    title: a.nome,
+    titleSuffixHtml: isSottoSogliaVisite(a.id) ? iconAlertSottoSoglia() : '',
+    sub: [a.zona, a.provincia, a.regione, a.mandatarioId?('Mandatario: '+mandatarioName(a.mandatarioId)):null].filter(Boolean).join(' · '),
+    stato: a.stato,
+    badges: [
+      a.interpello ? {label:'Interpello', cls:'tag-interpello'} : null,
+      a.proposta ? {label:'Proposta', cls:'tag-proposta'} : null
+    ].filter(Boolean),
+    onClick: ()=>showAgenziaDetail(a.id)
+  }));
+  document.getElementById('dash-count-agenzie').textContent = db.agenzie.length;
+}
+
+/* ---------------- RENDER: MANDATARI ---------------- */
+function renderMandatari(){
+  const f = {
+    nome: document.getElementById('f-md-nome').value.trim().toLowerCase(),
+    cognome: document.getElementById('f-md-cognome').value.trim().toLowerCase(),
+    agenzia: document.getElementById('f-md-agenzia').value,
+    zona: document.getElementById('f-md-zona').value,
+    regione: document.getElementById('f-md-regione').value,
+    provincia: document.getElementById('f-md-provincia').value,
+    stato: document.getElementById('f-md-stato').value
+  };
+  let rows = db.mandatari.filter(m=>
+    (!f.nome || m.nome.toLowerCase().includes(f.nome)) &&
+    (!f.cognome || m.cognome.toLowerCase().includes(f.cognome)) &&
+    (!f.agenzia || m.agenziaId===f.agenzia) &&
+    (!f.zona || m.zona===f.zona) &&
+    (!f.regione || m.regione===f.regione) &&
+    (!f.provincia || m.provincia===f.provincia) &&
+    (!f.stato || m.stato===f.stato)
+  ).sort((a,b)=>a.cognome.localeCompare(b.cognome));
+
+  document.getElementById('count-mandatari').textContent = rows.length + (rows.length===1?' mandatario trovato':' mandatari trovati');
+  renderList('mandatari', rows, (m)=>{
+    const eta = calcolaEta(m.dataNascita);
+    return {
+      title: m.cognome + ' ' + m.nome,
+      sub: [m.agenziaId?agenziaName(m.agenziaId):null, m.zona, m.provincia, m.regione, (eta!==null?('Età '+eta):null)].filter(Boolean).join(' · '),
+      stato: m.stato,
+      onClick: ()=>showMandatarioDetail(m.id)
+    };
+  });
+  document.getElementById('dash-count-mandatari').textContent = db.mandatari.length;
+}
+
+/* ---------------- RENDER: VISITE ---------------- */
+function renderVisite(){
+  const f = {
+    anno: document.getElementById('f-vi-anno').value,
+    mese: document.getElementById('f-vi-mese').value,
+    agenzia: document.getElementById('f-vi-agenzia').value,
+    nome: document.getElementById('f-vi-nome').value.trim().toLowerCase(),
+    cognome: document.getElementById('f-vi-cognome').value.trim().toLowerCase(),
+    regione: document.getElementById('f-vi-regione').value,
+    provincia: document.getElementById('f-vi-provincia').value,
+    stato: document.getElementById('f-vi-stato').value
+  };
+  let rows = db.visite.filter(v=>{
+    const m = db.mandatari.find(x=>x.id===v.mandatarioId);
+    return (!f.anno || String(v.anno)===String(f.anno)) &&
+      (!f.mese || String(v.mese)===String(f.mese)) &&
+      (!f.agenzia || v.agenziaId===f.agenzia) &&
+      (!f.nome || (m && m.nome.toLowerCase().includes(f.nome))) &&
+      (!f.cognome || (m && m.cognome.toLowerCase().includes(f.cognome))) &&
+      (!f.regione || v.regione===f.regione) &&
+      (!f.provincia || v.provincia===f.provincia) &&
+      (!f.stato || v.stato===f.stato);
+  }).sort((a,b)=> b.data.localeCompare(a.data));
+
+  document.getElementById('count-visite').textContent = rows.length + (rows.length===1?' visita trovata':' visite trovate');
+  renderList('visite', rows, (v)=>{
+    const pilastri = calcolaPilastri(v);
+    const generale = calcolaValutazioneGenerale(pilastri);
+    return {
+      title: agenziaName(v.agenziaId) + ' — ' + formatDate(v.data) + (generale!==null ? (' — Valutazione ' + generale.toFixed(1)) : ''),
+      sub: [v.mandatarioId?mandatarioName(v.mandatarioId):null, v.provincia, v.regione].filter(Boolean).join(' · '),
+      stato: v.stato,
+      iconHtml: v.conRdz ? iconRdz() : '',
+      onClick: ()=>showVisitaDetail(v.id)
+    };
+  });
+  document.getElementById('dash-count-visite').textContent = db.visite.length;
+}
+
+/* ---------------- RENDER: SCADENZE ---------------- */
+function renderScadenze(){
+  const f = {
+    agenzia: document.getElementById('f-sc-agenzia').value,
+    nome: document.getElementById('f-sc-nome').value.trim().toLowerCase(),
+    cognome: document.getElementById('f-sc-cognome').value.trim().toLowerCase(),
+    stato: document.getElementById('f-sc-stato').value,
+    eta: document.getElementById('f-sc-eta').value,
+    regione: document.getElementById('f-sc-regione').value,
+    provincia: document.getElementById('f-sc-provincia').value,
+    sesso: document.getElementById('f-sc-sesso').value
+  };
+  let rows = db.scadenze.filter(s=>{
+    const a = db.agenzie.find(x=>x.id===s.agenziaId);
+    const m = db.mandatari.find(x=>x.id===s.mandatarioId);
+    const regione = a ? a.regione : (m ? m.regione : null);
+    const provincia = a ? a.provincia : (m ? m.provincia : null);
+    const eta = m ? calcolaEta(m.dataNascita) : null;
+    return (!f.agenzia || s.agenziaId===f.agenzia) &&
+      (!f.nome || (m && m.nome.toLowerCase().includes(f.nome))) &&
+      (!f.cognome || (m && m.cognome.toLowerCase().includes(f.cognome))) &&
+      (!f.stato || s.stato===f.stato) &&
+      (!f.eta || (eta!==null && eta > Number(f.eta))) &&
+      (!f.regione || regione===f.regione) &&
+      (!f.provincia || provincia===f.provincia) &&
+      (!f.sesso || (m && m.sesso===f.sesso));
+  }).sort((a,b)=> (a.scadenza||'').localeCompare(b.scadenza||''));
+
+  document.getElementById('count-scadenze').textContent = rows.length + (rows.length===1?' scadenza trovata':' scadenze trovate');
+  renderList('scadenze', rows, (s)=>({
+    title: (s.tipo||'Scadenza') + ' — ' + agenziaName(s.agenziaId),
+    sub: [s.mandatarioId?mandatarioName(s.mandatarioId):null, s.scadenza?('Entro '+formatDate(s.scadenza)):null].filter(Boolean).join(' · '),
+    stato: s.stato,
+    onClick: ()=>showScadenzaDetail(s.id)
+  }));
+  document.getElementById('dash-count-scadenze').textContent = db.scadenze.length;
+}
+
+/* ---------------- LISTA GENERICA + PAGINAZIONE ---------------- */
+function renderList(kind, rows, mapFn){
+  const listEl = document.getElementById('list-'+kind);
+  const pageEl = document.getElementById('page-'+kind);
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total/PAGE_SIZE));
+  if(pages[kind] > totalPages) pages[kind] = totalPages;
+  if(pages[kind] < 1) pages[kind] = 1;
+
+  if(total===0){
+    listEl.innerHTML = `<div class="empty-state"><h3>Nessun risultato</h3><p>Prova ad azzerare i filtri o aggiungi un nuovo elemento.</p></div>`;
+    pageEl.innerHTML = '';
+    return;
+  }
+  const start = (pages[kind]-1)*PAGE_SIZE;
+  const pageRows = rows.slice(start, start+PAGE_SIZE);
+
+  listEl.innerHTML = pageRows.map((r)=>{
+    const d = mapFn(r);
+    const badges = (d.badges||[]).map(b=>`<span class="tag ${b.cls}">${escapeHtml(b.label)}</span>`).join('');
+    return `<div class="rec-card">
+      <div class="rec-main">
+        <div class="rec-title">${escapeHtml(d.title)}${d.titleSuffixHtml||''}</div>
+        <div class="rec-sub">${escapeHtml(d.sub||'')}</div>
+      </div>
+      <div class="rec-right">
+        ${d.iconHtml||''}
+        ${badges}
+        ${d.stato ? `<span class="${tagClass(d.stato)}">${escapeHtml(d.stato)}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  Array.from(listEl.children).forEach((el,i)=>{
+    el.onclick = mapFn(pageRows[i]).onClick;
+  });
+
+  pageEl.innerHTML = `
+    <button onclick="changePage('${kind}',-1)" ${pages[kind]<=1?'disabled':''}>&lsaquo; Prec</button>
+    <span>Pagina ${pages[kind]} di ${totalPages}</span>
+    <button onclick="changePage('${kind}',1)" ${pages[kind]>=totalPages?'disabled':''}>Succ &rsaquo;</button>
+  `;
+}
+function changePage(kind, delta){
+  pages[kind] += delta;
+  ({agenzie:renderAgenzie, mandatari:renderMandatari, visite:renderVisite, scadenze:renderScadenze})[kind]();
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function formatDate(iso){ if(!iso) return '—'; const parts=iso.split('-'); return `${parts[2]}/${parts[1]}/${parts[0]}`; }
+
+/* ---------------- MODALI: helper ---------------- */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); if(id==='modal-form-backdrop') currentForm=null; }
+
+/* ---------------- FORM: AGENZIA ---------------- */
+function openAgenziaForm(id){
+  const rec = id ? db.agenzie.find(a=>a.id===id) : null;
+  currentForm = {type:'agenzia', id: id||null};
+  document.querySelector('#form-title span').textContent = rec ? 'Modifica agenzia' : 'Nuova agenzia';
+  document.getElementById('form-delete-btn').style.display = rec ? 'inline-block' : 'none';
+  const mandatariOpts = db.mandatari.slice().sort((a,b)=>a.cognome.localeCompare(b.cognome))
+    .map(m=>`<option value="${m.id}" ${rec&&rec.mandatarioId===m.id?'selected':''}>${escapeHtml(m.cognome)} ${escapeHtml(m.nome)}</option>`).join('');
+  document.getElementById('form-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-field full"><label>Agenzia</label><input type="text" id="ff-nome" value="${rec?escapeHtml(rec.nome):''}"></div>
+      <div class="form-field"><label>Zona</label><select id="ff-zona"><option value="">Nessuna</option></select></div>
+      <div class="form-field"><label>Regione</label><select id="ff-regione" onchange="updateProvinciaOptions(document.getElementById('ff-regione'), document.getElementById('ff-provincia'), 'Seleziona')"></select></div>
+      <div class="form-field"><label>Provincia</label><select id="ff-provincia"></select></div>
+      <div class="form-field"><label>Mandatario collegato</label><select id="ff-mandatario"><option value="">Nessuno</option>${mandatariOpts}</select></div>
+      <div class="form-field"><label>Stato</label><select id="ff-stato">${getStatoAgenzie().map(s=>`<option ${rec&&rec.stato===s?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select></div>
+      <div class="form-field full"><label>Indirizzo</label><input type="text" id="ff-indirizzo" value="${rec?escapeHtml(rec.indirizzo||''):''}"></div>
+      <div class="form-field full"><label>Email</label><input type="email" id="ff-email" value="${rec?escapeHtml(rec.email||''):''}"></div>
+      <div class="form-field checkbox-field"><input type="checkbox" id="ff-interpello" ${rec&&rec.interpello?'checked':''}><label for="ff-interpello">Interpello</label></div>
+      <div class="form-field checkbox-field"><input type="checkbox" id="ff-proposta" ${rec&&rec.proposta?'checked':''}><label for="ff-proposta">Proposta</label></div>
+      <div class="form-field full"><label>Note</label><textarea id="ff-note">${rec?escapeHtml(rec.note||''):''}</textarea></div>
+      <div class="form-field full"><label>Footprint</label><input type="text" id="ff-footprint" value="${rec?escapeHtml(rec.footprint||''):''}"></div>
+    </div>`;
+  fillSelect(document.getElementById('ff-zona'), getZone(), 'Nessuna');
+  if(rec) document.getElementById('ff-zona').value = rec.zona || '';
+  fillSelect(document.getElementById('ff-regione'), REGIONI, 'Seleziona');
+  if(rec) document.getElementById('ff-regione').value = rec.regione;
+  updateProvinciaOptions(document.getElementById('ff-regione'), document.getElementById('ff-provincia'), 'Seleziona');
+  if(rec) document.getElementById('ff-provincia').value = rec.provincia;
+  openModal('modal-form-backdrop');
+}
+
+/* ---------------- FORM: MANDATARIO ---------------- */
+function openMandatarioForm(id){
+  const rec = id ? db.mandatari.find(m=>m.id===id) : null;
+  currentForm = {type:'mandatario', id: id||null};
+  document.querySelector('#form-title span').textContent = rec ? 'Modifica mandatario' : 'Nuovo mandatario';
+  document.getElementById('form-delete-btn').style.display = rec ? 'inline-block' : 'none';
+  const agenzieOpts = db.agenzie.slice().sort((a,b)=>a.nome.localeCompare(b.nome))
+    .map(a=>`<option value="${a.id}" ${rec&&rec.agenziaId===a.id?'selected':''}>${escapeHtml(a.nome)}</option>`).join('');
+  document.getElementById('form-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-field"><label>Cognome</label><input type="text" id="ff-md-cognome" value="${rec?escapeHtml(rec.cognome):''}"></div>
+      <div class="form-field"><label>Nome</label><input type="text" id="ff-md-nome" value="${rec?escapeHtml(rec.nome):''}"></div>
+      <div class="form-field"><label>Data di nascita</label><input type="date" id="ff-md-nascita" value="${rec&&rec.dataNascita?rec.dataNascita:''}"></div>
+      <div class="form-field"><label>Sesso</label><select id="ff-md-sesso"><option value="M" ${rec&&rec.sesso==='M'?'selected':''}>M</option><option value="F" ${rec&&rec.sesso==='F'?'selected':''}>F</option></select></div>
+      <div class="form-field"><label>Telefono</label><input type="text" id="ff-md-telefono" value="${rec?escapeHtml(rec.telefono||''):''}"></div>
+      <div class="form-field"><label>Mail</label><input type="email" id="ff-md-mail" value="${rec?escapeHtml(rec.mail||''):''}"></div>
+      <div class="form-field full"><label>Agenzia collegata</label><select id="ff-md-agenzia" onchange="onFormAgenziaChange()"><option value="">Nessuna</option>${agenzieOpts}</select></div>
+      <div class="form-field"><label>Zona</label><select id="ff-md-zona"><option value="">Nessuna</option></select></div>
+      <div class="form-field"><label>Regione</label><select id="ff-md-regione" onchange="updateProvinciaOptions(document.getElementById('ff-md-regione'), document.getElementById('ff-md-provincia'), 'Seleziona')"></select></div>
+      <div class="form-field"><label>Provincia</label><select id="ff-md-provincia"></select></div>
+      <div class="form-field"><label>Stato</label><select id="ff-md-stato">${getStatoMandatari().map(s=>`<option ${rec&&rec.stato===s?'selected':''}>${escapeHtml(s)}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Data contratto</label><input type="date" id="ff-md-datacontratto" value="${rec&&rec.dataContratto?rec.dataContratto:''}"></div>
+      <div class="form-field"><label>Data consegne</label><input type="date" id="ff-md-dataconsegne" value="${rec&&rec.dataConsegne?rec.dataConsegne:''}"></div>
+      <div class="form-field full"><label>Titolo di studio</label><input type="text" id="ff-md-titolo" value="${rec?escapeHtml(rec.titoloStudio||''):''}"></div>
+      <div class="form-field full"><label>Note</label><textarea id="ff-md-note">${rec?escapeHtml(rec.note||''):''}</textarea></div>
+      <div class="form-field full"><label>Footprint</label><input type="text" id="ff-md-footprint" value="${rec?escapeHtml(rec.footprint||''):''}"></div>
+    </div>`;
+  fillSelect(document.getElementById('ff-md-zona'), getZone(), 'Nessuna');
+  if(rec) document.getElementById('ff-md-zona').value = rec.zona || '';
+  fillSelect(document.getElementById('ff-md-regione'), REGIONI, 'Seleziona');
+  if(rec) document.getElementById('ff-md-regione').value = rec.regione;
+  updateProvinciaOptions(document.getElementById('ff-md-regione'), document.getElementById('ff-md-provincia'), 'Seleziona');
+  if(rec) document.getElementById('ff-md-provincia').value = rec.provincia;
+  openModal('modal-form-backdrop');
+}
+function onFormAgenziaChange(){
+  const agId = document.getElementById('ff-md-agenzia').value;
+  const a = db.agenzie.find(x=>x.id===agId);
+  if(a){
+    document.getElementById('ff-md-regione').value = a.regione;
+    updateProvinciaOptions(document.getElementById('ff-md-regione'), document.getElementById('ff-md-provincia'), 'Seleziona');
+    document.getElementById('ff-md-provincia').value = a.provincia;
+    if(a.zona) document.getElementById('ff-md-zona').value = a.zona;
+  }
+}
+
+const VALUTAZIONE_CAMPI = [
+  {key:'incassiTotali', label:'€ Totali', gruppo:'Incassi'},
+  {key:'incassiPerimetro', label:'€ Perimetro', gruppo:'Incassi'},
+  {key:'presidioMda', label:'MdA', gruppo:'Presidio'},
+  {key:'presidioEventi', label:'Eventi', gruppo:'Presidio'},
+  {key:'tunex', label:'TuneX', gruppo:'Presidio'},
+  {key:'erarioContestuali', label:'Contestuali', gruppo:'Erario'},
+  {key:'erarioDocumentali', label:'Documentali', gruppo:'Erario'},
+  {key:'erarioImposte', label:'Imposte', gruppo:'Erario'},
+  {key:'territorioComuni', label:'Comuni', gruppo:'Territorio'},
+  {key:'territorioEstensione', label:'Estensione', gruppo:'Territorio'},
+  {key:'territorioPopolazione', label:'Popolazione', gruppo:'Territorio'},
+  {key:'territorioSpesa', label:'Spesa', gruppo:'Territorio'},
+  {key:'competenze', label:'Competenze', gruppo:'Profilo'},
+  {key:'atteggiamento', label:'Atteggiamento', gruppo:'Profilo'},
+  {key:'proattivita', label:'Proattività', gruppo:'Profilo'}
+];
+
+function renderValutazioneFields(existing){
+  const val = existing || {};
+  let html = '<div class="val-grid">';
+  let lastGruppo = null;
+  VALUTAZIONE_CAMPI.forEach(c=>{
+    if(c.gruppo !== lastGruppo){
+      html += `<div class="val-group-title">${escapeHtml(c.gruppo)}</div>`;
+      lastGruppo = c.gruppo;
+    }
+    const cur = val[c.key];
+    const opts = [1,2,3,4,5].map(n=>`<option value="${n}" ${Number(cur)===n?'selected':''}>${n}</option>`).join('');
+    html += `<div class="form-field"><label>${escapeHtml(c.label)}</label><select id="val-${c.key}"><option value="">—</option>${opts}</select></div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function leggiValutazioneDalForm(){
+  const val = {};
+  VALUTAZIONE_CAMPI.forEach(c=>{
+    const el = document.getElementById('val-'+c.key);
+    val[c.key] = el && el.value ? Number(el.value) : null;
+  });
+  return val;
+}
+
+function sommaMedia(valori){
+  const presenti = valori.filter(v=>v!==null && v!==undefined && v!=='');
+  if(!presenti.length) return {somma:null, media:null};
+  const somma = presenti.reduce((a,b)=>a+Number(b),0);
+  return {somma, media: somma/presenti.length};
+}
+
+function calcolaPilastri(v){
+  const val = v.valutazioni || {};
+  const incassi = sommaMedia([val.incassiTotali, val.incassiPerimetro]);
+  const presidio = sommaMedia([val.presidioMda, val.presidioEventi, val.tunex]);
+  const erarioPairs = [
+    {v:val.erarioContestuali, w:0.4},
+    {v:val.erarioDocumentali, w:0.4},
+    {v:val.erarioImposte, w:0.2}
+  ].filter(p=>p.v!==null && p.v!==undefined && p.v!=='');
+  let erario = {somma:null, media:null};
+  if(erarioPairs.length){
+    const totW = erarioPairs.reduce((a,p)=>a+p.w,0);
+    const wsum = erarioPairs.reduce((a,p)=>a+p.w*Number(p.v),0);
+    erario = { somma: erarioPairs.reduce((a,p)=>a+Number(p.v),0), media: wsum/totW };
+  }
+  const territorio = sommaMedia([val.territorioComuni, val.territorioEstensione, val.territorioPopolazione, val.territorioSpesa]);
+  const profilo = sommaMedia([val.competenze, val.atteggiamento, val.proattivita]);
+  return {incassi, presidio, erario, territorio, profilo};
+}
+
+function calcolaValutazioneGenerale(pilastri){
+  const pesi = settings().pesiValutazione || {incassi:20,presidio:20,erario:20,territorio:20,profilo:20};
+  const keys = ['incassi','presidio','erario','territorio','profilo'];
+  let sumW=0, sumWV=0;
+  keys.forEach(k=>{
+    const p = pilastri[k];
+    if(p && p.media!==null && p.media!==undefined){
+      const w = Number(pesi[k]!==undefined?pesi[k]:20);
+      sumW += w;
+      sumWV += w*p.media;
+    }
+  });
+  return sumW>0 ? (sumWV/sumW) : null;
+}
+
+function trovaUltimaValutazione(filterFn){
+  const candidates = db.visite.filter(v=> filterFn(v) && v.valutazioni && Object.values(v.valutazioni).some(x=>x!==null && x!==undefined && x!==''));
+  if(!candidates.length) return null;
+  candidates.sort((a,b)=> b.data.localeCompare(a.data));
+  return candidates[0];
+}
+
+function coloreMedia(media){
+  if(media===null || media===undefined) return 'var(--slate)';
+  const clamped = Math.max(1, Math.min(5, media));
+  const t = (clamped-1)/4;
+  const hue = t*120;
+  return `hsl(${hue}, 55%, 38%)`;
+}
+
+function fmtPilastro(p){
+  if(!p || p.media===null || p.media===undefined) return '—';
+  const colore = coloreMedia(p.media);
+  return `<span style="color:${colore};font-weight:700;">${p.media.toFixed(1)}</span> # ${p.somma}`;
+}
+
+/* ---------------- FORM: VISITA ---------------- */
+function openVisitaForm(id){
+  const rec = id ? db.visite.find(v=>v.id===id) : null;
+  currentForm = {type:'visita', id: id||null};
+  document.querySelector('#form-title span').textContent = rec ? 'Modifica visita' : 'Nuova visita';
+  document.getElementById('form-delete-btn').style.display = rec ? 'inline-block' : 'none';
+  const agenzieOpts = db.agenzie.slice().sort((a,b)=>a.nome.localeCompare(b.nome))
+    .map(a=>`<option value="${a.id}" ${rec&&rec.agenziaId===a.id?'selected':''}>${escapeHtml(a.nome)}</option>`).join('');
+  const mandatariOpts = db.mandatari.slice().sort((a,b)=>a.cognome.localeCompare(b.cognome))
+    .map(m=>`<option value="${m.id}" ${rec&&rec.mandatarioId===m.id?'selected':''}>${escapeHtml(m.cognome)} ${escapeHtml(m.nome)}</option>`).join('');
+  document.getElementById('form-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-field"><label>Data visita</label><input type="date" id="ff-vi-data" value="${rec?rec.data:''}"></div>
+      <div class="form-field"><label>Stato</label><select id="ff-vi-stato">${VISITA_STATI.map(s=>`<option ${rec&&rec.stato===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-field full"><label>Agenzia</label><select id="ff-vi-agenzia" onchange="onVisitaAgenziaChange()"><option value="">Seleziona</option>${agenzieOpts}</select></div>
+      <div class="form-field full"><label>Mandatario</label><select id="ff-vi-mandatario"><option value="">Nessuno</option>${mandatariOpts}</select></div>
+      <div class="form-field checkbox-field full"><input type="checkbox" id="ff-vi-rdz" ${rec&&rec.conRdz?'checked':''}><label for="ff-vi-rdz">Visita svolta insieme al RdZ</label></div>
+      <div class="form-field full"><label>Valutazione visita</label></div>
+      ${renderValutazioneFields(rec ? rec.valutazioni : null)}
+      <div class="form-field full"><label>Note</label><textarea id="ff-vi-note">${rec?escapeHtml(rec.note||''):''}</textarea></div>
+      <div class="form-field full"><label>Footprint</label><input type="text" id="ff-vi-footprint" value="${rec?escapeHtml(rec.footprint||''):''}"></div>
+    </div>`;
+  openModal('modal-form-backdrop');
+}
+function onVisitaAgenziaChange(){
+  const agId = document.getElementById('ff-vi-agenzia').value;
+  const a = db.agenzie.find(x=>x.id===agId);
+  if(a && a.mandatarioId){
+    document.getElementById('ff-vi-mandatario').value = a.mandatarioId;
+  }
+}
+
+/* ---------------- FORM: SCADENZA ---------------- */
+function openScadenzaForm(id){
+  const rec = id ? db.scadenze.find(s=>s.id===id) : null;
+  currentForm = {type:'scadenza', id: id||null};
+  document.querySelector('#form-title span').textContent = rec ? 'Modifica scadenza' : 'Nuova scadenza';
+  document.getElementById('form-delete-btn').style.display = rec ? 'inline-block' : 'none';
+  const agenzieOpts = db.agenzie.slice().sort((a,b)=>a.nome.localeCompare(b.nome))
+    .map(a=>`<option value="${a.id}" ${rec&&rec.agenziaId===a.id?'selected':''}>${escapeHtml(a.nome)}</option>`).join('');
+  const mandatariOpts = db.mandatari.slice().sort((a,b)=>a.cognome.localeCompare(b.cognome))
+    .map(m=>`<option value="${m.id}" ${rec&&rec.mandatarioId===m.id?'selected':''}>${escapeHtml(m.cognome)} ${escapeHtml(m.nome)}</option>`).join('');
+  document.getElementById('form-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-field full"><label>Tipo scadenza</label><input type="text" id="ff-sc-tipo" placeholder="Es. Rinnovo mandato" value="${rec?escapeHtml(rec.tipo||''):''}"></div>
+      <div class="form-field"><label>Data scadenza</label><input type="date" id="ff-sc-data" value="${rec?rec.scadenza:''}"></div>
+      <div class="form-field"><label>Stato</label><select id="ff-sc-stato">${SCADENZA_STATI.map(s=>`<option ${rec&&rec.stato===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-field full"><label>Agenzia</label><select id="ff-sc-agenzia"><option value="">Seleziona</option>${agenzieOpts}</select></div>
+      <div class="form-field full"><label>Mandatario</label><select id="ff-sc-mandatario"><option value="">Nessuno</option>${mandatariOpts}</select></div>
+      <div class="form-field full"><label>Note</label><textarea id="ff-sc-note">${rec?escapeHtml(rec.note||''):''}</textarea></div>
+    </div>`;
+  openModal('modal-form-backdrop');
+}
+
+/* ---------------- SALVATAGGIO / ELIMINAZIONE ---------------- */
+function saveCurrentRecord(){
+  if(!currentForm) return;
+  const {type, id} = currentForm;
+
+  if(type==='agenzia'){
+    const nome = document.getElementById('ff-nome').value.trim();
+    if(!nome){ alert("Inserisci il nome dell'agenzia."); return; }
+    const data = {
+      nome,
+      zona: document.getElementById('ff-zona').value || null,
+      regione: document.getElementById('ff-regione').value,
+      provincia: document.getElementById('ff-provincia').value,
+      mandatarioId: document.getElementById('ff-mandatario').value || null,
+      stato: document.getElementById('ff-stato').value,
+      indirizzo: document.getElementById('ff-indirizzo').value.trim(),
+      email: document.getElementById('ff-email').value.trim(),
+      interpello: document.getElementById('ff-interpello').checked,
+      proposta: document.getElementById('ff-proposta').checked,
+      note: document.getElementById('ff-note').value.trim(),
+      footprint: document.getElementById('ff-footprint').value.trim()
+    };
+    if(id){ Object.assign(db.agenzie.find(a=>a.id===id), data); }
+    else{ db.agenzie.push({id:uid(), ...data}); }
+  }
+
+  if(type==='mandatario'){
+    const nome = document.getElementById('ff-md-nome').value.trim();
+    const cognome = document.getElementById('ff-md-cognome').value.trim();
+    if(!nome || !cognome){ alert('Inserisci nome e cognome del mandatario.'); return; }
+    const data = {
+      nome, cognome,
+      dataNascita: document.getElementById('ff-md-nascita').value || null,
+      sesso: document.getElementById('ff-md-sesso').value,
+      telefono: document.getElementById('ff-md-telefono').value.trim(),
+      mail: document.getElementById('ff-md-mail').value.trim(),
+      agenziaId: document.getElementById('ff-md-agenzia').value || null,
+      zona: document.getElementById('ff-md-zona').value || null,
+      regione: document.getElementById('ff-md-regione').value,
+      provincia: document.getElementById('ff-md-provincia').value,
+      stato: document.getElementById('ff-md-stato').value,
+      dataContratto: document.getElementById('ff-md-datacontratto').value || null,
+      dataConsegne: document.getElementById('ff-md-dataconsegne').value || null,
+      titoloStudio: document.getElementById('ff-md-titolo').value.trim(),
+      note: document.getElementById('ff-md-note').value.trim(),
+      footprint: document.getElementById('ff-md-footprint').value.trim()
+    };
+    let mandatarioSalvato;
+    if(id){ mandatarioSalvato = Object.assign(db.mandatari.find(m=>m.id===id), data); }
+    else{ mandatarioSalvato = {id:uid(), ...data}; db.mandatari.push(mandatarioSalvato); }
+    sincronizzaScadenzeAutomatiche(mandatarioSalvato);
+  }
+
+  if(type==='visita'){
+    const dataVal = document.getElementById('ff-vi-data').value;
+    const agenziaId = document.getElementById('ff-vi-agenzia').value;
+    if(!dataVal || !agenziaId){ alert("Inserisci data e agenzia della visita."); return; }
+    const a = db.agenzie.find(x=>x.id===agenziaId);
+    const parts = dataVal.split('-');
+    const data = {
+      data: dataVal,
+      anno: Number(parts[0]),
+      mese: MESI[Number(parts[1])-1],
+      agenziaId,
+      mandatarioId: document.getElementById('ff-vi-mandatario').value || null,
+      regione: a ? a.regione : null,
+      provincia: a ? a.provincia : null,
+      stato: document.getElementById('ff-vi-stato').value,
+      conRdz: document.getElementById('ff-vi-rdz').checked,
+      valutazioni: leggiValutazioneDalForm(),
+      note: document.getElementById('ff-vi-note').value.trim(),
+      footprint: document.getElementById('ff-vi-footprint').value.trim()
+    };
+    if(id){ Object.assign(db.visite.find(v=>v.id===id), data); }
+    else{ db.visite.push({id:uid(), ...data}); }
+  }
+
+  if(type==='scadenza'){
+    const agenziaId = document.getElementById('ff-sc-agenzia').value;
+    if(!agenziaId){ alert("Seleziona l'agenzia collegata alla scadenza."); return; }
+    const data = {
+      tipo: document.getElementById('ff-sc-tipo').value.trim(),
+      scadenza: document.getElementById('ff-sc-data').value,
+      stato: document.getElementById('ff-sc-stato').value,
+      agenziaId,
+      mandatarioId: document.getElementById('ff-sc-mandatario').value || null,
+      note: document.getElementById('ff-sc-note').value.trim()
+    };
+    if(id){ Object.assign(db.scadenze.find(s=>s.id===id), data); }
+    else{ db.scadenze.push({id:uid(), ...data}); }
+  }
+
+  saveData();
+  closeModal('modal-form-backdrop');
+  refreshDynamicSelects();
+  renderAll();
+}
+
+function deleteCurrentRecord(){
+  if(!currentForm || !currentForm.id) return;
+  if(!confirm("Confermi l'eliminazione di questo elemento?")) return;
+  const {type, id} = currentForm;
+  const map = {agenzia:'agenzie', mandatario:'mandatari', visita:'visite', scadenza:'scadenze'};
+  db[map[type]] = db[map[type]].filter(r=>r.id!==id);
+  if(type==='mandatario'){
+    db.scadenze = db.scadenze.filter(s=> !(s.auto && s.mandatarioId===id));
+  }
+  saveData();
+  closeModal('modal-form-backdrop');
+  refreshDynamicSelects();
+  renderAll();
+}
+
+/* ---------------- DETTAGLIO ---------------- */
+function showAgenziaDetail(id){
+  const a = db.agenzie.find(x=>x.id===id);
+  const visiteRel = db.visite.filter(v=>v.agenziaId===id).sort((x,y)=>y.data.localeCompare(x.data)).slice(0,5);
+  const scadenzeRel = db.scadenze.filter(s=>s.agenziaId===id).sort((x,y)=>(x.scadenza||'').localeCompare(y.scadenza||'')).slice(0,5);
+  const ultimaVis = trovaUltimaValutazione(v=>v.agenziaId===id);
+  let valutazioneHtml = '';
+  if(ultimaVis){
+    const pilastri = calcolaPilastri(ultimaVis);
+    const generale = calcolaValutazioneGenerale(pilastri);
+    valutazioneHtml = `
+    <div class="detail-block"><h4>Ultima valutazione (${formatDate(ultimaVis.data)})</h4>
+      <div class="detail-row"><span>Incassi</span><span>${fmtPilastro(pilastri.incassi)}</span></div>
+      <div class="detail-row"><span>Presidio</span><span>${fmtPilastro(pilastri.presidio)}</span></div>
+      <div class="detail-row"><span>Erario</span><span>${fmtPilastro(pilastri.erario)}</span></div>
+      <div class="detail-row"><span>Territorio</span><span>${fmtPilastro(pilastri.territorio)}</span></div>
+      <div class="detail-row"><span>Profilo</span><span>${fmtPilastro(pilastri.profilo)}</span></div>
+      <div class="detail-row"><span>Valutazione generale</span><span>${generale!==null?('<span style="color:'+coloreMedia(generale)+';font-weight:700;">'+generale.toFixed(2)+'</span>'):'—'}</span></div>
+    </div>`;
+  }
+  document.querySelector('#detail-title span').textContent = a.nome;
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-block">
+      <div class="detail-row"><span>Zona</span><span>${escapeHtml(a.zona||'—')}</span></div>
+      <div class="detail-row"><span>Regione</span><span>${escapeHtml(a.regione||'—')}</span></div>
+      <div class="detail-row"><span>Provincia</span><span>${escapeHtml(a.provincia||'—')}</span></div>
+      <div class="detail-row"><span>Mandatario</span><span>${a.mandatarioId?escapeHtml(mandatarioName(a.mandatarioId)):'—'}</span></div>
+      <div class="detail-row"><span>Stato</span><span class="${tagClass(a.stato)}">${escapeHtml(a.stato)}</span></div>
+      <div class="detail-row"><span>Indirizzo</span><span>${escapeHtml(a.indirizzo||'—')}</span></div>
+      <div class="detail-row"><span>Email</span><span>${escapeHtml(a.email||'—')}</span></div>
+      <div class="detail-row"><span>Interpello</span><span>${a.interpello?'<span class="tag tag-interpello">Interpello</span>':'—'}</span></div>
+      <div class="detail-row"><span>Proposta</span><span>${a.proposta?'<span class="tag tag-proposta">Proposta</span>':'—'}</span></div>
+      ${a.note?`<div class="detail-row" style="display:block;"><span>Note</span><p style="margin:6px 0 0; font-weight:400;">${escapeHtml(a.note)}</p></div>`:''}
+      ${a.footprint?`<div class="detail-row"><span>Footprint</span><span>${escapeHtml(a.footprint)}</span></div>`:''}
+    </div>
+    <div class="detail-block"><h4>Ultime visite</h4>
+      ${visiteRel.length? visiteRel.map(v=>`<div class="mini-list-item"><span>${formatDate(v.data)}</span><span>${escapeHtml(v.stato)}</span></div>`).join(''):'<p style="color:var(--slate); font-size:13px;">Nessuna visita registrata.</p>'}
+    </div>
+    <div class="detail-block"><h4>Scadenze collegate</h4>
+      ${scadenzeRel.length? scadenzeRel.map(s=>`<div class="mini-list-item"><span>${escapeHtml(s.tipo||'Scadenza')}</span><span>${s.scadenza?formatDate(s.scadenza):'—'}</span></div>`).join(''):'<p style="color:var(--slate); font-size:13px;">Nessuna scadenza collegata.</p>'}
+    </div>
+    ${valutazioneHtml}
+    <div class="modal-actions">
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" onclick="closeModal('modal-detail-backdrop')">Chiudi</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-detail-backdrop'); openAgenziaForm('${id}');">Modifica</button>
+    </div>`;
+  openModal('modal-detail-backdrop');
+}
+
+function showMandatarioDetail(id){
+  const m = db.mandatari.find(x=>x.id===id);
+  const eta = calcolaEta(m.dataNascita);
+  const visiteRel = db.visite.filter(v=>v.mandatarioId===id).sort((x,y)=>y.data.localeCompare(x.data)).slice(0,5);
+  const scadenzeRel = db.scadenze.filter(s=>s.mandatarioId===id).sort((x,y)=>(x.scadenza||'').localeCompare(y.scadenza||'')).slice(0,5);
+  const ultimaVis = trovaUltimaValutazione(v=>v.mandatarioId===id);
+  let valutazioneHtml = '';
+  if(ultimaVis){
+    const pilastri = calcolaPilastri(ultimaVis);
+    const generale = calcolaValutazioneGenerale(pilastri);
+    valutazioneHtml = `
+    <div class="detail-block"><h4>Ultima valutazione (${formatDate(ultimaVis.data)})</h4>
+      <div class="detail-row"><span>Incassi</span><span>${fmtPilastro(pilastri.incassi)}</span></div>
+      <div class="detail-row"><span>Presidio</span><span>${fmtPilastro(pilastri.presidio)}</span></div>
+      <div class="detail-row"><span>Erario</span><span>${fmtPilastro(pilastri.erario)}</span></div>
+      <div class="detail-row"><span>Territorio</span><span>${fmtPilastro(pilastri.territorio)}</span></div>
+      <div class="detail-row"><span>Profilo</span><span>${fmtPilastro(pilastri.profilo)}</span></div>
+      <div class="detail-row"><span>Valutazione generale</span><span>${generale!==null?('<span style="color:'+coloreMedia(generale)+';font-weight:700;">'+generale.toFixed(2)+'</span>'):'—'}</span></div>
+    </div>`;
+  }
+  document.querySelector('#detail-title span').textContent = m.cognome + ' ' + m.nome;
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-block">
+      <div class="detail-row"><span>Agenzia</span><span>${m.agenziaId?escapeHtml(agenziaName(m.agenziaId)):'—'}</span></div>
+      <div class="detail-row"><span>Zona</span><span>${escapeHtml(m.zona||'—')}</span></div>
+      <div class="detail-row"><span>Data di nascita</span><span>${m.dataNascita?formatDate(m.dataNascita)+' (Età '+eta+')':'—'}</span></div>
+      <div class="detail-row"><span>Sesso</span><span>${m.sesso||'—'}</span></div>
+      <div class="detail-row"><span>Telefono</span><span>${escapeHtml(m.telefono||'—')}</span></div>
+      <div class="detail-row"><span>Mail</span><span>${escapeHtml(m.mail||'—')}</span></div>
+      <div class="detail-row"><span>Regione</span><span>${escapeHtml(m.regione||'—')}</span></div>
+      <div class="detail-row"><span>Provincia</span><span>${escapeHtml(m.provincia||'—')}</span></div>
+      <div class="detail-row"><span>Stato</span><span class="${tagClass(m.stato)}">${escapeHtml(m.stato)}</span></div>
+      <div class="detail-row"><span>Data contratto</span><span>${m.dataContratto?formatDate(m.dataContratto):'—'}</span></div>
+      <div class="detail-row"><span>Data consegne</span><span>${m.dataConsegne?formatDate(m.dataConsegne):'—'}</span></div>
+      <div class="detail-row"><span>Titolo di studio</span><span>${escapeHtml(m.titoloStudio||'—')}</span></div>
+      ${m.note?`<div class="detail-row" style="display:block;"><span>Note</span><p style="margin:6px 0 0; font-weight:400;">${escapeHtml(m.note)}</p></div>`:''}
+      ${m.footprint?`<div class="detail-row"><span>Footprint</span><span>${escapeHtml(m.footprint)}</span></div>`:''}
+    </div>
+    <div class="detail-block"><h4>Ultime visite</h4>
+      ${visiteRel.length? visiteRel.map(v=>`<div class="mini-list-item"><span>${formatDate(v.data)}</span><span>${escapeHtml(v.stato)}</span></div>`).join(''):'<p style="color:var(--slate); font-size:13px;">Nessuna visita registrata.</p>'}
+    </div>
+    <div class="detail-block"><h4>Scadenze collegate</h4>
+      ${scadenzeRel.length? scadenzeRel.map(s=>`<div class="mini-list-item"><span>${escapeHtml(s.tipo||'Scadenza')}</span><span>${s.scadenza?formatDate(s.scadenza):'—'}</span></div>`).join(''):'<p style="color:var(--slate); font-size:13px;">Nessuna scadenza collegata.</p>'}
+    </div>
+    ${valutazioneHtml}
+    <div class="modal-actions">
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" onclick="closeModal('modal-detail-backdrop')">Chiudi</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-detail-backdrop'); openMandatarioForm('${id}');">Modifica</button>
+    </div>`;
+  openModal('modal-detail-backdrop');
+}
+
+function showVisitaDetail(id){
+  const v = db.visite.find(x=>x.id===id);
+  const pilastri = calcolaPilastri(v);
+  const generale = calcolaValutazioneGenerale(pilastri);
+  document.querySelector('#detail-title span').textContent = 'Visita del ' + formatDate(v.data);
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-block">
+      <div class="detail-row"><span>Agenzia</span><span>${escapeHtml(agenziaName(v.agenziaId))}</span></div>
+      <div class="detail-row"><span>Mandatario</span><span>${v.mandatarioId?escapeHtml(mandatarioName(v.mandatarioId)):'—'}</span></div>
+      <div class="detail-row"><span>Regione / Provincia</span><span>${escapeHtml(v.regione||'—')} / ${escapeHtml(v.provincia||'—')}</span></div>
+      <div class="detail-row"><span>Stato</span><span class="${tagClass(v.stato)}">${escapeHtml(v.stato)}</span></div>
+      <div class="detail-row"><span>Con RdZ</span><span>${v.conRdz?'Sì':'No'}</span></div>
+      ${v.note?`<div class="detail-row" style="display:block;"><span>Note</span><p style="margin:6px 0 0; font-weight:400;">${escapeHtml(v.note)}</p></div>`:''}
+      ${v.footprint?`<div class="detail-row"><span>Footprint</span><span>${escapeHtml(v.footprint)}</span></div>`:''}
+    </div>
+    <div class="detail-block"><h4>Valutazione</h4>
+      <div class="detail-row"><span>Incassi</span><span>${fmtPilastro(pilastri.incassi)}</span></div>
+      <div class="detail-row"><span>Presidio</span><span>${fmtPilastro(pilastri.presidio)}</span></div>
+      <div class="detail-row"><span>Erario</span><span>${fmtPilastro(pilastri.erario)}</span></div>
+      <div class="detail-row"><span>Territorio</span><span>${fmtPilastro(pilastri.territorio)}</span></div>
+      <div class="detail-row"><span>Profilo</span><span>${fmtPilastro(pilastri.profilo)}</span></div>
+      <div class="detail-row"><span>Valutazione generale</span><span>${generale!==null?('<span style="color:'+coloreMedia(generale)+';font-weight:700;">'+generale.toFixed(2)+'</span>'):'—'}</span></div>
+    </div>
+    <div class="modal-actions">
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" onclick="closeModal('modal-detail-backdrop')">Chiudi</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-detail-backdrop'); openVisitaForm('${id}');">Modifica</button>
+    </div>`;
+  openModal('modal-detail-backdrop');
+}
+
+function showScadenzaDetail(id){
+  const s = db.scadenze.find(x=>x.id===id);
+  document.querySelector('#detail-title span').textContent = s.tipo || 'Scadenza';
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-block">
+      <div class="detail-row"><span>Agenzia</span><span>${escapeHtml(agenziaName(s.agenziaId))}</span></div>
+      <div class="detail-row"><span>Mandatario</span><span>${s.mandatarioId?escapeHtml(mandatarioName(s.mandatarioId)):'—'}</span></div>
+      <div class="detail-row"><span>Data scadenza</span><span>${s.scadenza?formatDate(s.scadenza):'—'}</span></div>
+      <div class="detail-row"><span>Stato</span><span class="${tagClass(s.stato)}">${escapeHtml(s.stato)}</span></div>
+      ${s.note?`<div class="detail-row" style="display:block;"><span>Note</span><p style="margin:6px 0 0; font-weight:400;">${escapeHtml(s.note)}</p></div>`:''}
+    </div>
+    <div class="modal-actions">
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" onclick="closeModal('modal-detail-backdrop')">Chiudi</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-detail-backdrop'); openScadenzaForm('${id}');">Modifica</button>
+    </div>`;
+  openModal('modal-detail-backdrop');
+}
+
+/* ---------------- IMPOSTAZIONI ---------------- */
+function openSettings(){
+  renderSettingsModal();
+  openModal('modal-settings-backdrop');
+}
+
+function renderSettingsModal(){
+  const s = settings();
+  document.getElementById('settings-body').innerHTML = `
+    <div class="settings-section">
+      <h4>Import / Export dati</h4>
+      <p class="hint">Esporta un file di backup o importane uno per ripristinare i dati.</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <button class="btn btn-ghost btn-sm" onclick="exportData()">Esporta dati (.json)</button>
+        <label class="file-input-label">Importa dati (.json)
+          <input type="file" accept="application/json" style="display:none;" onchange="importData(event)">
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h4>Import / Export CSV</h4>
+      <p class="hint">Esporta o importa singole tabelle in formato CSV (utile per Excel).</p>
+      <div class="settings-list-row"><span>Agenzie</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('agenzie')">Esporta CSV</button>
+          <label class="file-input-label">Importa CSV<input type="file" accept=".csv" style="display:none;" onchange="importCSV(event,'agenzie')"></label>
+        </div>
+      </div>
+      <div class="settings-list-row"><span>Mandatari</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('mandatari')">Esporta CSV</button>
+          <label class="file-input-label">Importa CSV<input type="file" accept=".csv" style="display:none;" onchange="importCSV(event,'mandatari')"></label>
+        </div>
+      </div>
+      <div class="settings-list-row"><span>Diario visite</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('visite')">Esporta CSV</button>
+          <label class="file-input-label">Importa CSV<input type="file" accept=".csv" style="display:none;" onchange="importCSV(event,'visite')"></label>
+        </div>
+      </div>
+      <div class="settings-list-row"><span>Scadenzario</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('scadenze')">Esporta CSV</button>
+          <label class="file-input-label">Importa CSV<input type="file" accept=".csv" style="display:none;" onchange="importCSV(event,'scadenze')"></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h4>Zone</h4>
+      <div class="chip-list" id="zone-chip-list"></div>
+      <div class="inline-add">
+        <input type="text" id="new-zona-input" placeholder="Nome zona">
+        <button class="btn btn-gold btn-sm" onclick="addZona()">Aggiungi</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h4>Responsabili di Zona (RdZ)</h4>
+      <div id="rdz-list"></div>
+      <div class="inline-add">
+        <input type="text" id="new-rdz-nome" placeholder="Nome e cognome">
+        <select id="new-rdz-zona"><option value="">Zona (opzionale)</option></select>
+        <button class="btn btn-gold btn-sm" onclick="addRdz()">Aggiungi</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h4>Stati agenzie</h4>
+      <div class="chip-list" id="stato-ag-chip-list"></div>
+      <div class="inline-add">
+        <input type="text" id="new-stato-ag-input" placeholder="Nuovo stato">
+        <button class="btn btn-gold btn-sm" onclick="addStatoAgenzia()">Aggiungi</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h4>Stati mandatari</h4>
+      <div class="chip-list" id="stato-md-chip-list"></div>
+      <div class="inline-add">
+        <input type="text" id="new-stato-md-input" placeholder="Nuovo stato">
+        <button class="btn btn-gold btn-sm" onclick="addStatoMandatario()">Aggiungi</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h4>Limiti Contratto</h4>
+      <div class="form-field"><label>Età limite</label><input type="number" min="0" id="set-limite-eta" value="${(s.contratto && s.contratto.limiteEta) ?? ''}" onchange="updateContratto()"></div>
+    </div>
+
+    <div class="settings-section">
+      <h4>Soglia visite</h4>
+      <p class="hint">Numero minimo di visite atteso per agenzia: sotto questa soglia comparirà un alert nell'elenco agenzie.</p>
+      <div class="form-field"><label>Numero visite</label><input type="number" min="0" id="set-soglia-visite" value="${s.sogliaVisite ?? ''}" onchange="updateSogliaVisite()"></div>
+    </div>
+
+    <div class="settings-section">
+      <h4>Pesi valutazione pilastri</h4>
+      <p class="hint">Peso percentuale di ciascun pilastro nella valutazione generale.</p>
+      <div class="settings-grid-2">
+        <div class="form-field"><label>Incassi</label><input type="number" min="0" id="set-peso-incassi" value="${s.pesiValutazione.incassi}" onchange="updatePesiValutazione()"></div>
+        <div class="form-field"><label>Presidio</label><input type="number" min="0" id="set-peso-presidio" value="${s.pesiValutazione.presidio}" onchange="updatePesiValutazione()"></div>
+        <div class="form-field"><label>Erario</label><input type="number" min="0" id="set-peso-erario" value="${s.pesiValutazione.erario}" onchange="updatePesiValutazione()"></div>
+        <div class="form-field"><label>Territorio</label><input type="number" min="0" id="set-peso-territorio" value="${s.pesiValutazione.territorio}" onchange="updatePesiValutazione()"></div>
+        <div class="form-field"><label>Profilo</label><input type="number" min="0" id="set-peso-profilo" value="${s.pesiValutazione.profilo}" onchange="updatePesiValutazione()"></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h4>Scadenze automatiche</h4>
+      <p class="hint">Ricalcolate automaticamente ad ogni apertura dell'app e ad ogni salvataggio di un mandatario. Puoi anche forzare il ricalcolo ora.</p>
+      <button class="btn btn-ghost btn-sm" onclick="ricalcolaScadenzeManuale()">Ricalcola scadenze automatiche ora</button>
+    </div>
+
+    <div class="settings-section">
+      <h4>Altre impostazioni</h4>
+      <div class="form-field full"><textarea id="set-altro" placeholder="Note e impostazioni aggiuntive" onchange="updateAltro()">${escapeHtml(s.altro||'')}</textarea></div>
+    </div>
+  `;
+  renderZoneChips();
+  renderRdzList();
+  renderStatoAgenzieChips();
+  renderStatoMandatariChips();
+}
+
+function renderZoneChips(){
+  const s = settings();
+  document.getElementById('zone-chip-list').innerHTML = s.zone.length
+    ? s.zone.map(z=>`<div class="chip">${escapeHtml(z)}<button onclick="removeZona('${escapeHtml(z)}')">&#10005;</button></div>`).join('')
+    : '<p class="hint" style="margin:0;">Nessuna zona configurata.</p>';
+  const zonaSel = document.getElementById('new-rdz-zona');
+  if(zonaSel) fillSelect(zonaSel, s.zone, 'Zona (opzionale)');
+}
+function addZona(){
+  const input = document.getElementById('new-zona-input');
+  const val = input.value.trim();
+  if(!val) return;
+  const s = settings();
+  if(!s.zone.includes(val)) s.zone.push(val);
+  input.value = '';
+  saveData();
+  renderZoneChips();
+  renderRdzList();
+  refreshZoneSelects();
+}
+function removeZona(val){
+  const s = settings();
+  s.zone = s.zone.filter(z=>z!==val);
+  saveData();
+  renderZoneChips();
+  renderRdzList();
+  refreshZoneSelects();
+}
+
+function renderRdzList(){
+  const s = settings();
+  document.getElementById('rdz-list').innerHTML = s.rdz.length
+    ? s.rdz.map(r=>`<div class="settings-list-row"><span>${escapeHtml(r.nome)}${r.zona?(' · '+escapeHtml(r.zona)):''}</span><button onclick="removeRdz('${r.id}')">&#10005;</button></div>`).join('')
+    : '<p class="hint" style="margin:0 0 10px;">Nessun RdZ configurato.</p>';
+}
+function addRdz(){
+  const nomeInput = document.getElementById('new-rdz-nome');
+  const zonaSel = document.getElementById('new-rdz-zona');
+  const nome = nomeInput.value.trim();
+  if(!nome) return;
+  settings().rdz.push({id:uid(), nome, zona: zonaSel.value || null});
+  nomeInput.value = '';
+  zonaSel.value = '';
+  saveData();
+  renderRdzList();
+}
+function removeRdz(id){
+  settings().rdz = settings().rdz.filter(r=>r.id!==id);
+  saveData();
+  renderRdzList();
+}
+
+function renderStatoAgenzieChips(){
+  document.getElementById('stato-ag-chip-list').innerHTML = getStatoAgenzie().map(st=>
+    `<div class="chip">${escapeHtml(st)}<button onclick="removeStatoAgenzia('${escapeHtml(st)}')">&#10005;</button></div>`
+  ).join('');
+}
+function addStatoAgenzia(){
+  const input = document.getElementById('new-stato-ag-input');
+  const val = input.value.trim();
+  if(!val) return;
+  const s = settings();
+  if(!s.statoAgenzie) s.statoAgenzie = DEFAULT_STATO_AGENZIE.slice();
+  if(!s.statoAgenzie.includes(val)) s.statoAgenzie.push(val);
+  input.value = '';
+  saveData();
+  renderStatoAgenzieChips();
+  refreshStatoSelects();
+  renderAgenzie();
+}
+function removeStatoAgenzia(val){
+  const s = settings();
+  s.statoAgenzie = getStatoAgenzie().filter(x=>x!==val);
+  saveData();
+  renderStatoAgenzieChips();
+  refreshStatoSelects();
+  renderAgenzie();
+}
+
+function renderStatoMandatariChips(){
+  document.getElementById('stato-md-chip-list').innerHTML = getStatoMandatari().map(st=>
+    `<div class="chip">${escapeHtml(st)}<button onclick="removeStatoMandatario('${escapeHtml(st)}')">&#10005;</button></div>`
+  ).join('');
+}
+function addStatoMandatario(){
+  const input = document.getElementById('new-stato-md-input');
+  const val = input.value.trim();
+  if(!val) return;
+  const s = settings();
+  if(!s.statoMandatari) s.statoMandatari = DEFAULT_STATO_MANDATARI.slice();
+  if(!s.statoMandatari.includes(val)) s.statoMandatari.push(val);
+  input.value = '';
+  saveData();
+  renderStatoMandatariChips();
+  refreshStatoSelects();
+  renderMandatari();
+}
+function removeStatoMandatario(val){
+  const s = settings();
+  s.statoMandatari = getStatoMandatari().filter(x=>x!==val);
+  saveData();
+  renderStatoMandatariChips();
+  refreshStatoSelects();
+  renderMandatari();
+}
+
+function updateSogliaVisite(){
+  const v = document.getElementById('set-soglia-visite').value;
+  settings().sogliaVisite = v ? Number(v) : null;
+  saveData();
+  renderInfoBoxes();
+}
+function updatePesiValutazione(){
+  settings().pesiValutazione = {
+    incassi: Number(document.getElementById('set-peso-incassi').value) || 0,
+    presidio: Number(document.getElementById('set-peso-presidio').value) || 0,
+    erario: Number(document.getElementById('set-peso-erario').value) || 0,
+    territorio: Number(document.getElementById('set-peso-territorio').value) || 0,
+    profilo: Number(document.getElementById('set-peso-profilo').value) || 0
+  };
+  saveData();
+}
+function ricalcolaScadenzeManuale(){
+  ricalcolaTutteScadenzeAutomatiche();
+  renderAll();
+  alert('Scadenze automatiche ricalcolate.');
+}
+
+function updateContratto(){
+  const v = document.getElementById('set-limite-eta').value;
+  settings().contratto = { limiteEta: v ? Number(v) : null };
+  saveData();
+}
+function updateAltro(){
+  settings().altro = document.getElementById('set-altro').value;
+  saveData();
+}
+
+function downloadFile(content, filename, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportCSV(kind){
+  if(typeof Papa === 'undefined'){ alert('Libreria CSV non disponibile (verifica la connessione internet).'); return; }
+  const rows = db[kind] || [];
+  if(!rows.length){ alert('Non ci sono dati da esportare per questa tabella.'); return; }
+  const enriched = rows.map(r=>{
+    const copy = Object.assign({}, r);
+    if(kind==='agenzie'){ copy.mandatarioNome = r.mandatarioId ? mandatarioName(r.mandatarioId) : ''; }
+    if(kind==='mandatari'){ copy.agenziaNome = r.agenziaId ? agenziaName(r.agenziaId) : ''; }
+    if(kind==='visite' || kind==='scadenze'){
+      copy.agenziaNome = r.agenziaId ? agenziaName(r.agenziaId) : '';
+      copy.mandatarioNome = r.mandatarioId ? mandatarioName(r.mandatarioId) : '';
+    }
+    if(kind==='visite'){
+      const val = r.valutazioni || {};
+      VALUTAZIONE_CAMPI.forEach(c=>{ copy[c.key] = val[c.key] ?? ''; });
+      delete copy.valutazioni;
+    }
+    return copy;
+  });
+  const csv = Papa.unparse(enriched);
+  downloadFile(csv, `atena-${kind}-${oggiIso()}.csv`, 'text/csv;charset=utf-8;');
+}
+
+function parseBool(v){
+  if(typeof v === 'boolean') return v;
+  if(v===undefined || v===null) return false;
+  const s = String(v).trim().toLowerCase();
+  return s==='true' || s==='1' || s==='si' || s==='sì' || s==='x';
+}
+
+function normalizeImportedRow(kind, row){
+  const clean = Object.assign({}, row);
+  delete clean.mandatarioNome;
+  delete clean.agenziaNome;
+  if(!clean.id) clean.id = uid();
+  if(kind==='agenzie'){
+    clean.interpello = parseBool(clean.interpello);
+    clean.proposta = parseBool(clean.proposta);
+  }
+  if(kind==='visite'){
+    clean.anno = clean.anno ? Number(clean.anno) : null;
+    clean.conRdz = parseBool(clean.conRdz);
+    const val = {};
+    VALUTAZIONE_CAMPI.forEach(c=>{
+      val[c.key] = clean[c.key] ? Number(clean[c.key]) : null;
+      delete clean[c.key];
+    });
+    clean.valutazioni = val;
+  }
+  if(kind==='scadenze'){
+    clean.auto = parseBool(clean.auto);
+  }
+  return clean;
+}
+
+function importCSV(event, kind){
+  if(typeof Papa === 'undefined'){ alert('Libreria CSV non disponibile (verifica la connessione internet).'); return; }
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    Papa.parse(e.target.result, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results){
+        if(!confirm(`Importando questo file sostituirai tutti i dati attuali della tabella selezionata. Continuare?`)) { event.target.value=''; return; }
+        db[kind] = results.data.map(row=>normalizeImportedRow(kind, row));
+        saveData();
+        refreshStatoSelects();
+        refreshDynamicSelects();
+        renderAll();
+        alert('Importazione CSV completata.');
+      },
+      error: function(){
+        alert('Errore nella lettura del file CSV.');
+      }
+    });
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const today = new Date().toISOString().slice(0,10);
+  a.download = `atena-backup-${today}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const imported = JSON.parse(e.target.result);
+      if(!confirm('Importando questo file sovrascriverai tutti i dati attuali. Continuare?')) return;
+      db.agenzie = imported.agenzie || [];
+      db.mandatari = imported.mandatari || [];
+      db.visite = imported.visite || [];
+      db.scadenze = imported.scadenze || [];
+      db.settings = Object.assign(defaultSettings(), imported.settings || {});
+      if(!db.settings.contratto) db.settings.contratto = { limiteEta: null };
+      saveData();
+      refreshStatoSelects();
+      refreshDynamicSelects();
+      renderAll();
+      renderSettingsModal();
+      alert('Importazione completata.');
+    }catch(err){
+      alert('File non valido. Assicurati che sia un backup esportato da Atena.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function ricalcolaTutteScadenzeAutomatiche(){
+  db.mandatari.forEach(m=>sincronizzaScadenzeAutomatiche(m));
+  saveData();
+}
+
+function contaEntroDueAnniContratto(){
+  const ids = new Set(db.scadenze.filter(s=>s.ruleKey==='contratto2anni' && s.mandatarioId).map(s=>s.mandatarioId));
+  return ids.size;
+}
+
+function contaVisiteAgenzia(agenziaId){
+  return db.visite.filter(v=>v.agenziaId===agenziaId).length;
+}
+function isSottoSogliaVisite(agenziaId){
+  const soglia = settings().sogliaVisite;
+  if(soglia===null || soglia===undefined || soglia==='') return false;
+  return contaVisiteAgenzia(agenziaId) < Number(soglia);
+}
+
+function renderInfoBoxes(){
+  const oggi = oggiIso();
+  const tra12mesi = aggiungiAnni(oggi, 1);
+
+  const nReggenza = db.agenzie.filter(a=>a.stato==='Reggenza').length;
+  document.getElementById('dash-info-reggenza').textContent = nReggenza;
+
+  let nVerso65 = 0;
+  db.mandatari.forEach(m=>{
+    if(!m.dataNascita) return;
+    const d65 = aggiungiAnni(m.dataNascita, 65);
+    if(d65 && d65 > oggi && d65 <= tra12mesi) nVerso65++;
+  });
+  document.getElementById('dash-info-verso65').textContent = nVerso65;
+
+  const nOver65Proroga = db.mandatari.filter(m=>{
+    const eta = calcolaEta(m.dataNascita);
+    return eta!==null && eta > 65 && m.stato==='Proroga';
+  }).length;
+  document.getElementById('dash-info-over65proroga').textContent = nOver65Proroga;
+
+  document.getElementById('dash-info-prova').textContent = contaEntroDueAnniContratto();
+}
+
+/* ---------------- INIT ---------------- */
+function renderAll(){
+  renderAgenzie();
+  renderMandatari();
+  renderVisite();
+  renderScadenze();
+  renderInfoBoxes();
+}
+
+async function init(){
+  initStaticFilters();
+  await loadData();
+  ricalcolaTutteScadenzeAutomatiche();
+  refreshStatoSelects();
+  refreshDynamicSelects();
+  renderAll();
+}
+init();
+</script>
+</body>
+</html>
