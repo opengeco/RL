@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>FinClarity v6</title>
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-card: #1e293b;
+      --bg-input: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --income: #22c55e;
+      --expense: #ef4444;
+      --warning: #f59e0b;
+      --goal: #8b5cf6;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-main); padding-bottom: 80px; }
+
+    header {
+      padding: 20px 16px;
+      background: var(--bg-card);
+      border-bottom-left-radius: var(--radius);
+      border-bottom-right-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .net-worth { font-size: 2rem; font-weight: 700; margin-top: 2px; }
+
+    .app-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    main { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+    .page-section { display: none; flex-direction: column; gap: 20px; }
+    .page-section.active { display: flex; }
+
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { background: var(--bg-card); padding: 16px; border-radius: var(--radius); }
+    .card-title { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+    .amount { font-size: 1.2rem; font-weight: 600; }
+    .amount.income { color: var(--income); }
+    .amount.expense { color: var(--expense); }
+    .amount.warning { color: var(--warning); }
+    .amount.goal { color: var(--goal); }
+
+    .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .accounts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .account-card {
+      background: var(--bg-card);
+      padding: 14px;
+      border-radius: var(--radius);
+      border: 1px solid #334155;
+    }
+    .account-name { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
+    .subaccount-name { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+    .account-val { font-weight: 600; margin-top: 6px; font-size: 1.1rem; }
+
+    .goals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .goal-card {
+      background: var(--bg-card);
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .progress-bar-bg { background: var(--bg-input); border-radius: 8px; height: 10px; overflow: hidden; width: 100%; margin-top: 4px; }
+    .progress-bar-fill { background: var(--goal); height: 100%; border-radius: 8px; transition: width 0.3s ease; }
+
+    details.collapsible-section { background: var(--bg-card); border-radius: var(--radius); padding: 16px; }
+    details.collapsible-section summary { cursor: pointer; user-select: none; outline: none; }
+    details.collapsible-section summary::-webkit-details-marker { display: none; }
+
+    .table-container { width: 100%; overflow-x: auto; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+    th { background: var(--bg-input); color: var(--text-muted); padding: 10px 8px; cursor: pointer; user-select: none; white-space: nowrap; }
+    th:hover { color: var(--text-main); }
+    td { padding: 10px 8px; border-bottom: 1px solid var(--bg-input); vertical-align: middle; white-space: nowrap; }
+    tr:last-child td { border-bottom: none; }
+    .table-container td.amount { font-size: 0.85rem; font-weight: 600; }
+
+    .action-btns { display: flex; gap: 6px; }
+    .sm-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; }
+    .sm-btn:hover { color: var(--text-main); }
+    .sm-btn.danger:hover { color: var(--expense); }
+    .sm-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: var(--bg-input);
+      color: var(--text-muted);
+      display: inline-block;
+    }
+    .badge-success { background: rgba(34,197,94,0.15); color: var(--income); }
+    .badge-late { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .badge-abbonamento { background: rgba(59,130,246,0.15); color: var(--accent); }
+    .badge-finanziamento { background: rgba(139,92,246,0.15); color: var(--goal); }
+
+    nav {
+      position: fixed;
+      bottom: 0; width: 100%;
+      height: 65px;
+      background: var(--bg-card);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid var(--bg-input);
+      z-index: 50;
+    }
+    .nav-item { background: none; border: none; color: var(--text-muted); font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; width: 20%; }
+    .nav-item.active { color: var(--accent); font-weight: 600; }
+    .fab {
+      background: var(--accent); color: white; border: none; width: 48px; height: 48px; border-radius: 50%; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); cursor: pointer;
+    }
+
+    .modal {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); align-items: flex-end; justify-content: center; z-index: 100;
+    }
+    .modal-content {
+      background: var(--bg-card); width: 100%; max-width: 500px; padding: 20px; border-top-left-radius: var(--radius); border-top-right-radius: var(--radius); display: flex; flex-direction: column; gap: 14px; max-height: 90vh; overflow-y: auto;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.85rem; color: var(--text-muted); }
+    input, select { background: var(--bg-input); border: none; padding: 12px; border-radius: 10px; color: var(--text-main); font-size: 1rem; }
+    .btn-submit { background: var(--accent); color: white; padding: 14px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    .btn-secondary { background: transparent; color: var(--text-muted); border: none; padding: 10px; font-size: 0.9rem; cursor: pointer; }
+
+    .btn-add-sub {
+      background: var(--bg-input); color: var(--accent); border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    }
+
+    .tab-pills { display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--bg-input); padding-bottom: 8px; }
+    .tab-pill { background: none; border: none; color: var(--text-muted); font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+    .tab-pill.active { background: var(--bg-input); color: var(--text-main); }
+
+    /* --- Nuovi elementi v6 --- */
+    .templates-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .template-chip { display: flex; align-items: stretch; background: var(--bg-input); border-radius: 20px; overflow: hidden; }
+    .template-chip-main { background: none; border: none; color: var(--text-main); padding: 8px 12px; font-size: 0.8rem; cursor: pointer; }
+    .template-chip-remove { background: none; border: none; color: var(--text-muted); padding: 0 10px; cursor: pointer; font-size: 0.9rem; }
+    .template-chip-remove:hover { color: var(--expense); }
+
+    .filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .filter-row input, .filter-row select { flex: 1; min-width: 130px; padding: 8px 10px; font-size: 0.8rem; }
+    .filter-row .btn-secondary { flex: 0 0 auto; padding: 8px 10px; }
+
+    .cat-bar-row { margin-bottom: 10px; }
+    .cat-bar-row:last-child { margin-bottom: 0; }
+    .cat-bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+
+    .networth-line { stroke: var(--accent); stroke-width: 2.5; }
+    .networth-point { fill: var(--accent); }
+    .networth-label { fill: var(--text-muted); font-size: 8px; }
+    .networth-empty { font-size: 0.8rem; color: var(--text-muted); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 85px;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-input);
+      color: var(--text-main);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      opacity: 0;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 200;
+      pointer-events: none;
+      max-width: 90%;
+      text-align: center;
+      border-left: 3px solid var(--accent);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 600px) {
+      .accounts-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="app-title">FinClarity</div>
+    <div class="net-worth" id="netWorth">€ 0,00</div>
+  </header>
+
+  <main>
+    <div id="tabDashboard" class="page-section active">
+      <div class="summary-grid">
+        <div class="card">
+          <div class="card-title">Entrate (Mese)</div>
+          <div class="amount income" id="monthlyIncome">+€ 0,00</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Uscite (Mese)</div>
+          <div class="amount expense" id="monthlyExpense">-€ 0,00</div>
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="card">
+          <div class="card-title">Abbonamenti</div>
+          <div class="amount warning" id="dashFixedMonthly">€ 0,00</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Obiettivi</div>
+          <div class="amount goal" id="dashTotalSaved">€ 0,00</div>
+        </div>
+      </div>
+
+      <section>
+        <div class="section-title">Movimenti Ricorrenti</div>
+        <div class="templates-row" id="templatesRow"></div>
+      </section>
+
+      <section>
+        <div class="section-title">Conti e Sottoconti</div>
+        <div class="accounts-grid" id="accountsList"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">Andamento Patrimonio Netto (6 mesi)</div>
+        <div id="networthChart"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">Spese per Categoria (Mese)</div>
+        <div id="categoryChart"></div>
+      </section>
+
+      <details class="collapsible-section" open>
+        <summary class="section-title" style="margin-bottom:0;">
+          <span>Ultimi Movimenti</span>
+          <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">▼</span>
+        </summary>
+        <div class="filter-row" style="margin-top:12px;">
+          <input type="text" id="movSearch" placeholder="Cerca descrizione..." oninput="setMovFilter('search', this.value)">
+          <select id="movCategoryFilter" onchange="setMovFilter('category', this.value)">
+            <option value="">Tutte le categorie</option>
+          </select>
+          <input type="date" id="movFromFilter" onchange="setMovFilter('from', this.value)">
+          <input type="date" id="movToFilter" onchange="setMovFilter('to', this.value)">
+          <button class="btn-secondary" onclick="resetMovFilters()">Reset</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th onclick="sortMovements('date')">Data ↕</th>
+                <th onclick="sortMovements('amount')">Importo ↕</th>
+                <th onclick="sortMovements('desc')">Descrizione ↕</th>
+                <th onclick="sortMovements('accountId')">Conto ↕</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="movementsTableBody"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+
+    <div id="tabGoals" class="page-section">
+      <div class="summary-grid">
+        <div class="card">
+          <div class="card-title">Totale Accantonato</div>
+          <div class="amount goal" id="totalGoalSaved">€ 0,00</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Target Complessivo</div>
+          <div class="amount" id="totalGoalTarget">€ 0,00</div>
+        </div>
+      </div>
+
+      <section>
+        <div class="section-title">
+          <span>Obiettivi di Risparmio</span>
+          <button class="btn-add-sub" onclick="openGoalModal()">+ Nuovo Obiettivo</button>
+        </div>
+        <div class="goals-grid" id="goalsList"></div>
+      </section>
+    </div>
+
+    <div id="tabSubscriptions" class="page-section">
+      <div class="card">
+        <div class="card-title">Impatto Mensile Fisso</div>
+        <div class="amount warning" id="fixedMonthlyCost">€ 0,00 /mese</div>
+      </div>
+
+      <section class="card">
+        <div class="section-title">
+          <span>Abbonamenti & Rate Attive</span>
+          <button class="btn-add-sub" onclick="openSubModal()">+ Aggiungi</button>
+        </div>
+        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Gli addebiti vengono registrati automaticamente come movimenti alla data di "Prossimo Addebito" indicata in tabella.</p>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th onclick="sortSubs('name')">Nome ↕</th>
+                <th onclick="sortSubs('amount')">Importo ↕</th>
+                <th onclick="sortSubs('frequency')">Frequenza ↕</th>
+                <th onclick="sortSubs('type')">Tipo ↕</th>
+                <th onclick="sortSubs('accountId')">Conto ↕</th>
+                <th>Prossimo Addebito</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="subsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <nav>
+    <button class="nav-item active" id="navDash" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="nav-item" id="navGoals" onclick="switchTab('goals')">Obiettivi</button>
+    <button class="fab" onclick="openMovModal()">+</button>
+    <button class="nav-item" id="navSubs" onclick="switchTab('subscriptions')">Abbonamenti</button>
+    <button class="nav-item" onclick="openSettingsModal()">Opzioni</button>
+  </nav>
+
+  <div class="modal" id="movModal">
+    <div class="modal-content">
+      <h2 id="movModalTitle">Nuovo Movimento</h2>
+      <input type="hidden" id="editMovId">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="movType">
+          <option value="uscita">Uscita</option>
+          <option value="entrata">Entrata</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Importo (€)</label>
+        <input type="number" id="movAmount" step="0.01" placeholder="0.00" required>
+      </div>
+      <div class="form-group">
+        <label>Descrizione</label>
+        <input type="text" id="movDesc" placeholder="Es. Spesa Supermercato" required>
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="movCategory"></select>
+      </div>
+      <div class="form-group">
+        <label>Conto / Sottoconto</label>
+        <select id="movAccount"></select>
+      </div>
+      <div class="form-group" id="templateCheckboxGroup" style="flex-direction:row; align-items:center; gap:8px;">
+        <input type="checkbox" id="movSaveTemplate" style="width:auto; padding:0;">
+        <label style="margin:0;">Salva come movimento ricorrente (accesso rapido)</label>
+      </div>
+      <button class="btn-submit" onclick="saveMovement()">Salva Movimento</button>
+      <button class="btn-secondary" onclick="closeModal('movModal')">Annulla</button>
+    </div>
+  </div>
+
+  <div class="modal" id="subModal">
+    <div class="modal-content">
+      <h2 id="subModalTitle">Nuovo Abbonamento / Rata</h2>
+      <input type="hidden" id="editSubId">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="subType" onchange="toggleInstallmentFields()">
+          <option value="abbonamento">Abbonamento</option>
+          <option value="finanziamento">Finanziamento a Rate</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nome / Descrizione</label>
+        <input type="text" id="subName" placeholder="Es. Netflix, Rate Auto..." required>
+      </div>
+      <div class="form-group">
+        <label>Frequenza Abbonamento</label>
+        <select id="subFrequency">
+          <option value="settimanale">Settimanale</option>
+          <option value="mensile" selected>Mensile</option>
+          <option value="semestrale">Semestrale</option>
+          <option value="annuale">Annuale</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Importo Abbonamento (€)</label>
+        <input type="number" id="subAmount" step="0.01" placeholder="0.00" required>
+      </div>
+      <div class="form-group">
+        <label>Conto / Sottoconto Addebito</label>
+        <select id="subAccount"></select>
+      </div>
+      <div class="form-group" id="installmentsGroup" style="display: none;">
+        <label>Rate Rimanenti</label>
+        <input type="number" id="subInstallments" placeholder="Es. 12">
+      </div>
+      <p id="subNextChargeInfo" style="font-size:0.8rem; color:var(--text-muted); display:none;"></p>
+      <button class="btn-submit" onclick="saveSubscription()">Salva Abbonamento</button>
+      <button class="btn-secondary" onclick="closeModal('subModal')">Annulla</button>
+    </div>
+  </div>
+
+  <div class="modal" id="goalModal">
+    <div class="modal-content">
+      <h2 id="goalModalTitle">Nuovo Obiettivo</h2>
+      <input type="hidden" id="editGoalId">
+      <div class="form-group">
+        <label>Nome Obiettivo</label>
+        <input type="text" id="goalName" placeholder="Es. Vacanze Estive, Fondo Emergenza..." required>
+      </div>
+      <div class="form-group">
+        <label>Target Finale (€)</label>
+        <input type="number" id="goalTarget" step="0.01" placeholder="Es. 3000.00" required>
+      </div>
+      <div class="form-group">
+        <label>Conto / Sottoconto Collegato (Da cui partono i fondi)</label>
+        <select id="goalAccount"></select>
+      </div>
+      <div class="form-group">
+        <label>Quota di Risparmio Per Periodo (€)</label>
+        <input type="number" id="goalPeriodAmount" step="0.01" placeholder="Es. 50.00" required>
+      </div>
+      <div class="form-group">
+        <label>Frequenza Versamento</label>
+        <select id="goalPeriodType">
+          <option value="settimana">Settimana</option>
+          <option value="mese" selected>Mese</option>
+          <option value="anno">Anno</option>
+        </select>
+      </div>
+      <button class="btn-submit" onclick="saveGoal()">Salva Obiettivo</button>
+      <button class="btn-secondary" onclick="closeModal('goalModal')">Annulla</button>
+    </div>
+  </div>
+
+  <div class="modal" id="goalDepositModal">
+    <div class="modal-content">
+      <h2>Aggiungi Fondi all'Obiettivo</h2>
+      <input type="hidden" id="depositGoalId">
+      <p id="depositGoalInfo" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:10px;"></p>
+      <div class="form-group">
+        <label>Importo Versamento (€)</label>
+        <input type="number" id="depositAmount" step="0.01" placeholder="0.00" required>
+      </div>
+      <button class="btn-submit" onclick="executeGoalDeposit()">Conferma Versamento</button>
+      <button class="btn-secondary" onclick="closeModal('goalDepositModal')">Annulla</button>
+    </div>
+  </div>
+
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <h2>Opzioni</h2>
+
+      <div class="card" style="margin-bottom: 10px;">
+        <div class="section-title" style="margin-bottom:8px; font-size:0.95rem;">Sincronizzazione GitHub</div>
+        <p id="githubStatusText" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Non configurato.</p>
+        <div class="form-group">
+          <label>Utente/Organizzazione</label>
+          <input type="text" id="ghOwner" placeholder="whynotred">
+        </div>
+        <div class="form-group" style="margin-top:6px;">
+          <label>Repository</label>
+          <input type="text" id="ghRepo" placeholder="FinClarity">
+        </div>
+        <div class="form-group" style="margin-top:6px;">
+          <label>Percorso file</label>
+          <input type="text" id="ghPath" placeholder="dati.json">
+        </div>
+        <div class="form-group" style="margin-top:6px;">
+          <label>Branch</label>
+          <input type="text" id="ghBranch" placeholder="main">
+        </div>
+        <div class="form-group" style="margin-top:6px;">
+          <label>Personal Access Token</label>
+          <input type="password" id="ghToken" placeholder="github_pat_...">
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <button class="btn-add-sub" onclick="saveGithubConfigFromForm()">Salva Configurazione</button>
+          <button class="btn-add-sub" onclick="pushToGithub()">Sincronizza Ora</button>
+          <button class="btn-add-sub" onclick="disconnectGithub()" style="color:var(--expense);">Disconnetti</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 10px;">
+        <div class="section-title" style="margin-bottom:8px; font-size:0.95rem;">File Locale (salvataggio automatico)</div>
+        <p id="fileStatusText" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Verifica supporto in corso...</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-add-sub" onclick="connectNewFile()">Crea Nuovo File</button>
+          <button class="btn-add-sub" onclick="openExistingFile()">Apri File Esistente</button>
+          <button class="btn-add-sub" id="btnDisconnectFile" onclick="disconnectFile()" style="display:none; color:var(--expense);">Scollega</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 10px;">
+        <div class="section-title" style="margin-bottom:8px; font-size:0.95rem;">Backup Dati</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-add-sub" onclick="exportData()">Esporta JSON</button>
+          <button class="btn-add-sub" onclick="document.getElementById('importFileInput').click()">Importa JSON</button>
+        </div>
+        <input type="file" id="importFileInput" accept="application/json" style="display:none;" onchange="importData(event)">
+      </div>
+
+      <div class="tab-pills">
+        <button class="tab-pill active" onclick="switchSettingsTab('accounts')">Conti e Sottoconti</button>
+      </div>
+
+      <div id="settingsAccounts">
+        <div class="card" style="margin-bottom: 10px;">
+          <div class="form-group">
+            <label id="accFormTitle">Aggiungi Nuovo Conto / Sottoconto</label>
+            <input type="hidden" id="editAccId">
+            <input type="text" id="accName" placeholder="Nome Conto (es. BancoPosta, Buoni)">
+            <div class="form-group" style="margin-top:6px;">
+              <label>Conto Padre (Lascia 'Nessuno' se è un conto principale)</label>
+              <select id="accParentId">
+                <option value="">Nessuno (Conto Principale)</option>
+              </select>
+            </div>
+            <input type="number" id="accBalance" step="0.01" placeholder="Saldo Iniziale (€)" style="margin-top:6px;">
+            <button class="btn-submit" style="margin-top:10px; padding:10px;" onclick="saveAccount()">Salva Conto</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Tipo</th>
+                <th>Saldo</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="accountsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <button class="btn-secondary" onclick="closeModal('settingsModal')">Chiudi</button>
+    </div>
+  </div>
+
+  <script>
+    const editIcon = `<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0-1.83 1.83-3.75 3.75-3.75 3.75l3.75 3.75 1.83-1.83z"/></svg>`;
+    const deleteIcon = `<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`;
+
+    const CATEGORIES = ['Alimentari', 'Casa', 'Trasporti', 'Salute', 'Svago', 'Bollette', 'Stipendio', 'Abbonamenti', 'Altro'];
+    const CATEGORY_PALETTE = ['#3b82f6', '#8b5cf6', '#f59e0b', '#22c55e', '#ef4444', '#06b6d4', '#ec4899', '#eab308', '#94a3b8'];
+    const MONTH_ABBR = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+    let data = JSON.parse(localStorage.getItem('family_finance_db_v4')) || {
+      accounts: [
+        { id: 'c1', name: 'Conto Corrente', balance: 2500, parentId: null },
+        { id: 'c1_sub1', name: 'Carta Debito Web', balance: 350, parentId: 'c1' },
+        { id: 'c2', name: 'Fondo Risparmio', balance: 10000, parentId: null }
+      ],
+      movements: [],
+      subscriptions: [
+        { id: 's1', name: 'Netflix', amount: 12.99, frequency: 'mensile', type: 'abbonamento', accountId: 'c1' },
+        { id: 's2', name: 'Finanziamento Auto', amount: 210.00, frequency: 'mensile', type: 'finanziamento', installments: 24, accountId: 'c1' }
+      ],
+      goals: [],
+      templates: []
+    };
+
+    let movSort = { col: 'date', asc: false };
+    let subSort = { col: 'name', asc: true };
+    let movFilters = { search: '', category: '', from: '', to: '' };
+    let toastTimeout = null;
+    let fileHandle = null;
+    let fileNeedsReconnect = false;
+    let githubFileSha = null;
+    let githubSyncing = false;
+
+    function saveData(toastMsg) {
+      localStorage.setItem('family_finance_db_v4', JSON.stringify(data));
+      render();
+      writeToFile();
+      pushToGithub();
+      if (toastMsg) showToast(toastMsg);
+    }
+
+    function showToast(msg) {
+      if (!msg) return;
+      let toast = document.getElementById('appToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'appToast';
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      clearTimeout(toastTimeout);
+      requestAnimationFrame(() => toast.classList.add('show'));
+      toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 2800);
+    }
+
+    function formatCurrency(num) {
+      const parts = (num || 0).toFixed(2).split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      return '€ ' + parts.join(',');
+    }
+
+    function categoryBadge(cat) {
+      const label = cat || 'Altro';
+      const idx = CATEGORIES.indexOf(label);
+      const color = idx !== -1 ? CATEGORY_PALETTE[idx] : '#94a3b8';
+      return `<span class="badge" style="background:${color}22; color:${color};">${label}</span>`;
+    }
+
+    /* --- Migrazione / manutenzione dati --- */
+    function migrateData() {
+      data.templates = data.templates || [];
+      data.goals = data.goals || [];
+      (data.movements || []).forEach(m => { if (!m.category) m.category = 'Altro'; });
+      (data.subscriptions || []).forEach(s => {
+        if (!s.nextChargeDate) s.nextChargeDate = getNextChargeDate(new Date(), s.frequency || 'mensile').toISOString();
+      });
+      (data.goals || []).forEach(g => {
+        if (!g.createdAt) g.createdAt = new Date().toISOString();
+        if (!g.lastDepositDate) g.lastDepositDate = g.createdAt;
+      });
+    }
+
+    function getNextChargeDate(fromDate, freq) {
+      const d = new Date(fromDate);
+      switch (freq) {
+        case 'settimanale': d.setDate(d.getDate() + 7); break;
+        case 'semestrale': d.setMonth(d.getMonth() + 6); break;
+        case 'annuale': d.setMonth(d.getMonth() + 12); break;
+        default: d.setMonth(d.getMonth() + 1); // mensile
+      }
+      return d;
+    }
+
+    /* --- File Locale (File System Access API) ---
+       I dati veri e propri vivono nel file JSON scelto dall'utente sul suo dispositivo.
+       Il browser, per poterlo ritrovare tra un'apertura e l'altra senza richiedere ogni volta
+       di riselezionarlo, richiede di conservare il *riferimento* al file (non i dati) in una
+       piccola IndexedDB interna: è il meccanismo standard usato dai browser per questa funzione. */
+
+    function supportsFS() {
+      return typeof window.showSaveFilePicker === 'function';
+    }
+
+    const HANDLE_DB_NAME = 'finclarity_filehandle_db';
+    const HANDLE_STORE = 'handles';
+
+    function openHandleDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(HANDLE_DB_NAME, 1);
+        req.onupgradeneeded = () => { req.result.createObjectStore(HANDLE_STORE); };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function persistFileHandle(handle) {
+      try {
+        const db = await openHandleDB();
+        const tx = db.transaction(HANDLE_STORE, 'readwrite');
+        tx.objectStore(HANDLE_STORE).put(handle, 'main');
+        await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+      } catch (err) { console.warn('Impossibile salvare il riferimento al file:', err); }
+    }
+
+    async function loadPersistedFileHandle() {
+      try {
+        const db = await openHandleDB();
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction(HANDLE_STORE, 'readonly');
+          const req = tx.objectStore(HANDLE_STORE).get('main');
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => reject(req.error);
+        });
+      } catch (err) { return null; }
+    }
+
+    async function clearPersistedFileHandle() {
+      try {
+        const db = await openHandleDB();
+        const tx = db.transaction(HANDLE_STORE, 'readwrite');
+        tx.objectStore(HANDLE_STORE).delete('main');
+        await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+      } catch (err) {}
+    }
+
+    async function writeToFile() {
+      if (!fileHandle) return;
+      try {
+        let perm = await fileHandle.queryPermission({ mode: 'readwrite' });
+        if (perm !== 'granted') perm = await fileHandle.requestPermission({ mode: 'readwrite' });
+        if (perm !== 'granted') { fileNeedsReconnect = true; updateFileStatus(); return; }
+
+        const writable = await fileHandle.createWritable();
+        await writable.write(JSON.stringify(data, null, 2));
+        await writable.close();
+        fileNeedsReconnect = false;
+        updateFileStatus();
+      } catch (err) {
+        console.warn('Scrittura su file locale fallita:', err);
+        fileNeedsReconnect = true;
+        updateFileStatus();
+      }
+    }
+
+    async function connectNewFile() {
+      if (!supportsFS()) return alert('Il tuo browser non supporta il salvataggio su file locale (funzione disponibile solo su Chrome/Edge desktop).');
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: 'finclarity_data.json',
+          types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+        });
+        fileHandle = handle;
+        await persistFileHandle(handle);
+        await writeToFile();
+        updateFileStatus();
+        showToast('File locale collegato: salvataggio automatico attivo');
+      } catch (err) {
+        if (err.name !== 'AbortError') alert('Impossibile creare il file: ' + err.message);
+      }
+    }
+
+    async function openExistingFile() {
+      if (!supportsFS()) return alert('Il tuo browser non supporta il salvataggio su file locale (funzione disponibile solo su Chrome/Edge desktop).');
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+          multiple: false
+        });
+
+        const permission = await handle.requestPermission({ mode: 'readwrite' });
+        if (permission !== 'granted') return alert('Permesso di scrittura negato per questo file.');
+
+        const file = await handle.getFile();
+        const text = await file.text();
+        let parsed = null;
+
+        if (text.trim()) {
+          try { parsed = JSON.parse(text); }
+          catch (e) { return alert('Il file selezionato non contiene un JSON valido.'); }
+
+          if (!parsed || !Array.isArray(parsed.accounts) || !Array.isArray(parsed.movements) || !Array.isArray(parsed.subscriptions)) {
+            return alert('Il file selezionato non ha la struttura dati di un backup FinClarity.');
+          }
+          if (!confirm('Caricare i dati da questo file? I dati attuali in memoria verranno sovrascritti.')) return;
+
+          parsed.goals = Array.isArray(parsed.goals) ? parsed.goals : [];
+          parsed.templates = Array.isArray(parsed.templates) ? parsed.templates : [];
+          data = parsed;
+          migrateData();
+          processRecurringCharges();
+        }
+
+        fileHandle = handle;
+        await persistFileHandle(handle);
+        updateFileStatus();
+        saveData('File locale collegato' + (parsed ? ' e dati caricati' : ''));
+      } catch (err) {
+        if (err.name !== 'AbortError') alert('Impossibile aprire il file: ' + err.message);
+      }
+    }
+
+    async function disconnectFile() {
+      fileHandle = null;
+      fileNeedsReconnect = false;
+      await clearPersistedFileHandle();
+      updateFileStatus();
+      showToast('File locale scollegato (i dati restano nella cache del browser)');
+    }
+
+    async function tryReconnectFile() {
+      if (!supportsFS()) return;
+      const handle = await loadPersistedFileHandle();
+      if (!handle) return;
+      try {
+        let perm = await handle.queryPermission({ mode: 'readwrite' });
+        if (perm !== 'granted') perm = await handle.requestPermission({ mode: 'readwrite' });
+
+        if (perm === 'granted') {
+          fileHandle = handle;
+          const file = await handle.getFile();
+          const text = await file.text();
+          if (text.trim()) {
+            const parsed = JSON.parse(text);
+            if (parsed && Array.isArray(parsed.accounts) && Array.isArray(parsed.movements) && Array.isArray(parsed.subscriptions)) {
+              parsed.goals = Array.isArray(parsed.goals) ? parsed.goals : [];
+              parsed.templates = Array.isArray(parsed.templates) ? parsed.templates : [];
+              data = parsed;
+            }
+          }
+        } else {
+          fileHandle = handle;
+          fileNeedsReconnect = true;
+        }
+      } catch (err) {
+        fileHandle = handle;
+        fileNeedsReconnect = true;
+      }
+    }
+
+    function updateFileStatus() {
+      const statusEl = document.getElementById('fileStatusText');
+      const disconnectBtn = document.getElementById('btnDisconnectFile');
+      if (!statusEl) return;
+
+      if (!supportsFS()) {
+        statusEl.innerText = 'Il tuo browser non supporta il salvataggio su file locale (funzione disponibile solo su Chrome/Edge desktop). I dati restano comunque salvati nella cache del browser.';
+        disconnectBtn.style.display = 'none';
+        return;
+      }
+
+      if (fileHandle) {
+        statusEl.innerText = `Collegato a "${fileHandle.name}". Ogni modifica viene salvata automaticamente su questo file.` +
+          (fileNeedsReconnect ? ' ⚠ Permesso non attivo: premi "Apri File Esistente" e riseleziona lo stesso file per riconfermarlo.' : '');
+        disconnectBtn.style.display = 'inline-block';
+      } else {
+        statusEl.innerText = 'Nessun file collegato. I dati restano solo nella cache del browser finché non colleghi un file.';
+        disconnectBtn.style.display = 'none';
+      }
+    }
+
+    /* --- Sincronizzazione GitHub (Contents API) ---
+       Funziona ovunque, incluso mobile, perché usa solo fetch() standard.
+       Il token viene salvato solo nel localStorage di questo browser/dispositivo. */
+
+    function getGithubConfig() {
+      try { return JSON.parse(localStorage.getItem('finclarity_github_config')) || null; }
+      catch (e) { return null; }
+    }
+
+    function saveGithubConfig(cfg) {
+      localStorage.setItem('finclarity_github_config', JSON.stringify(cfg));
+    }
+
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let binary = '';
+      bytes.forEach(b => { binary += String.fromCharCode(b); });
+      return btoa(binary);
+    }
+
+    function base64ToUtf8(b64) {
+      const binary = atob(b64.replace(/\n/g, ''));
+      const bytes = new Uint8Array([...binary].map(c => c.charCodeAt(0)));
+      return new TextDecoder().decode(bytes);
+    }
+
+    function updateGithubStatus(msg) {
+      const el = document.getElementById('githubStatusText');
+      if (el) el.innerText = msg;
+    }
+
+    async function githubApi(path, options = {}) {
+      const cfg = getGithubConfig();
+      if (!cfg || !cfg.token) throw new Error('Configurazione GitHub mancante');
+      return fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}${path}`, {
+        ...options,
+        headers: {
+          'Authorization': `Bearer ${cfg.token}`,
+          'Accept': 'application/vnd.github+json',
+          ...(options.headers || {})
+        }
+      });
+    }
+
+    async function pullFromGithub() {
+      const cfg = getGithubConfig();
+      if (!cfg || !cfg.token) return { ok: false, reason: 'no-config' };
+      try {
+        const res = await githubApi(`/contents/${encodeURIComponent(cfg.path)}?ref=${encodeURIComponent(cfg.branch)}`);
+        if (res.status === 404) return { ok: false, reason: 'not-found' };
+        if (!res.ok) return { ok: false, reason: 'error-' + res.status };
+        const json = await res.json();
+        githubFileSha = json.sha;
+        const parsed = JSON.parse(base64ToUtf8(json.content));
+        return { ok: true, data: parsed };
+      } catch (err) {
+        return { ok: false, reason: 'network' };
+      }
+    }
+
+    async function pushToGithub(retry = true) {
+      const cfg = getGithubConfig();
+      if (!cfg || !cfg.token) return;
+      if (githubSyncing) return;
+      githubSyncing = true;
+      updateGithubStatus('Sincronizzazione in corso...');
+      try {
+        const body = {
+          message: `Aggiornamento dati FinClarity - ${new Date().toISOString()}`,
+          content: utf8ToBase64(JSON.stringify(data, null, 2)),
+          branch: cfg.branch
+        };
+        if (githubFileSha) body.sha = githubFileSha;
+
+        const res = await githubApi(`/contents/${encodeURIComponent(cfg.path)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        if (res.status === 409 || res.status === 422) {
+          if (retry) {
+            const pull = await pullFromGithub();
+            if (pull.ok) { githubSyncing = false; return pushToGithub(false); }
+          }
+          updateGithubStatus('⚠ Conflitto di sincronizzazione: premi "Sincronizza Ora" per riprovare.');
+          return;
+        }
+
+        if (res.status === 404) {
+          updateGithubStatus('⚠ Repository non trovato. Crea il repository vuoto su GitHub, poi premi "Sincronizza Ora".');
+          return;
+        }
+
+        if (!res.ok) {
+          updateGithubStatus(`⚠ Errore GitHub (${res.status}). Controlla token e permessi.`);
+          return;
+        }
+
+        const json = await res.json();
+        githubFileSha = json.content.sha;
+        updateGithubStatus(`Sincronizzato su GitHub alle ${new Date().toLocaleTimeString('it-IT')}`);
+      } catch (err) {
+        updateGithubStatus('⚠ Sincronizzazione fallita (rete assente?). I dati restano salvati in locale.');
+      } finally {
+        githubSyncing = false;
+      }
+    }
+
+    function renderGithubConfigForm() {
+      const cfg = getGithubConfig() || {};
+      const ownerEl = document.getElementById('ghOwner');
+      if (!ownerEl) return;
+      ownerEl.value = cfg.owner || 'whynotred';
+      document.getElementById('ghRepo').value = cfg.repo || 'FinClarity';
+      document.getElementById('ghPath').value = cfg.path || 'dati.json';
+      document.getElementById('ghBranch').value = cfg.branch || 'main';
+      document.getElementById('ghToken').value = cfg.token || '';
+      updateGithubStatus(cfg.token ? `Configurato: ${cfg.owner}/${cfg.repo} (${cfg.branch})` : 'Non configurato.');
+    }
+
+    function saveGithubConfigFromForm() {
+      const cfg = {
+        owner: document.getElementById('ghOwner').value.trim(),
+        repo: document.getElementById('ghRepo').value.trim(),
+        path: document.getElementById('ghPath').value.trim() || 'dati.json',
+        branch: document.getElementById('ghBranch').value.trim() || 'main',
+        token: document.getElementById('ghToken').value.trim()
+      };
+      if (!cfg.owner || !cfg.repo || !cfg.token) return alert('Compila almeno Utente, Repository e Token.');
+      saveGithubConfig(cfg);
+      githubFileSha = null;
+      showToast('Configurazione GitHub salvata');
+      pushToGithub();
+    }
+
+    function disconnectGithub() {
+      if (!confirm('Disconnettere la sincronizzazione GitHub? La configurazione verrà rimossa da questo dispositivo (il file su GitHub non viene toccato).')) return;
+      localStorage.removeItem('finclarity_github_config');
+      githubFileSha = null;
+      renderGithubConfigForm();
+      showToast('Sincronizzazione GitHub disconnessa');
+    }
+
+    /* --- Addebiti automatici abbonamenti/finanziamenti --- */
+    function processRecurringCharges() {
+      const now = new Date();
+      let totalCharged = 0;
+      let chargedCount = 0;
+      let completedNames = [];
+      let changed = false;
+
+      data.subscriptions.slice().forEach(sub => {
+        let safety = 0;
+        while (new Date(sub.nextChargeDate) <= now && safety < 36) {
+          safety++;
+          const account = data.accounts.find(a => a.id === sub.accountId);
+          if (!account) break; // conto non trovato: in attesa di riassegnazione manuale
+
+          account.balance -= sub.amount;
+          data.movements.push({
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            type: 'uscita',
+            amount: sub.amount,
+            desc: `${sub.name} (addebito automatico)`,
+            category: 'Abbonamenti',
+            accountId: account.id,
+            date: sub.nextChargeDate,
+            isTransfer: false
+          });
+
+          totalCharged += sub.amount;
+          chargedCount++;
+          changed = true;
+
+          if (sub.type === 'finanziamento' && typeof sub.installments === 'number') {
+            sub.installments -= 1;
+          }
+
+          sub.nextChargeDate = getNextChargeDate(sub.nextChargeDate, sub.frequency || 'mensile').toISOString();
+
+          if (sub.type === 'finanziamento' && sub.installments <= 0) {
+            completedNames.push(sub.name);
+            const idx = data.subscriptions.findIndex(s => s.id === sub.id);
+            if (idx !== -1) data.subscriptions.splice(idx, 1);
+            break;
+          }
+        }
+      });
+
+      if (!changed) return null;
+      let msg = '';
+      if (chargedCount > 0) msg += `${chargedCount} addebito${chargedCount > 1 ? 'i' : ''} automatico${chargedCount > 1 ? 'i' : ''} (${formatCurrency(totalCharged)})`;
+      if (completedNames.length) msg += (msg ? ' • ' : '') + `Completato: ${completedNames.join(', ')}`;
+      return msg || null;
+    }
+
+    /* --- Obiettivi: stime e ritardi --- */
+    function getPeriodMs(periodType) {
+      switch (periodType) {
+        case 'settimana': return 7 * 24 * 60 * 60 * 1000;
+        case 'anno': return 365 * 24 * 60 * 60 * 1000;
+        default: return 30 * 24 * 60 * 60 * 1000; // mese
+      }
+    }
+
+    function estimateGoalCompletion(g) {
+      const remaining = g.target - g.currentAmount;
+      if (remaining <= 0) return { done: true, date: null };
+      if (!g.periodAmount || g.periodAmount <= 0) return { done: false, date: null };
+      const periodsNeeded = Math.ceil(remaining / g.periodAmount);
+      const ms = getPeriodMs(g.periodType) * periodsNeeded;
+      return { done: false, date: new Date(Date.now() + ms) };
+    }
+
+    function isGoalLate(g) {
+      if (g.currentAmount >= g.target) return false;
+      const last = new Date(g.lastDepositDate || g.createdAt || Date.now());
+      const periodMs = getPeriodMs(g.periodType);
+      return (Date.now() - last.getTime()) > periodMs * 1.5;
+    }
+
+    function switchTab(tabName) {
+      document.getElementById('tabDashboard').classList.remove('active');
+      document.getElementById('tabGoals').classList.remove('active');
+      document.getElementById('tabSubscriptions').classList.remove('active');
+      document.getElementById('navDash').classList.remove('active');
+      document.getElementById('navGoals').classList.remove('active');
+      document.getElementById('navSubs').classList.remove('active');
+
+      if (tabName === 'dashboard') {
+        document.getElementById('tabDashboard').classList.add('active');
+        document.getElementById('navDash').classList.add('active');
+      } else if (tabName === 'goals') {
+        document.getElementById('tabGoals').classList.add('active');
+        document.getElementById('navGoals').classList.add('active');
+      } else {
+        document.getElementById('tabSubscriptions').classList.add('active');
+        document.getElementById('navSubs').classList.add('active');
+      }
+    }
+
+    function render() {
+      const accountsBalance = data.accounts.reduce((acc, a) => acc + a.balance, 0);
+      const goalsBalance = (data.goals || []).reduce((acc, g) => acc + g.currentAmount, 0);
+      const netWorth = accountsBalance + goalsBalance;
+
+      document.getElementById('netWorth').innerText = formatCurrency(netWorth);
+
+      const accContainer = document.getElementById('accountsList');
+      accContainer.innerHTML = '';
+      data.accounts.forEach(acc => {
+        const parentAcc = acc.parentId ? data.accounts.find(a => a.id === acc.parentId) : null;
+        accContainer.innerHTML += `
+          <div class="account-card">
+            <div class="account-name">${acc.name}</div>
+            ${parentAcc ? `<div class="subaccount-name">↳ ${parentAcc.name}</div>` : ''}
+            <div class="account-val">${formatCurrency(acc.balance)}</div>
+          </div>
+        `;
+      });
+
+      populateAccountSelects();
+      renderTemplates();
+      renderNetWorthChart();
+      renderCategoryChart();
+      renderMovementsTable();
+      renderSubsTable();
+      renderGoals();
+    }
+
+    function populateAccountSelects() {
+      const movSel = document.getElementById('movAccount');
+      const subSel = document.getElementById('subAccount');
+      const goalSel = document.getElementById('goalAccount');
+      const parentSel = document.getElementById('accParentId');
+
+      movSel.innerHTML = '';
+      subSel.innerHTML = '';
+      goalSel.innerHTML = '';
+      parentSel.innerHTML = '<option value="">Nessuno (Conto Principale)</option>';
+
+      data.accounts.forEach(acc => {
+        const parentAcc = acc.parentId ? data.accounts.find(a => a.id === acc.parentId) : null;
+        const displayName = parentAcc ? `${parentAcc.name} ➔ ${acc.name}` : acc.name;
+
+        movSel.innerHTML += `<option value="${acc.id}">${displayName}</option>`;
+        subSel.innerHTML += `<option value="${acc.id}">${displayName}</option>`;
+        goalSel.innerHTML += `<option value="${acc.id}">${displayName}</option>`;
+
+        if (!acc.parentId) {
+          parentSel.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
+        }
+      });
+    }
+
+    function populateCategorySelects() {
+      const filterSel = document.getElementById('movCategoryFilter');
+      const modalSel = document.getElementById('movCategory');
+      if (filterSel) {
+        filterSel.innerHTML = '<option value="">Tutte le categorie</option>' + CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+      }
+      if (modalSel) {
+        modalSel.innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+      }
+    }
+
+    /* --- Movimenti ricorrenti (template) --- */
+    function renderTemplates() {
+      const container = document.getElementById('templatesRow');
+      if (!container) return;
+      if (!data.templates || data.templates.length === 0) {
+        container.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Nessun movimento ricorrente salvato. Spunta "Salva come ricorrente" quando aggiungi un movimento.</span>';
+        return;
+      }
+      container.innerHTML = data.templates.map(t => `
+        <div class="template-chip">
+          <button class="template-chip-main" onclick="quickAddFromTemplate('${t.id}')">${t.desc} · ${formatCurrency(t.amount)}</button>
+          <button class="template-chip-remove" onclick="deleteTemplate('${t.id}')" title="Rimuovi ricorrente">×</button>
+        </div>
+      `).join('');
+    }
+
+    function quickAddFromTemplate(id) {
+      const t = data.templates.find(x => x.id === id);
+      if (!t) return;
+      const account = data.accounts.find(a => a.id === t.accountId);
+      if (!account) return alert('Il conto collegato a questo movimento ricorrente non esiste più.');
+
+      if (t.type === 'entrata') account.balance += t.amount;
+      else account.balance -= t.amount;
+
+      data.movements.push({
+        id: Date.now(),
+        type: t.type, amount: t.amount, desc: t.desc, accountId: t.accountId, category: t.category || 'Altro',
+        date: new Date().toISOString()
+      });
+
+      saveData(`"${t.desc}" registrato`);
+    }
+
+    function deleteTemplate(id) {
+      if (!confirm('Rimuovere questo movimento ricorrente dai preferiti?')) return;
+      const idx = data.templates.findIndex(t => t.id === id);
+      if (idx !== -1) {
+        data.templates.splice(idx, 1);
+        saveData('Movimento ricorrente rimosso');
+      }
+    }
+
+    /* --- Grafici --- */
+    function monthlyNonTransferNet(year, month) {
+      let net = 0;
+      data.movements.forEach(m => {
+        if (m.isTransfer) return;
+        const d = new Date(m.date);
+        if (d.getFullYear() === year && d.getMonth() === month) {
+          net += (m.type === 'entrata' ? m.amount : -m.amount);
+        }
+      });
+      return net;
+    }
+
+    function renderNetWorthChart() {
+      const container = document.getElementById('networthChart');
+      if (!container) return;
+
+      const accountsBalance = data.accounts.reduce((acc, a) => acc + a.balance, 0);
+      const goalsBalance = (data.goals || []).reduce((acc, g) => acc + g.currentAmount, 0);
+      const currentNetWorth = accountsBalance + goalsBalance;
+
+      const now = new Date();
+      const points = [];
+      let running = currentNetWorth;
+      const cursor = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      for (let i = 0; i < 6; i++) {
+        points.unshift({ label: MONTH_ABBR[cursor.getMonth()], value: running });
+        const net = monthlyNonTransferNet(cursor.getFullYear(), cursor.getMonth());
+        running -= net;
+        cursor.setMonth(cursor.getMonth() - 1);
+      }
+
+      const values = points.map(p => p.value);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = (max - min) || 1;
+
+      const width = 320, height = 130, padX = 20, padY = 18;
+      const stepX = (width - padX * 2) / (points.length - 1);
+
+      const coords = points.map((p, i) => {
+        const x = padX + i * stepX;
+        const y = padY + (height - padY * 2 - 14) * (1 - (p.value - min) / range);
+        return { x, y, label: p.label };
+      });
+
+      const linePath = coords.map((c, i) => (i === 0 ? 'M' : 'L') + c.x.toFixed(1) + ',' + c.y.toFixed(1)).join(' ');
+      const circles = coords.map(c => `<circle class="networth-point" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="3.5"></circle>`).join('');
+      const labels = coords.map(c => `<text class="networth-label" x="${c.x.toFixed(1)}" y="${height - 4}" text-anchor="middle">${c.label}</text>`).join('');
+
+      container.innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" style="width:100%; height:auto;">
+          <path class="networth-line" d="${linePath}" fill="none"></path>
+          ${circles}
+          ${labels}
+        </svg>
+      `;
+    }
+
+    function renderCategoryChart() {
+      const container = document.getElementById('categoryChart');
+      if (!container) return;
+
+      const now = new Date();
+      const totals = {};
+      data.movements.forEach(m => {
+        if (m.isTransfer || m.type !== 'uscita') return;
+        const d = new Date(m.date);
+        if (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear()) return;
+        const cat = m.category || 'Altro';
+        totals[cat] = (totals[cat] || 0) + m.amount;
+      });
+
+      const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+
+      if (entries.length === 0) {
+        container.innerHTML = '<span class="networth-empty">Nessuna uscita registrata questo mese.</span>';
+        return;
+      }
+
+      const max = entries[0][1];
+      container.innerHTML = entries.map(([cat, val], i) => `
+        <div class="cat-bar-row">
+          <div class="cat-bar-label"><span>${cat}</span><span>${formatCurrency(val)}</span></div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width:${(val / max * 100).toFixed(1)}%; background:${CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]};"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* --- Filtri movimenti --- */
+    function setMovFilter(key, value) {
+      movFilters[key] = value;
+      renderMovementsTable();
+    }
+
+    function resetMovFilters() {
+      movFilters = { search: '', category: '', from: '', to: '' };
+      document.getElementById('movSearch').value = '';
+      document.getElementById('movCategoryFilter').value = '';
+      document.getElementById('movFromFilter').value = '';
+      document.getElementById('movToFilter').value = '';
+      renderMovementsTable();
+    }
+
+    function renderMovementsTable() {
+      const tbody = document.getElementById('movementsTableBody');
+      tbody.innerHTML = '';
+
+      // Totali mensili sempre su TUTTI i movimenti (non filtrati), stesso mese E anno, esclusi i trasferimenti interni (versamenti obiettivi)
+      let incMese = 0, uscMese = 0;
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      data.movements.forEach(m => {
+        const mDate = new Date(m.date);
+        if (mDate.getMonth() === currentMonth && mDate.getFullYear() === currentYear && !m.isTransfer) {
+          if (m.type === 'entrata') incMese += m.amount;
+          else uscMese += m.amount;
+        }
+      });
+      document.getElementById('monthlyIncome').innerText = '+' + formatCurrency(incMese);
+      document.getElementById('monthlyExpense').innerText = '-' + formatCurrency(uscMese);
+
+      let movs = data.movements.filter(m => {
+        if (movFilters.category && m.category !== movFilters.category) return false;
+        if (movFilters.search && !m.desc.toLowerCase().includes(movFilters.search.toLowerCase())) return false;
+        if (movFilters.from && m.date.slice(0, 10) < movFilters.from) return false;
+        if (movFilters.to && m.date.slice(0, 10) > movFilters.to) return false;
+        return true;
+      });
+
+      movs.sort((a, b) => {
+        let valA = a[movSort.col];
+        let valB = b[movSort.col];
+        if (movSort.col === 'accountId') {
+          const accA = data.accounts.find(x => x.id === a.accountId);
+          const accB = data.accounts.find(x => x.id === b.accountId);
+          valA = accA ? accA.name : '';
+          valB = accB ? accB.name : '';
+        }
+        if (valA < valB) return movSort.asc ? -1 : 1;
+        if (valA > valB) return movSort.asc ? 1 : -1;
+        return 0;
+      });
+
+      movs.forEach(m => {
+        const mDate = new Date(m.date);
+        const account = data.accounts.find(a => a.id === m.accountId);
+        const isIncome = m.type === 'entrata';
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${mDate.toLocaleDateString('it-IT')}</td>
+            <td class="amount ${isIncome ? 'income' : 'expense'}">${isIncome ? '+' : '-'}${formatCurrency(m.amount)}</td>
+            <td>${categoryBadge(m.category)} ${m.desc}</td>
+            <td>${account ? account.name : 'N/D'}</td>
+            <td>
+              <div class="action-btns">
+                <button class="sm-btn" onclick="editMov(${m.id})" title="Modifica">${editIcon}</button>
+                <button class="sm-btn danger" onclick="deleteMov(${m.id})" title="Elimina">${deleteIcon}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function sortMovements(col) {
+      if (movSort.col === col) movSort.asc = !movSort.asc;
+      else { movSort.col = col; movSort.asc = true; }
+      renderMovementsTable();
+    }
+
+    function calculateMonthlyCost(amount, freq) {
+      switch (freq) {
+        case 'settimanale': return amount * 4.333;
+        case 'mensile': return amount;
+        case 'semestrale': return amount / 6;
+        case 'annuale': return amount / 12;
+        default: return amount;
+      }
+    }
+
+    function renderSubsTable() {
+      const tbody = document.getElementById('subsTableBody');
+      tbody.innerHTML = '';
+      let totalMonthlyFixed = 0;
+
+      let subs = [...data.subscriptions];
+      subs.sort((a, b) => {
+        let valA = a[subSort.col];
+        let valB = b[subSort.col];
+        if (subSort.col === 'accountId') {
+          const accA = data.accounts.find(x => x.id === a.accountId);
+          const accB = data.accounts.find(x => x.id === b.accountId);
+          valA = accA ? accA.name : '';
+          valB = accB ? accB.name : '';
+        }
+        if (valA < valB) return subSort.asc ? -1 : 1;
+        if (valA > valB) return subSort.asc ? 1 : -1;
+        return 0;
+      });
+
+      subs.forEach(s => {
+        const monthlyImpact = calculateMonthlyCost(s.amount, s.frequency || 'mensile');
+        totalMonthlyFixed += monthlyImpact;
+        const account = data.accounts.find(a => a.id === s.accountId);
+        const isFin = s.type === 'finanziamento';
+        const nextDate = s.nextChargeDate ? new Date(s.nextChargeDate).toLocaleDateString('it-IT') : '—';
+
+        let installBadge = isFin ? `Rata (${s.installments != null ? s.installments : '?'} ris.)` : 'Fisso';
+        let installBadgeClass = isFin ? 'badge badge-finanziamento' : 'badge badge-abbonamento';
+        if (isFin && s.installments === 1) { installBadge = 'Ultima rata!'; installBadgeClass = 'badge badge-late'; }
+        else if (isFin && s.installments <= 3) { installBadgeClass = 'badge badge-late'; }
+
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${s.name}</strong></td>
+            <td class="amount expense">-${formatCurrency(s.amount)}</td>
+            <td><span class="badge" style="text-transform:capitalize;">${s.frequency || 'mensile'}</span></td>
+            <td><span class="${installBadgeClass}">${installBadge}</span></td>
+            <td>${account ? account.name : 'N/D'}</td>
+            <td>${nextDate}</td>
+            <td>
+              <div class="action-btns">
+                <button class="sm-btn" onclick="editSub('${s.id}')" title="Modifica">${editIcon}</button>
+                <button class="sm-btn danger" onclick="deleteSub('${s.id}')" title="Elimina">${deleteIcon}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('fixedMonthlyCost').innerText = formatCurrency(totalMonthlyFixed) + ' / mese';
+      document.getElementById('dashFixedMonthly').innerText = formatCurrency(totalMonthlyFixed);
+    }
+
+    function sortSubs(col) {
+      if (subSort.col === col) subSort.asc = !subSort.asc;
+      else { subSort.col = col; subSort.asc = true; }
+      renderSubsTable();
+    }
+
+    function renderGoals() {
+      const grid = document.getElementById('goalsList');
+      grid.innerHTML = '';
+
+      let totalSaved = 0;
+      let totalTarget = 0;
+
+      (data.goals || []).forEach(g => {
+        totalSaved += g.currentAmount;
+        totalTarget += g.target;
+
+        const percent = Math.min(100, Math.round((g.currentAmount / g.target) * 100)) || 0;
+        const account = data.accounts.find(a => a.id === g.accountId);
+        const completion = estimateGoalCompletion(g);
+        const late = isGoalLate(g);
+
+        let statusBadges = '';
+        if (completion.done) {
+          statusBadges += `<span class="badge badge-success">✓ Obiettivo raggiunto</span>`;
+        } else if (completion.date) {
+          statusBadges += `<span class="badge">Stima: ${completion.date.toLocaleDateString('it-IT', { month: 'short', year: 'numeric' })}</span>`;
+        }
+        if (late && !completion.done) {
+          statusBadges += ` <span class="badge badge-late">⚠ Versamento in ritardo</span>`;
+        }
+
+        grid.innerHTML += `
+          <div class="goal-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <strong style="font-size:1.05rem;">${g.name}</strong>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Conto: ${account ? account.name : 'N/D'}</div>
+              </div>
+              <div class="action-btns">
+                <button class="sm-btn" onclick="editGoal('${g.id}')" title="Modifica">${editIcon}</button>
+                <button class="sm-btn danger" onclick="deleteGoal('${g.id}')" title="Elimina">${deleteIcon}</button>
+              </div>
+            </div>
+
+            <div style="margin-top:4px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                <span class="amount goal">${formatCurrency(g.currentAmount)}</span>
+                <span style="color:var(--text-muted);">di ${formatCurrency(g.target)} (${percent}%)</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">${statusBadges}</div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.8rem; color:var(--text-muted);">
+              <span>Quota: ${formatCurrency(g.periodAmount)} / ${g.periodType}</span>
+              <button class="btn-add-sub" onclick="openGoalDepositModal('${g.id}')">+ Versa Quota</button>
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById('totalGoalSaved').innerText = formatCurrency(totalSaved);
+      document.getElementById('totalGoalTarget').innerText = formatCurrency(totalTarget);
+      document.getElementById('dashTotalSaved').innerText = formatCurrency(totalSaved);
+    }
+
+    function openMovModal() {
+      document.getElementById('editMovId').value = '';
+      document.getElementById('movModalTitle').innerText = 'Nuovo Movimento';
+      document.getElementById('movAmount').value = '';
+      document.getElementById('movDesc').value = '';
+      document.getElementById('movCategory').value = 'Altro';
+      document.getElementById('movSaveTemplate').checked = false;
+      document.getElementById('templateCheckboxGroup').style.display = 'flex';
+      document.getElementById('movModal').style.display = 'flex';
+    }
+
+    function openSubModal() {
+      document.getElementById('editSubId').value = '';
+      document.getElementById('subModalTitle').innerText = 'Nuovo Abbonamento / Rata';
+      document.getElementById('subName').value = '';
+      document.getElementById('subAmount').value = '';
+      document.getElementById('subFrequency').value = 'mensile';
+      document.getElementById('subInstallments').value = '';
+      document.getElementById('subNextChargeInfo').style.display = 'none';
+      document.getElementById('subModal').style.display = 'flex';
+      toggleInstallmentFields();
+    }
+
+    function openGoalModal() {
+      document.getElementById('editGoalId').value = '';
+      document.getElementById('goalModalTitle').innerText = 'Nuovo Obiettivo';
+      document.getElementById('goalName').value = '';
+      document.getElementById('goalTarget').value = '';
+      document.getElementById('goalPeriodAmount').value = '';
+      document.getElementById('goalPeriodType').value = 'mese';
+      document.getElementById('goalModal').style.display = 'flex';
+    }
+
+    function openGoalDepositModal(goalId) {
+      const g = data.goals.find(x => x.id === goalId);
+      if (!g) return;
+      document.getElementById('depositGoalId').value = g.id;
+      document.getElementById('depositAmount').value = g.periodAmount;
+      const account = data.accounts.find(a => a.id === g.accountId);
+      document.getElementById('depositGoalInfo').innerText = `Versamento verso "${g.name}". I fondi verranno scalati dal conto: ${account ? account.name : 'N/D'}`;
+      document.getElementById('goalDepositModal').style.display = 'flex';
+    }
+
+    function openSettingsModal() {
+      renderAccountsTable();
+      updateFileStatus();
+      renderGithubConfigForm();
+      document.getElementById('settingsModal').style.display = 'flex';
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function switchSettingsTab(tab) {
+      if (tab === 'accounts') {
+        document.getElementById('settingsAccounts').style.display = 'block';
+      }
+    }
+
+    function toggleInstallmentFields() {
+      const type = document.getElementById('subType').value;
+      document.getElementById('installmentsGroup').style.display = (type === 'finanziamento') ? 'flex' : 'none';
+    }
+
+    function saveMovement() {
+      const id = document.getElementById('editMovId').value;
+      const type = document.getElementById('movType').value;
+      const amount = parseFloat(document.getElementById('movAmount').value);
+      const desc = document.getElementById('movDesc').value;
+      const accountId = document.getElementById('movAccount').value;
+      const category = document.getElementById('movCategory').value || 'Altro';
+
+      if (!amount || !desc) return alert('Compila tutti i campi');
+
+      if (id) {
+        const mov = data.movements.find(m => m.id == id);
+        const oldAcc = data.accounts.find(a => a.id === mov.accountId);
+        if (mov.type === 'entrata') oldAcc.balance -= mov.amount;
+        else oldAcc.balance += mov.amount;
+
+        mov.type = type;
+        mov.amount = amount;
+        mov.desc = desc;
+        mov.accountId = accountId;
+        mov.category = category;
+
+        const newAcc = data.accounts.find(a => a.id === accountId);
+        if (type === 'entrata') newAcc.balance += amount;
+        else newAcc.balance -= amount;
+      } else {
+        const account = data.accounts.find(a => a.id === accountId);
+        if (type === 'entrata') account.balance += amount;
+        else account.balance -= amount;
+
+        data.movements.push({
+          id: Date.now(),
+          type, amount, desc, accountId, category,
+          date: new Date().toISOString()
+        });
+
+        if (document.getElementById('movSaveTemplate').checked) {
+          data.templates.push({ id: 't_' + Date.now(), desc, amount, type, category, accountId });
+        }
+      }
+
+      saveData('Movimento salvato');
+      closeModal('movModal');
+    }
+
+    function editMov(id) {
+      const m = data.movements.find(x => x.id == id);
+      if (!m) return;
+      document.getElementById('editMovId').value = m.id;
+      document.getElementById('movModalTitle').innerText = 'Modifica Movimento';
+      document.getElementById('movType').value = m.type;
+      document.getElementById('movAmount').value = m.amount;
+      document.getElementById('movDesc').value = m.desc;
+      document.getElementById('movAccount').value = m.accountId;
+      document.getElementById('movCategory').value = m.category || 'Altro';
+      document.getElementById('templateCheckboxGroup').style.display = 'none';
+      document.getElementById('movModal').style.display = 'flex';
+    }
+
+    function deleteMov(id) {
+      if (!confirm('Sei sicuro di voler cancellare questo movimento?')) return;
+      const index = data.movements.findIndex(m => m.id == id);
+      if (index !== -1) {
+        const m = data.movements[index];
+        const acc = data.accounts.find(a => a.id === m.accountId);
+        if (acc) {
+          if (m.type === 'entrata') acc.balance -= m.amount;
+          else acc.balance += m.amount;
+        }
+        data.movements.splice(index, 1);
+        saveData('Movimento eliminato');
+      }
+    }
+
+    function saveSubscription() {
+      const id = document.getElementById('editSubId').value;
+      const type = document.getElementById('subType').value;
+      const name = document.getElementById('subName').value;
+      const amount = parseFloat(document.getElementById('subAmount').value);
+      const frequency = document.getElementById('subFrequency').value;
+      const accountId = document.getElementById('subAccount').value;
+      const installments = parseInt(document.getElementById('subInstallments').value) || null;
+
+      if (!name || !amount) return alert('Compila i campi obbligatori');
+
+      if (id) {
+        const sub = data.subscriptions.find(s => s.id == id);
+        sub.type = type;
+        sub.name = name;
+        sub.amount = amount;
+        sub.frequency = frequency;
+        sub.accountId = accountId;
+        sub.installments = installments;
+      } else {
+        data.subscriptions.push({
+          id: Date.now().toString(),
+          name, amount, frequency, type, accountId, installments,
+          nextChargeDate: getNextChargeDate(new Date(), frequency).toISOString()
+        });
+      }
+
+      saveData('Abbonamento/Finanziamento salvato');
+      closeModal('subModal');
+    }
+
+    function editSub(id) {
+      const s = data.subscriptions.find(x => x.id == id);
+      if (!s) return;
+      document.getElementById('editSubId').value = s.id;
+      document.getElementById('subModalTitle').innerText = 'Modifica Abbonamento';
+      document.getElementById('subType').value = s.type;
+      document.getElementById('subName').value = s.name;
+      document.getElementById('subAmount').value = s.amount;
+      document.getElementById('subFrequency').value = s.frequency || 'mensile';
+      document.getElementById('subAccount').value = s.accountId || data.accounts[0].id;
+      document.getElementById('subInstallments').value = s.installments || '';
+      toggleInstallmentFields();
+      if (s.nextChargeDate) {
+        document.getElementById('subNextChargeInfo').style.display = 'block';
+        document.getElementById('subNextChargeInfo').innerText = `Prossimo addebito previsto: ${new Date(s.nextChargeDate).toLocaleDateString('it-IT')}`;
+      } else {
+        document.getElementById('subNextChargeInfo').style.display = 'none';
+      }
+      document.getElementById('subModal').style.display = 'flex';
+    }
+
+    function deleteSub(id) {
+      if (!confirm('Sei sicuro di voler cancellare questo abbonamento/rata?')) return;
+      const index = data.subscriptions.findIndex(s => s.id === id);
+      if (index !== -1) {
+        data.subscriptions.splice(index, 1);
+        saveData('Abbonamento/Finanziamento eliminato');
+      }
+    }
+
+    function saveGoal() {
+      const id = document.getElementById('editGoalId').value;
+      const name = document.getElementById('goalName').value;
+      const target = parseFloat(document.getElementById('goalTarget').value);
+      const accountId = document.getElementById('goalAccount').value;
+      const periodAmount = parseFloat(document.getElementById('goalPeriodAmount').value);
+      const periodType = document.getElementById('goalPeriodType').value;
+
+      if (!name || !target || !periodAmount) return alert('Compila tutti i campi obbligatori');
+
+      if (!data.goals) data.goals = [];
+
+      if (id) {
+        const g = data.goals.find(x => x.id === id);
+        g.name = name;
+        g.target = target;
+        g.accountId = accountId;
+        g.periodAmount = periodAmount;
+        g.periodType = periodType;
+      } else {
+        const now = new Date().toISOString();
+        data.goals.push({
+          id: 'g_' + Date.now(),
+          name,
+          target,
+          currentAmount: 0,
+          accountId,
+          periodAmount,
+          periodType,
+          createdAt: now,
+          lastDepositDate: now
+        });
+      }
+
+      saveData('Obiettivo salvato');
+      closeModal('goalModal');
+    }
+
+    function editGoal(id) {
+      const g = data.goals.find(x => x.id === id);
+      if (!g) return;
+      document.getElementById('editGoalId').value = g.id;
+      document.getElementById('goalModalTitle').innerText = 'Modifica Obiettivo';
+      document.getElementById('goalName').value = g.name;
+      document.getElementById('goalTarget').value = g.target;
+      document.getElementById('goalAccount').value = g.accountId;
+      document.getElementById('goalPeriodAmount').value = g.periodAmount;
+      document.getElementById('goalPeriodType').value = g.periodType;
+      document.getElementById('goalModal').style.display = 'flex';
+    }
+
+    function deleteGoal(id) {
+      if (!confirm('Sei sicuro di voler eliminare questo obiettivo? I fondi accantonati torneranno disponibili sul conto collegato.')) return;
+      const idx = data.goals.findIndex(g => g.id === id);
+      if (idx !== -1) {
+        const g = data.goals[idx];
+        const account = data.accounts.find(a => a.id === g.accountId);
+        if (account && g.currentAmount) {
+          account.balance += g.currentAmount;
+        }
+        data.goals.splice(idx, 1);
+        saveData('Obiettivo eliminato, fondi riaccreditati');
+      }
+    }
+
+    function executeGoalDeposit() {
+      const goalId = document.getElementById('depositGoalId').value;
+      const amount = parseFloat(document.getElementById('depositAmount').value);
+
+      if (!amount || amount <= 0) return alert('Inserisci un importo valido');
+
+      const g = data.goals.find(x => x.id === goalId);
+      if (!g) return;
+
+      const account = data.accounts.find(a => a.id === g.accountId);
+      if (!account) return alert('Conto addebito non trovato');
+
+      if (account.balance < amount) {
+        if (!confirm('Il saldo del conto selezionato è inferiore al versamento. Vuoi procedere comunque?')) return;
+      }
+
+      account.balance -= amount;
+      g.currentAmount += amount;
+      g.lastDepositDate = new Date().toISOString();
+
+      data.movements.push({
+        id: Date.now(),
+        type: 'uscita',
+        amount: amount,
+        desc: `Accantonamento Obiettivo: ${g.name}`,
+        category: 'Altro',
+        accountId: account.id,
+        date: new Date().toISOString(),
+        isTransfer: true
+      });
+
+      saveData('Versamento registrato');
+      closeModal('goalDepositModal');
+    }
+
+    function renderAccountsTable() {
+      const tbody = document.getElementById('accountsTableBody');
+      tbody.innerHTML = '';
+      data.accounts.forEach(acc => {
+        const parentAcc = acc.parentId ? data.accounts.find(a => a.id === acc.parentId) : null;
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${acc.name}</strong></td>
+            <td><span class="badge">${parentAcc ? 'Sottoconto di: ' + parentAcc.name : 'Principale'}</span></td>
+            <td>${formatCurrency(acc.balance)}</td>
+            <td>
+              <div class="action-btns">
+                <button class="sm-btn" onclick="editAccount('${acc.id}')" title="Modifica">${editIcon}</button>
+                <button class="sm-btn danger" onclick="deleteAccount('${acc.id}')" title="Elimina">${deleteIcon}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function saveAccount() {
+      const id = document.getElementById('editAccId').value;
+      const name = document.getElementById('accName').value;
+      const parentId = document.getElementById('accParentId').value || null;
+      const balance = parseFloat(document.getElementById('accBalance').value) || 0;
+
+      if (!name) return alert('Inserisci il nome del conto');
+
+      if (id) {
+        const acc = data.accounts.find(a => a.id === id);
+        acc.name = name;
+        acc.parentId = parentId;
+        acc.balance = balance;
+      } else {
+        data.accounts.push({
+          id: 'c_' + Date.now(),
+          name, parentId, balance
+        });
+      }
+
+      document.getElementById('editAccId').value = '';
+      document.getElementById('accName').value = '';
+      document.getElementById('accParentId').value = '';
+      document.getElementById('accBalance').value = '';
+      document.getElementById('accFormTitle').innerText = 'Aggiungi Nuovo Conto / Sottoconto';
+
+      saveData('Conto salvato');
+      renderAccountsTable();
+    }
+
+    function editAccount(id) {
+      const acc = data.accounts.find(a => a.id === id);
+      if (!acc) return;
+      document.getElementById('editAccId').value = acc.id;
+      document.getElementById('accName').value = acc.name;
+      document.getElementById('accParentId').value = acc.parentId || '';
+      document.getElementById('accBalance').value = acc.balance;
+      document.getElementById('accFormTitle').innerText = 'Modifica Conto / Sottoconto';
+    }
+
+    function deleteAccount(id) {
+      const hasMov = data.movements.some(m => m.accountId === id);
+      const hasSub = data.subscriptions.some(s => s.accountId === id);
+      const hasGoal = (data.goals || []).some(g => g.accountId === id);
+      const hasChildren = data.accounts.some(a => a.parentId === id);
+
+      if (hasChildren) {
+        return alert('Impossibile eliminare questo conto: possiede dei sottoconti associati.');
+      }
+
+      if (hasMov || hasSub) {
+        return alert('Impossibile eliminare il conto: ci sono movimenti o abbonamenti/finanziamenti associati.');
+      }
+
+      if (hasGoal) {
+        return alert('Impossibile eliminare il conto: è collegato a uno o più obiettivi di risparmio.');
+      }
+
+      if (!confirm('Sei sicuro di voler eliminare questo conto/sottoconto?')) return;
+
+      const index = data.accounts.findIndex(a => a.id === id);
+      if (index !== -1) {
+        data.accounts.splice(index, 1);
+        saveData('Conto eliminato');
+        renderAccountsTable();
+      }
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `backup_finanze_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        let parsed;
+        try {
+          parsed = JSON.parse(e.target.result);
+        } catch (err) {
+          alert('File non valido: non è un JSON leggibile.');
+          event.target.value = '';
+          return;
+        }
+
+        if (!parsed || !Array.isArray(parsed.accounts) || !Array.isArray(parsed.movements) || !Array.isArray(parsed.subscriptions)) {
+          alert('File non valido: la struttura dati non corrisponde a un backup di questa app.');
+          event.target.value = '';
+          return;
+        }
+
+        if (!confirm('Importando questo file, tutti i dati attuali verranno sovrascritti. Continuare?')) {
+          event.target.value = '';
+          return;
+        }
+
+        parsed.goals = Array.isArray(parsed.goals) ? parsed.goals : [];
+        parsed.templates = Array.isArray(parsed.templates) ? parsed.templates : [];
+
+        data = parsed;
+        migrateData();
+        event.target.value = '';
+        renderAccountsTable();
+        saveData('Backup importato correttamente');
+      };
+      reader.readAsText(file);
+    }
+
+    /* --- Avvio applicazione --- */
+    async function boot() {
+      populateCategorySelects();
+
+      const githubCfg = getGithubConfig();
+      let loadedFromGithub = false;
+      if (githubCfg && githubCfg.token) {
+        const pull = await pullFromGithub();
+        if (pull.ok) {
+          pull.data.goals = Array.isArray(pull.data.goals) ? pull.data.goals : [];
+          pull.data.templates = Array.isArray(pull.data.templates) ? pull.data.templates : [];
+          data = pull.data;
+          loadedFromGithub = true;
+          updateGithubStatus(`Dati caricati da GitHub (${githubCfg.owner}/${githubCfg.repo}).`);
+        } else if (pull.reason === 'not-found') {
+          updateGithubStatus('Nessun file trovato su GitHub: verrà creato al primo salvataggio.');
+        } else {
+          updateGithubStatus('Impossibile contattare GitHub ora: uso i dati salvati in locale.');
+        }
+      }
+
+      if (!loadedFromGithub) {
+        await tryReconnectFile();
+      }
+
+      migrateData();
+      const chargeMsg = processRecurringCharges();
+      if (chargeMsg) {
+        saveData(chargeMsg);
+      } else {
+        render();
+        writeToFile();
+      }
+      updateFileStatus();
+      renderGithubConfigForm();
+    }
+    boot();
+  </script>
+</body>
+</html>
