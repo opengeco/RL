@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#0b3b67">
+<title>myArea</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--b:#0b3b67;--g:#16a34a;--t:#172435;--m:#64748b;--l:#d9e2ea}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;color:var(--t);overflow:hidden}
+.bar{height:56px;position:fixed;inset:0 0 auto;z-index:1100;background:var(--b);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 11px 0 17px;box-shadow:0 2px 10px #0004}
+.brand{font-size:22px;font-weight:750}
+.icons{display:flex;gap:7px}
+.ib{width:38px;height:38px;border:0;border-radius:50%;background:#ffffff18;color:#fff;display:grid;place-items:center;cursor:pointer;transition:background .15s,transform .1s}
+.ib:hover{background:#ffffff2b}
+.ib:active{transform:scale(.92)}
+.ib:focus-visible,.x:focus-visible,.ab:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.ib svg,.ab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#map{position:absolute;inset:56px 0 0}
+.card{position:fixed;z-index:1000;left:14px;bottom:16px;width:min(370px,calc(100vw - 28px));background:#fff;border-radius:14px;box-shadow:0 5px 24px #102a4360;border-left:5px solid var(--m);padding:12px 15px}
+.card.ok{border-color:var(--g)}
+.card.out{border-color:#d97706}
+.card.err{border-color:#b91c1c}
+.cap{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--m);font-weight:700;margin-bottom:6px}
+.ttl{font-size:17px;font-weight:750;margin-bottom:5px}
+.det{font-size:13px;line-height:1.5}
+.det b{color:var(--b)}
+.ag{font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--t)}
+.mand{font-size:13px;color:#9aa4b1;margin-top:1px}
+.zline{font-size:12px;color:var(--m);margin-top:6px}
+.contacts{display:flex;flex-direction:column;gap:5px;margin-top:9px}
+.clink{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--b);text-decoration:none;font-weight:600}
+.clink:hover{text-decoration:underline}
+.clink svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.info-wrap{position:relative;padding-right:38px}
+.rb{position:absolute;top:-4px;right:-4px;width:30px;height:30px;border:0;border-radius:50%;background:#fdf1e2;color:#b45309;display:grid;place-items:center;cursor:pointer;transition:background .15s}
+.rb:hover{background:#fbe4c6}
+.rb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.muted{color:var(--m);font-size:12px}
+.coord{font:12px Consolas,monospace}
+.back{position:fixed;inset:0;z-index:2000;background:#071b2d99;display:none;align-items:center;justify-content:center;padding:18px}
+.back.open{display:flex}
+.modal{width:min(440px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 14px 50px #0008}
+.mh{position:sticky;top:0;z-index:1;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:15px 18px;border-bottom:1px solid var(--l)}
+.mt{font-size:19px;font-weight:750;color:var(--b)}
+.x{width:34px;height:34px;border:0;border-radius:50%;background:#edf2f7;font-size:22px;cursor:pointer;color:var(--m);transition:background .15s,color .15s}
+.x:hover{background:#dfe7ef;color:var(--t)}
+.mc{padding:16px 18px}
+.sec{padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--l)}
+.sec:last-child{border:0;margin:0;padding:0}
+.sec h2{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--b);margin:0 0 11px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.ab,.fl{min-height:43px;border:0;border-radius:9px;padding:9px;font-weight:650;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-size:13px;transition:background .15s,transform .1s}
+.ab:active:not(:disabled){transform:scale(.97)}
+.pri{background:var(--b);color:#fff}
+.pri:hover:not(:disabled){background:#0a3358}
+.secbtn{background:#e7eef5;color:var(--b)}
+.secbtn:hover{background:#dae4ef}
+.fl:hover{background:#dae4ef}
+.wide{grid-column:1/-1}
+.ab:disabled{opacity:.45}
+.fl input{display:none}
+.legend{display:flex;gap:9px;align-items:center;margin:8px 0;font-size:13px}
+.sw{width:17px;height:17px;border-radius:4px}
+.help{background:#f4f7fa;border-radius:10px;padding:11px;font-size:13px;line-height:1.5}
+.txt{grid-column:1/-1;border:1px solid var(--l);border-radius:9px;padding:9px 11px;font-size:13px;font-family:inherit;color:var(--t)}
+.txt::placeholder{color:#a3b0c0}
+textarea.txt{resize:vertical;min-height:70px}
+select.txt{background:#fff;appearance:auto}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:650;color:var(--t);background:#f4f7fa;border-radius:9px;padding:9px 10px;cursor:pointer}
+.chk input{width:16px;height:16px;accent-color:var(--b);cursor:pointer}
+.photo-chip{display:flex;align-items:center;gap:9px;background:#f4f7fa;border-radius:9px;padding:7px 9px;margin-bottom:10px;font-size:13px;font-weight:650;color:var(--t)}
+.photo-chip img{width:36px;height:36px;object-fit:cover;border-radius:7px;flex:none}
+.photo-chip .chip-x{margin-left:auto;background:none;border:0;font-size:18px;line-height:1;color:var(--m);cursor:pointer;padding:4px}
+.photo-chip .chip-x:hover{color:#b91c1c}
+.status{font-size:11.5px;color:var(--m);grid-column:1/-1;margin-top:-4px}
+.status.ok{color:var(--g);font-weight:600}
+.notice{position:fixed;z-index:2100;top:70px;left:50%;transform:translateX(-50%);background:#fff;padding:9px 15px;border-radius:9px;box-shadow:0 3px 16px #0004;font-size:12.5px;font-weight:600;display:none;border-left:4px solid var(--m)}
+.notice.show{display:block}
+.notice.ok{border-color:var(--g);color:#166534}
+.notice.err{border-color:#b91c1c;color:#991b1b}
+@media(max-width:600px){.back{align-items:flex-end;padding:0}.modal{width:100%;max-height:88vh;border-radius:18px 18px 0 0}.card{bottom:11px}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">myArea</div>
+  <div class="icons">
+    <button id="gpsTop" class="ib" title="Localizzami" aria-label="Localizzami"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>
+    <button id="gear" class="ib" title="Configurazione" aria-label="Configurazione"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  </div>
+</header>
+<div id="map"></div>
+<div id="notice" class="notice"></div>
+<section id="card" class="card">
+  <div class="cap">Competenza territoriale</div>
+  <div id="title" class="ttl">Posizione non ancora verificata</div>
+  <div id="details" class="det muted">Tocca l'icona GPS oppure seleziona un punto sulla mappa.</div>
+</section>
+
+<div id="back" class="back" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="mh"><div id="modalTitle" class="mt">Configurazione</div><button id="close" class="x" aria-label="Chiudi">×</button></div>
+    <div class="mc">
+
+      <section class="sec">
+        <h2>Azioni</h2>
+        <div class="grid">
+          <button id="gps" class="ab pri wide"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Localizzami</button>
+          <button id="fit" class="ab secbtn">Mappa generale</button>
+          <button id="reset" class="ab secbtn">Ripristina</button>
+          <button id="google" class="ab wide" disabled>Apri in Google Maps</button>
+          <label class="fl secbtn wide">Carica GeoJSON o KML (locale)<input id="file" type="file" accept=".geojson,.json,.kml"></label>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2>Sorgente dati (GitHub)</h2>
+        <div class="grid">
+          <input id="ghRepo" class="txt" placeholder="owner/repo (es. mrossi/myarea-data)">
+          <input id="ghPath" class="txt" placeholder="percorso file (es. zone.geojson)">
+          <input id="ghBranch" class="txt" placeholder="branch (default: main)">
+          <input id="ghToken" class="txt" type="password" placeholder="token GitHub (read-only, solo su questa repo)">
+          <button id="ghSave" class="ab pri wide">Salva e carica</button>
+          <button id="ghClear" class="ab secbtn wide">Rimuovi configurazione</button>
+          <div id="ghStatus" class="status">Nessuna sorgente remota configurata — in uso il file demo incorporato.</div>
+        </div>
+        <div class="help" style="margin-top:10px">
+          Il token resta solo in questo browser (<code>localStorage</code>), non viene mai scritto nel codice dell'app. Crea un <b>fine-grained personal access token</b> con accesso in sola lettura ("Contents: Read-only") limitato a questa singola repo privata, così anche se qualcuno lo intercettasse non avrebbe accesso ad altro.
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2>Legenda</h2>
+        <div class="legend"><span class="sw" style="background:#16a34a"></span>Territorio competente</div>
+        <div class="legend"><span class="sw" style="background:#64748b;opacity:.55"></span>Altri territori</div>
+        <div class="legend"><span class="sw" style="background:#2563eb;border-radius:50%"></span>Posizione rilevata</div>
+      </section>
+
+      <section class="sec">
+        <h2>Verifica manuale</h2>
+        <div class="help">Chiudi la configurazione e tocca un punto della mappa. <b>myArea</b> individuerà l'eventuale agenzia competente.</div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div id="reportBack" class="back" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+  <div class="modal">
+    <div class="mh"><div id="reportTitle" class="mt">Segnalazione</div><button id="reportClose" class="x" aria-label="Chiudi">×</button></div>
+    <div class="mc">
+      <section class="sec">
+        <div id="reportCoord"></div>
+        <button id="reportGps" class="ab secbtn wide" style="margin-top:9px"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Recupera posizione GPS</button>
+      </section>
+      <section class="sec">
+        <h2>Categoria</h2>
+        <div class="grid">
+          <label class="chk"><input type="checkbox" id="chkMda">MdA</label>
+          <label class="chk"><input type="checkbox" id="chkSky">Sky</label>
+          <label class="chk"><input type="checkbox" id="chkEvento">Evento</label>
+        </div>
+      </section>
+      <section class="sec">
+        <h2>Tipo</h2>
+        <select id="reportTipo" class="txt wide">
+          <option value="">Seleziona...</option>
+          <option>Agriturismo</option>
+          <option>Albergo &lt;3</option>
+          <option>All'aperto</option>
+          <option>B&amp;B</option>
+          <option>Bar</option>
+          <option>Circo</option>
+          <option>Hotel 3</option>
+          <option>Hotel 4</option>
+          <option>Hotel 5</option>
+          <option>Lido</option>
+          <option>Locale</option>
+          <option>Parco</option>
+          <option>Pub</option>
+          <option>Ristorante</option>
+          <option>Stabilimento</option>
+          <option>Teatro</option>
+        </select>
+      </section>
+      <section class="sec">
+        <h2>Note</h2>
+        <textarea id="reportNote" class="txt wide" rows="3" placeholder="Facoltative..."></textarea>
+      </section>
+      <section class="sec">
+        <div id="reportPhotoPreview"></div>
+        <input type="file" id="reportPhoto" accept="image/*" capture="environment" style="display:none">
+        <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+          <button id="reportCancel" class="ab secbtn" title="Annulla" aria-label="Annulla"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          <button id="reportPhotoBtn" class="ab secbtn" title="Scatta foto" aria-label="Scatta foto"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          <button id="reportMail" class="ab secbtn" title="Invia via email (agenzia + RdZ in cc)" aria-label="Invia via email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></button>
+          <button id="reportSend" class="ab pri" title="Invia segnalazione" aria-label="Invia segnalazione"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@tmcw/togeojson@5.8.1/dist/togeojson.umd.js"></script>
+<script>
+const BUILTIN={"type":"FeatureCollection","features":[{"type":"Feature","properties":{"agenzia":"Nettuno (esempio)","zona":"Lazio 2","rdz":"Marco Esposito","emailRdz":"rdz.lazio2@esempio.it","mandatario":"Studio Bianchi & Verdi","telefonoMandatario":"+39 06 1234567","emailMandatario":"mandatario.nettuno@esempio.it","emailAgenzia":"agenzia.nettuno@esempio.it","colore":"#16a34a"},"geometry":{"type":"Polygon","coordinates":[[[12.61,41.405],[12.755,41.405],[12.755,41.535],[12.61,41.535],[12.61,41.405]]]}},{"type":"Feature","properties":{"agenzia":"Latina (esempio)","zona":"Lazio 2","rdz":"Marco Esposito","emailRdz":"rdz.lazio2@esempio.it","mandatario":"Agenzia Colonna","telefonoMandatario":"+39 077 3456789","emailMandatario":"mandatario.latina@esempio.it","emailAgenzia":"agenzia.latina@esempio.it","colore":"#2563eb"},"geometry":{"type":"Polygon","coordinates":[[[12.78,41.38],[13.02,41.38],[13.02,41.56],[12.78,41.56],[12.78,41.38]]]}}]};
+
+const $=i=>document.getElementById(i);
+const map=L.map('map').setView([42.2,12.7],6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+
+let data=BUILTIN, layer, marker, selected, pos;
+
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// --- toast di notifica (prima inutilizzato) ---
+let noticeTimer;
+function notice(msg,type='muted'){
+  const n=$('notice');
+  n.textContent=msg;
+  n.className='notice show '+type;
+  clearTimeout(noticeTimer);
+  noticeTimer=setTimeout(()=>n.classList.remove('show'),3200);
+}
+
+function contactsHTML(p){
+  let out='';
+  if(p.telefonoMandatario){
+    let tel=String(p.telefonoMandatario).replace(/[^\d+]/g,'');
+    out+=`<a class="clink" href="tel:${tel}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(p.telefonoMandatario)}</a>`;
+  }
+  if(p.emailMandatario){
+    out+=`<a class="clink" href="mailto:${esc(p.emailMandatario)}"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${esc(p.emailMandatario)}</a>`;
+  }
+  return out?`<div class="contacts">${out}</div>`:'';
+}
+function style(f){
+  let a=f===selected, c=a?(f.properties?.colore||'#16a34a'):'#64748b';
+  return{color:c,weight:a?4:2,fillColor:c,fillOpacity:a?.35:.13};
+}
+function infoBlock(p){
+  return `<div class="info-wrap">`
+    +`<button class="rb" onclick="reportIssue('${esc(p.agenzia||'')}')" title="Segnala anomalia" aria-label="Segnala anomalia"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>`
+    +`<div class="ag">${esc(p.agenzia||'Territorio')}</div>`
+    +(p.mandatario?`<div class="mand">${esc(p.mandatario)}</div>`:'')
+    +`<div class="zline">Zona: ${esc(p.zona||'Non indicata')}${p.rdz?' · RdZ: '+esc(p.rdz):''}</div>`
+    +contactsHTML(p)
+    +`</div>`;
+}
+function popup(f){
+  return infoBlock(f.properties||{});
+}
+function draw(fit=true){
+  if(layer)map.removeLayer(layer);
+  layer=L.geoJSON(data,{style,onEachFeature:(f,l)=>l.bindPopup(popup(f))}).addTo(map);
+  if(fit&&layer.getBounds().isValid())map.fitBounds(layer.getBounds(),{padding:[25,25]});
+}
+function ring(pt,r){
+  let n=false,x=pt.lng,y=pt.lat;
+  for(let i=0,j=r.length-1;i<r.length;j=i++){
+    let a=r[i],b=r[j];
+    if(((a[1]>y)!=(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]))n=!n;
+  }
+  return n;
+}
+function poly(pt,c){
+  if(!ring(pt,c[0]))return false;
+  for(let i=1;i<c.length;i++)if(ring(pt,c[i]))return false;
+  return true;
+}
+function has(f,pt){
+  let g=f.geometry;
+  if(!g)return false;
+  return g.type==='Polygon'?poly(pt,g.coordinates):g.type==='MultiPolygon'&&g.coordinates.some(c=>poly(pt,c));
+}
+function check(ll){
+  selected=(data.features||[]).find(f=>has(f,ll));
+  pos=ll;
+  if(marker)map.removeLayer(marker);
+  marker=L.circleMarker(ll,{radius:8,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).addTo(map);
+  draw(false);
+  $('google').disabled=false;
+  let c=$('card');
+  if(selected){
+    let p=selected.properties||{};
+    c.className='card ok';
+    $('title').textContent='';
+    $('details').innerHTML=infoBlock(p)
+      +`<div class="coord" style="margin-top:8px;color:#a3b0c0">${ll.lat.toFixed(6)}, ${ll.lng.toFixed(6)}</div>`;
+    let x=layer.getLayers().find(l=>l.feature===selected);
+    if(x){map.fitBounds(x.getBounds(),{padding:[45,45],maxZoom:13});x.openPopup();}
+  }else{
+    c.className='card out';
+    $('title').textContent='Nessuna competenza trovata';
+    $('details').innerHTML=`Il punto non ricade nei territori caricati.<br><span class="coord">${ll.lat.toFixed(6)}, ${ll.lng.toFixed(6)}</span>`;
+    map.setView(ll,13);
+  }
+}
+function closeModal(){$('back').classList.remove('open')}
+function gps(){
+  closeModal();
+  $('title').textContent='Ricerca della posizione…';
+  navigator.geolocation?navigator.geolocation.getCurrentPosition(
+    p=>check(L.latLng(p.coords.latitude,p.coords.longitude)),
+    e=>{$('card').className='card err';$('title').textContent='Posizione non disponibile';$('details').textContent=e.message;},
+    {enableHighAccuracy:true,timeout:12000}
+  ):notice('Geolocalizzazione non supportata dal browser','err');
+}
+function reset(){
+  selected=pos=null;
+  if(marker)map.removeLayer(marker);
+  marker=null;
+  $('google').disabled=true;
+  $('card').className='card';
+  $('title').textContent='Posizione non ancora verificata';
+  $('details').textContent='Tocca l\'icona GPS oppure seleziona un punto sulla mappa.';
+  draw(true);
+  closeModal();
+}
+
+$('gear').onclick=()=>$('back').classList.add('open');
+$('close').onclick=closeModal;
+$('back').onclick=e=>{if(e.target===$('back'))closeModal();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeReportModal();}});
+$('gps').onclick=$('gpsTop').onclick=gps;
+$('fit').onclick=()=>{closeModal();map.fitBounds(layer.getBounds(),{padding:[25,25]});};
+$('reset').onclick=reset;
+$('google').onclick=()=>pos&&window.open(`https://www.google.com/maps?q=${pos.lat},${pos.lng}`,'_blank','noopener');
+let reportCtx={nome:'',lat:null,lng:null};
+let reportPhotoFile=null;
+
+function renderReportCoord(){
+  reportCtx.lat=pos?pos.lat:null;
+  reportCtx.lng=pos?pos.lng:null;
+  reportCtx.nome=selected?.properties?.agenzia||reportCtx.nome;
+  const hasPos=reportCtx.lat!=null&&reportCtx.lng!=null;
+  $('reportCoord').innerHTML=hasPos
+    ? `<a class="clink" href="https://www.google.com/maps?q=${reportCtx.lat},${reportCtx.lng}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${reportCtx.lat.toFixed(6)}, ${reportCtx.lng.toFixed(6)}</a>${reportCtx.nome?`<div class="mand" style="margin-top:6px">${esc(reportCtx.nome)}</div>`:''}`
+    : `<div class="muted">Nessuna posizione rilevata — usa GPS o tocca un punto della mappa</div>`;
+}
+function openReportModal(nome){
+  reportCtx={nome:nome||'',lat:pos?pos.lat:null,lng:pos?pos.lng:null};
+  renderReportCoord();
+  $('chkMda').checked=false;
+  $('chkSky').checked=false;
+  $('chkEvento').checked=false;
+  $('reportTipo').value='';
+  $('reportNote').value='';
+  reportPhotoFile=null;
+  $('reportPhoto').value='';
+  $('reportPhotoPreview').innerHTML='';
+  $('reportBack').classList.add('open');
+}
+function closeReportModal(){$('reportBack').classList.remove('open')}
+$('reportClose').onclick=closeReportModal;
+$('reportBack').onclick=e=>{if(e.target===$('reportBack'))closeReportModal();};
+
+$('reportGps').onclick=()=>{
+  if(!navigator.geolocation){notice('Geolocalizzazione non supportata','err');return;}
+  $('reportGps').textContent='Ricerca della posizione…';
+  navigator.geolocation.getCurrentPosition(
+    p=>{check(L.latLng(p.coords.latitude,p.coords.longitude));renderReportCoord();$('reportGps').innerHTML='<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Recupera posizione GPS';},
+    e=>{notice('Posizione non disponibile: '+e.message,'err');$('reportGps').innerHTML='<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Recupera posizione GPS';},
+    {enableHighAccuracy:true,timeout:12000}
+  );
+};
+
+$('reportPhotoBtn').onclick=()=>$('reportPhoto').click();
+$('reportPhoto').onchange=e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  reportPhotoFile=f;
+  const url=URL.createObjectURL(f);
+  $('reportPhotoPreview').innerHTML=`<div class="photo-chip"><img src="${url}" alt=""><span>Foto allegata</span><button type="button" class="chip-x" id="reportPhotoClear" aria-label="Rimuovi foto">×</button></div>`;
+  $('reportPhotoClear').onclick=()=>{reportPhotoFile=null;$('reportPhoto').value='';$('reportPhotoPreview').innerHTML='';};
+};
+$('reportCancel').onclick=closeReportModal;
+
+function reportLines(){
+  const cats=[];
+  if($('chkMda').checked)cats.push('MdA');
+  if($('chkSky').checked)cats.push('Sky');
+  if($('chkEvento').checked)cats.push('Evento');
+  const tipo=$('reportTipo').value;
+  const note=$('reportNote').value.trim();
+  let lines=['Segnalazione'];
+  if(reportCtx.nome)lines.push(`Agenzia: ${reportCtx.nome}`);
+  if(reportCtx.lat!=null)lines.push(`Coordinate: https://www.google.com/maps?q=${reportCtx.lat},${reportCtx.lng}`);
+  if(cats.length)lines.push(`Categoria: ${cats.join(', ')}`);
+  if(tipo)lines.push(`Tipo: ${tipo}`);
+  if(note)lines.push(`Note: ${note}`);
+  return lines;
+}
+
+$('reportSend').onclick=async()=>{
+  const msg=reportLines().join('\n');
+  const shareData={title:'Segnalazione myArea',text:msg};
+  if(reportPhotoFile&&navigator.canShare&&navigator.canShare({files:[reportPhotoFile]})){
+    shareData.files=[reportPhotoFile];
+  }
+  if(navigator.share&&(!shareData.files||navigator.canShare(shareData))){
+    try{await navigator.share(shareData);}
+    catch(e){/* condivisione annullata dall'operatore */}
+  }else{
+    try{
+      await navigator.clipboard.writeText(msg);
+      notice(reportPhotoFile?'Condivisione file non supportata: testo copiato, allega la foto manualmente':'Condivisione non supportata: testo copiato negli appunti','ok');
+    }catch(e){
+      notice('Condivisione non supportata su questo browser','err');
+    }
+  }
+  closeReportModal();
+};
+
+$('reportMail').onclick=()=>{
+  const p=selected?.properties||{};
+  const to=encodeURIComponent(p.emailAgenzia||'');
+  const cc=encodeURIComponent(p.emailRdz||'');
+  const oggi=new Date().toLocaleDateString('it-IT');
+  const subject=encodeURIComponent(`Segnalazione - ${reportCtx.nome||p.agenzia||''} - ${oggi}`);
+  const body=encodeURIComponent(reportLines().join('\n')+'\n\nmyArea');
+  if(!p.emailAgenzia)notice('Email agenzia non presente nei dati: compila il destinatario a mano','muted');
+  if(reportPhotoFile)notice('La foto viene scaricata: allegala manualmente alla mail (i link email non supportano allegati automatici)','muted');
+  if(reportPhotoFile){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(reportPhotoFile);
+    a.download='segnalazione-foto.jpg';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+  window.location.href=`mailto:${to}?cc=${cc}&subject=${subject}&body=${body}`;
+  closeReportModal();
+};
+
+function reportIssue(nome){
+  const n=nome||selected?.properties?.agenzia||'';
+  openReportModal(n);
+}
+map.on('click',e=>check(e.latlng));
+
+$('file').onchange=async e=>{
+  let f=e.target.files[0];
+  if(!f)return;
+  try{
+    let t=await f.text();
+    if(f.name.toLowerCase().endsWith('.kml'))data=toGeoJSON.kml(new DOMParser().parseFromString(t,'text/xml'));
+    else data=JSON.parse(t);
+    if(data.type==='Feature')data={type:'FeatureCollection',features:[data]};
+    if(data.type!=='FeatureCollection')throw Error('Formato non valido');
+    selected=null;
+    draw(true);
+    closeModal();
+    notice('File caricato correttamente','ok');
+    if(pos)check(pos);
+  }catch(x){
+    notice('Errore nel file: '+x.message,'err');
+  }
+  e.target.value='';
+};
+
+// --- Sorgente dati remota (GitHub, repo privata) ---
+const GH_KEYS={repo:'myarea_gh_repo',path:'myarea_gh_path',branch:'myarea_gh_branch',token:'myarea_gh_token'};
+
+function ghConfig(){
+  return{
+    repo:localStorage.getItem(GH_KEYS.repo)||'',
+    path:localStorage.getItem(GH_KEYS.path)||'',
+    branch:localStorage.getItem(GH_KEYS.branch)||'main',
+    token:localStorage.getItem(GH_KEYS.token)||''
+  };
+}
+function fillGhForm(){
+  const c=ghConfig();
+  $('ghRepo').value=c.repo;
+  $('ghPath').value=c.path;
+  $('ghBranch').value=c.branch==='main'&&!localStorage.getItem(GH_KEYS.branch)?'':c.branch;
+  $('ghToken').value=c.token;
+  $('ghStatus').textContent=c.repo&&c.path?`Configurato: ${c.repo} / ${c.path}`:'Nessuna sorgente remota configurata — in uso il file demo incorporato.';
+  $('ghStatus').className='status'+(c.repo&&c.path?' ok':'');
+}
+async function loadRemote(silent=false){
+  const c=ghConfig();
+  if(!c.repo||!c.path){if(!silent)notice('Compila repo e percorso file','err');return;}
+  const url=`https://api.github.com/repos/${c.repo}/contents/${encodeURIComponent(c.path).replace(/%2F/g,'/')}?ref=${encodeURIComponent(c.branch||'main')}`;
+  try{
+    const res=await fetch(url,{headers:{
+      'Accept':'application/vnd.github.v3.raw',
+      ...(c.token?{'Authorization':'token '+c.token}:{})
+    }});
+    if(!res.ok)throw Error(res.status===404?'File o repo non trovati (controlla nome/percorso/branch)':res.status===401||res.status===403?'Token mancante o senza permessi su questa repo':`Errore HTTP ${res.status}`);
+    const text=await res.text();
+    let parsed=c.path.toLowerCase().endsWith('.kml')?toGeoJSON.kml(new DOMParser().parseFromString(text,'text/xml')):JSON.parse(text);
+    if(parsed.type==='Feature')parsed={type:'FeatureCollection',features:[parsed]};
+    if(parsed.type!=='FeatureCollection')throw Error('Formato non valido nel file remoto');
+    data=parsed;
+    selected=null;
+    draw(true);
+    notice('Dati caricati da GitHub','ok');
+  }catch(x){
+    notice('Sorgente remota: '+x.message,'err');
+  }
+}
+$('ghSave').onclick=()=>{
+  localStorage.setItem(GH_KEYS.repo,$('ghRepo').value.trim());
+  localStorage.setItem(GH_KEYS.path,$('ghPath').value.trim());
+  localStorage.setItem(GH_KEYS.branch,$('ghBranch').value.trim()||'main');
+  localStorage.setItem(GH_KEYS.token,$('ghToken').value.trim());
+  fillGhForm();
+  notice('Configurazione salvata in questo browser','ok');
+  loadRemote();
+};
+$('ghClear').onclick=()=>{
+  Object.values(GH_KEYS).forEach(k=>localStorage.removeItem(k));
+  fillGhForm();
+  data=BUILTIN;
+  selected=null;
+  draw(true);
+  notice('Configurazione rimossa, ripristinato il file demo');
+};
+
+fillGhForm();
+draw(true);
+if(ghConfig().repo&&ghConfig().path)loadRemote(true);
+</script>
+</body>
+</html>

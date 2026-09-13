@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Zero — Monitoraggio digiuno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #fbfdfb;
+    --surface: #ffffff;
+    --surface-tint: #eef7f1;
+    --line: #dfeae3;
+    --green-deep: #2f5b46;
+    --green: #4f9375;
+    --green-soft: #8fc4a8;
+    --green-pale: #d8ecdf;
+    --text: #1f2b25;
+    --text-muted: #6b8478;
+    --amber: #d9b46a;
+    --red: #c96a6a;
+    --red-pale: #fbe8e8;
+    --shadow: 0 12px 32px -16px rgba(63, 109, 88, 0.28);
+    --radius-lg: 28px;
+    --radius-md: 20px;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; background: linear-gradient(180deg, #ffffff 0%, var(--bg) 40%, #f4faf6 100%); min-height:100vh; font-family: 'Manrope', system-ui, sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+  .app{ max-width: 480px; margin: 0 auto; padding: 20px 18px 48px; min-height:100vh; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding: 6px 4px 22px; }
+  .brand{ display:flex; align-items:baseline; gap:8px; }
+  .brand-mark{ width:10px;height:10px;border-radius:50%; background: radial-gradient(circle at 30% 30%, var(--green-soft), var(--green)); display:inline-block; transform: translateY(-1px); }
+  .brand-name{ font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--green-deep); }
+  .icon-btn{ width:40px;height:40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display:flex;align-items:center;justify-content:center; cursor:pointer; color: var(--text-muted); transition: background .15s ease, color .15s ease, transform .15s ease; flex-shrink:0; }
+  .icon-btn:hover{ background: var(--surface-tint); color: var(--green-deep); }
+  .icon-btn:active{ transform: scale(0.94); }
+  .icon-btn svg{ width:20px; height:20px; }
+
+  .hero{ background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 30px 24px 26px; display:flex; flex-direction:column; align-items:center; text-align:center; position:relative; overflow:hidden; border: 1px solid rgba(223,234,227,0.7); }
+  .hero::before{ content:""; position:absolute; top:-60px; right:-60px; width:180px; height:180px; border-radius:50%; background: radial-gradient(circle, var(--green-pale) 0%, rgba(216,236,223,0) 70%); }
+  .hero-type{ font-size:13px; color: var(--text-muted); font-weight:600; letter-spacing: 0.02em; margin-bottom: 18px; }
+  .hero-type b{ color: var(--green-deep); font-weight:700; }
+  .donut-wrap{ position:relative; width: 230px; height: 230px; margin-bottom: 20px; }
+  .donut-wrap svg{ width:100%; height:100%; transform: rotate(-90deg); }
+  .donut-track{ fill:none; stroke: var(--green-pale); stroke-width: 14; }
+  .donut-progress{ fill:none; stroke: var(--green); stroke-width: 14; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke 0.4s ease; }
+  .donut-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 4px; }
+  .donut-phase{ font-size: 12px; font-weight:700; letter-spacing:0.03em; padding: 4px 12px; border-radius: 999px; transition: background .3s ease, color .3s ease; }
+  .donut-clickable{ display:flex; flex-direction:column; align-items:center; cursor:pointer; padding:4px 10px; border-radius:14px; }
+  .donut-clickable:active{ transform: scale(0.97); }
+  .donut-time{ font-size: 34px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); font-variant-numeric: tabular-nums; }
+  .donut-sub{ font-size: 12.5px; color: var(--text-muted); font-weight:500; }
+  .cta{ width:100%; padding: 15px; border:none; border-radius: 16px; font-family:inherit; font-size:15.5px; font-weight:700; cursor:pointer; transition: transform .12s ease, box-shadow .12s ease, background .15s ease; }
+  .cta:active{ transform: scale(0.98); }
+  .cta.start{ background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%); color: #fff; box-shadow: 0 10px 24px -10px rgba(47,91,70,0.55); }
+  .cta.stop{ background: var(--surface); color: #b45252; border: 1.5px solid #f0d3d3; }
+
+  .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .mini-card{ background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 18px 16px; min-height: 108px; display:flex; flex-direction:column; justify-content:space-between; cursor:pointer; transition: transform .12s ease, border-color .12s ease; text-align:left; }
+  .mini-card:active{ transform: scale(0.97); }
+  .mini-card:hover{ border-color: var(--green-soft); }
+  .mini-card .mini-num{ font-size:26px; font-weight:800; color: var(--green-soft); }
+  .mini-card .mini-num.ok{ color: var(--green); }
+  .mini-card .mini-num.warn{ color: var(--red); }
+  .mini-delta{ font-size:14px; font-weight:700; margin-left:5px; }
+  .mini-delta.ok{ color: var(--green); }
+  .mini-delta.warn{ color: var(--red); }
+  .mini-card .mini-title{ font-size:13px; font-weight:700; color: var(--text); }
+  .mini-card .mini-label{ font-size:12px; color: var(--text-muted); font-weight:600; }
+  .water-drop-icon{ width:38px; height:50px; }
+  .drop-outline{ fill:none; stroke: var(--green-pale); stroke-width:3; }
+  .drop-fill{ fill: var(--green); }
+
+  .sync-note{ text-align:center; font-size:11.5px; color: var(--text-muted); margin-top: 22px; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .sync-dot{ width:6px;height:6px;border-radius:50%; background:var(--green-soft); }
+  .sync-dot.err{ background:#c96a6a; }
+  .sync-dot.busy{ background: var(--amber); }
+
+  .modal-backdrop{ position:fixed; inset:0; background: rgba(31,43,37,0.35); backdrop-filter: blur(2px); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition: opacity .2s ease; z-index: 50; }
+  .modal-backdrop.open{ opacity:1; pointer-events:auto; }
+  .modal{ background: var(--bg); width:100%; max-width:480px; border-radius: 26px 26px 0 0; padding: 22px 22px 30px; max-height: 88vh; overflow-y:auto; transform: translateY(30px); transition: transform .25s ease; }
+  .modal-backdrop.open .modal{ transform: translateY(0); }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 18px; }
+  .modal-head h2{ font-size:18px; margin:0; letter-spacing:-0.01em; }
+
+  .section-label{ font-size:12.5px; font-weight:700; color: var(--text-muted); margin: 20px 0 10px; }
+  .section-label:first-of-type{ margin-top:4px; }
+
+  .type-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; }
+  .type-pill{ border: 1.5px solid var(--line); background: var(--surface); border-radius: 14px; padding: 10px 4px; text-align:center; font-weight:700; font-size:14px; cursor:pointer; color: var(--text-muted); }
+  .type-pill.active{ border-color: var(--green); background: var(--green-pale); color: var(--green-deep); }
+
+  .field{ margin-bottom: 12px; }
+  .field label{ display:block; font-size:12.5px; font-weight:600; color: var(--text-muted); margin-bottom:5px; }
+  .field input{ width:100%; padding: 11px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); font-family:inherit; font-size:14px; color:var(--text); }
+  .field input:focus{ outline:2px solid var(--green-soft); outline-offset:1px; }
+  .field-hint{ font-size:11px; color:var(--text-muted); margin-top:4px; }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; }
+
+  .modal-actions{ display:flex; gap:10px; margin-top:20px; }
+  .btn-secondary{ flex:1; padding:13px; border-radius:14px; border:1.5px solid var(--line); background:var(--surface); font-family:inherit; font-weight:700; font-size:14px; color: var(--text); cursor:pointer; }
+  .btn-secondary:disabled{ opacity:0.45; cursor:not-allowed; }
+  .btn-primary{ flex:1; padding:13px; border-radius:14px; border:none; background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%); color:#fff; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; }
+  .status-msg{ font-size:12.5px; margin-top:12px; padding: 10px 12px; border-radius:10px; display:none; }
+  .status-msg.ok{ display:block; background:#e3f3e9; color:#2f6b48; }
+  .status-msg.error{ display:block; background:#fbe8e8; color:#a44646; }
+  .status-msg.busy{ display:block; background:#faf3df; color:#8a6d1f; }
+
+  .view-tabs{ display:flex; background: var(--surface-tint); border-radius: 999px; padding:3px; margin-bottom:16px; }
+  .view-tabs button{ flex:1; border:none; background:transparent; padding:8px 6px; font-family:inherit; font-size:12.5px; font-weight:700; color:var(--text-muted); border-radius:999px; cursor:pointer; }
+  .view-tabs button.active{ background: var(--surface); color: var(--green-deep); box-shadow: 0 2px 8px -2px rgba(63,109,88,0.25); }
+
+  .week-nav{ display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:4px; }
+  .week-nav input[type=date]{ padding:9px 10px; border-radius:12px; border:1.5px solid var(--line); background:var(--surface); font-family:inherit; font-size:13px; color:var(--text); }
+  .range-label{ text-align:center; font-size:11.5px; color:var(--text-muted); margin-bottom:14px; }
+
+  .data-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .data-table th{ text-align:left; font-size:11px; color:var(--text-muted); font-weight:700; padding:6px 6px; border-bottom:1.5px solid var(--line); }
+  .data-table td{ padding:9px 6px; border-bottom:1px solid var(--line); }
+  .data-table tr:last-child td{ border-bottom:none; }
+  .check-yes{ color: var(--green); font-weight:800; }
+  .check-no{ color: var(--red); font-weight:800; }
+  .empty-note{ text-align:center; color:var(--text-muted); font-size:13px; padding: 24px 0; }
+
+  .stats-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:6px; }
+  .stat-card{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px 14px; }
+  .stat-card .stat-val{ font-size:22px; font-weight:800; color: var(--green-deep); }
+  .stat-card .stat-lbl{ font-size:11.5px; color:var(--text-muted); font-weight:600; margin-top:2px; }
+
+  .weight-now{ display:flex; align-items:flex-end; justify-content:space-between; background:var(--surface-tint); border-radius:16px; padding:16px; margin-bottom:16px; }
+  .weight-now .wn-block .wn-val{ font-size:24px; font-weight:800; color:var(--green-deep); }
+  .weight-now .wn-block .wn-lbl{ font-size:11.5px; color:var(--text-muted); font-weight:600; }
+  .bmi-banner{ width:100%; border-radius:18px; padding:20px; text-align:center; margin-bottom:16px; }
+  .bmi-banner .bmi-num{ font-size:32px; font-weight:800; }
+  .bmi-banner .bmi-cat{ font-size:13.5px; font-weight:700; margin-top:4px; }
+  .bmi-banner .bmi-none{ font-size:12.5px; font-weight:600; }
+  .chart-wrap{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px 10px 8px; margin-top:14px; }
+  .chart-wrap svg{ width:100%; height:150px; display:block; }
+  .pagination{ display:flex; align-items:center; justify-content:center; gap:14px; margin-top:10px; font-size:12.5px; color:var(--text-muted); font-weight:600; }
+  .pagination button{ border:1.5px solid var(--line); background:var(--surface); border-radius:10px; padding:6px 12px; font-family:inherit; font-weight:700; cursor:pointer; color:var(--text); }
+  .pagination button:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  .water-glasses-grid{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; padding:6px 0 18px; }
+  .glass-icon{ width:44px; height:44px; cursor:pointer; }
+  .glass-icon svg{ width:100%; height:100%; }
+  .glass-icon .go{ fill:none; stroke:var(--line); stroke-width:2.5; transition: fill .15s ease, stroke .15s ease; }
+  .glass-icon.filled .go{ fill:var(--green); stroke:var(--green-deep); }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand"><span class="brand-mark"></span><span class="brand-name">Zero</span></div>
+    <button class="icon-btn" id="settingsBtn" aria-label="Impostazioni">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div class="hero">
+    <div class="hero-type">Digiuno <b id="typeLabel">16:8</b></div>
+    <div class="donut-wrap">
+      <svg viewBox="0 0 230 230">
+        <circle class="donut-track" cx="115" cy="115" r="100"></circle>
+        <g id="zoneBandsGroup"></g>
+        <circle class="donut-progress" id="donutProgress" cx="115" cy="115" r="100" stroke-dasharray="628.3" stroke-dashoffset="628.3"></circle>
+      </svg>
+      <div class="donut-center">
+        <span class="donut-phase" id="phasePill">In attesa</span>
+        <div class="donut-clickable" id="donutClickArea">
+          <span class="donut-time" id="centerTime">00:00:00</span>
+          <span class="donut-sub" id="centerSub">Avvia il digiuno per iniziare</span>
+        </div>
+      </div>
+    </div>
+    <button class="cta start" id="mainAction">Inizia digiuno</button>
+  </div>
+
+  <div class="grid">
+    <div class="mini-card" id="cardStorico">
+      <div><span class="mini-num" id="storicoNum">0</span></div>
+      <div class="mini-title">Storico</div>
+    </div>
+    <div class="mini-card" id="cardTraguardi">
+      <div><span class="mini-num" id="traguardiNum">0</span></div>
+      <div class="mini-title">Traguardi</div>
+    </div>
+    <div class="mini-card" id="cardPeso">
+      <div><span class="mini-num" id="pesoNum">—</span></div>
+      <div class="mini-title">Peso</div>
+    </div>
+    <div class="mini-card" id="cardAcqua">
+      <svg class="water-drop-icon" viewBox="0 0 60 80">
+        <defs><clipPath id="waterClipCard"><rect id="waterClipRectCard" x="0" y="80" width="60" height="0"></rect></clipPath></defs>
+        <path class="drop-outline" d="M30 4 C30 4 8 34 8 54 A22 22 0 0 0 52 54 C52 34 30 4 30 4 Z"></path>
+        <path class="drop-fill" d="M30 4 C30 4 8 34 8 54 A22 22 0 0 0 52 54 C52 34 30 4 30 4 Z" clip-path="url(#waterClipCard)"></path>
+      </svg>
+      <div><div class="mini-title">Acqua</div><div class="mini-label" id="acquaLabel">0/8</div></div>
+    </div>
+  </div>
+
+  <div class="sync-note"><span class="sync-dot" id="syncDot"></span><span id="syncText">Non collegato a GitHub</span></div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><h2>Impostazioni</h2>
+      <button class="icon-btn" id="closeModal" aria-label="Chiudi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+
+    <div class="section-label">Tipo di digiuno</div>
+    <div class="type-grid" id="typeGrid"></div>
+
+    <div class="section-label">Dati corporei</div>
+    <div class="field-row">
+      <div class="field"><label for="ghHeight">Altezza (cm)</label><input type="number" id="ghHeight" placeholder="175"></div>
+      <div class="field"><label for="ghGoal">Peso obiettivo (kg)</label><input type="number" step="0.1" id="ghGoal" placeholder="70"></div>
+    </div>
+
+    <div class="section-label">Idratazione</div>
+    <div class="field"><label for="ghWater">Obiettivo acqua giornaliero (litri)</label><input type="number" step="0.1" id="ghWater" placeholder="2"></div>
+
+    <div class="section-label">Connessione GitHub</div>
+    <div class="field"><label for="ghToken">Token di accesso (PAT)</label><input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off"><div class="field-hint">Resta salvato solo su questo dispositivo, mai nel codice dell'app.</div></div>
+    <div class="field"><label for="ghOwner">Owner / organizzazione</label><input type="text" id="ghOwner" placeholder="nome-utente"></div>
+    <div class="field"><label for="ghRepo">Repository privata</label><input type="text" id="ghRepo" placeholder="zero-data"></div>
+    <div class="field"><label for="ghPath">Percorso file JSON</label><input type="text" id="ghPath" placeholder="data/zero.json"></div>
+    <div class="field"><label for="ghBranch">Branch</label><input type="text" id="ghBranch" placeholder="main"></div>
+
+    <div id="statusMsg" class="status-msg"></div>
+    <div class="modal-actions"><button class="btn-secondary" id="testConn">Testa connessione</button><button class="btn-primary" id="saveSettings">Salva</button></div>
+  </div>
+</div>
+
+<!-- Storico modal -->
+<div class="modal-backdrop" id="modalStorico">
+  <div class="modal">
+    <div class="modal-head"><h2>Storico digiuni</h2>
+      <button class="icon-btn" id="closeStorico" aria-label="Chiudi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="week-nav">
+      <button class="icon-btn" id="storicoPrev" aria-label="Settimana precedente">‹</button>
+      <input type="date" id="storicoDate">
+      <button class="icon-btn" id="storicoNext" aria-label="Settimana successiva">›</button>
+    </div>
+    <div class="range-label" id="storicoRangeLabel"></div>
+    <div id="storicoTableWrap"></div>
+  </div>
+</div>
+
+<!-- Traguardi modal -->
+<div class="modal-backdrop" id="modalTraguardi">
+  <div class="modal">
+    <div class="modal-head"><h2>Traguardi</h2>
+      <button class="icon-btn" id="closeTraguardi" aria-label="Chiudi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="view-tabs" id="traguardiTabs">
+      <button data-range="week" class="active">Settimana</button>
+      <button data-range="month">Mese</button>
+      <button data-range="year">Anno</button>
+      <button data-range="all">Sempre</button>
+    </div>
+    <div class="stats-grid" id="traguardiGrid"></div>
+  </div>
+</div>
+
+<!-- Peso modal -->
+<div class="modal-backdrop" id="modalPeso">
+  <div class="modal">
+    <div class="modal-head"><h2>Peso</h2>
+      <button class="icon-btn" id="closePeso" aria-label="Chiudi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+
+    <div class="field-row">
+      <div class="field"><label for="newWeightVal">Peso (kg)</label><input type="number" step="0.1" id="newWeightVal" placeholder="72.5"></div>
+      <div class="field"><label for="newWeightDate">Data</label><input type="date" id="newWeightDate"></div>
+    </div>
+    <button class="btn-primary" id="addWeight" style="width:100%; margin-bottom:16px;">Registra peso</button>
+
+    <div class="bmi-banner" id="bmiBanner"></div>
+
+    <div class="weight-now" id="weightNowBox"></div>
+
+    <div class="section-label">Storico peso</div>
+    <div id="weightTableWrap"></div>
+
+    <div class="section-label">Andamento</div>
+    <div class="view-tabs" id="pesoTabs">
+      <button data-range="week" class="active">Settimana</button>
+      <button data-range="month">Mese</button>
+      <button data-range="year">Anno</button>
+      <button data-range="all">Sempre</button>
+    </div>
+    <div class="chart-wrap"><svg id="weightChart" viewBox="0 0 320 150" preserveAspectRatio="none"></svg></div>
+  </div>
+</div>
+
+<!-- Acqua modal -->
+<div class="modal-backdrop" id="modalAcqua">
+  <div class="modal">
+    <div class="modal-head"><h2>Acqua</h2>
+      <button class="icon-btn" id="closeAcqua" aria-label="Chiudi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="range-label" id="acquaSummary"></div>
+    <div class="water-glasses-grid" id="waterGlassesGrid"></div>
+  </div>
+</div>
+
+<!-- Termina digiuno modal -->
+<div class="modal-backdrop" id="modalTermina">
+  <div class="modal">
+    <div class="modal-head"><h2>Fine digiuno</h2>
+      <button class="icon-btn" id="closeTermina" aria-label="Chiudi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div id="terminaContent"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const FAST_TYPES = ["10-14","12-12","14-10","16-8","18-6"];
+  const RADIUS = 100;
+  const CIRC = 2 * Math.PI * RADIUS;
+  const DAY_MS = 86400000;
+  const ZONES = [
+    { until:4,  label:'Stato di Sazietà', band:'#eaf6ee', solid:'#a8d6bb', text:'#2f5b46' },
+    { until:8,  label:'Catabolico',       band:'#d3ecdc', solid:'#7ec39f', text:'#2f5b46' },
+    { until:12, label:'Brucia Grassi',    band:'#bfe0cd', solid:'#4f9375', text:'#ffffff' },
+    { until:Infinity, label:'Chetosi',    band:'#a9d1ba', solid:'#2f5b46', text:'#ffffff' }
+  ];
+
+  const els = {};
+  ['settingsBtn','closeModal','modalBackdrop','typeGrid','typeLabel','ghToken','ghOwner','ghRepo','ghPath','ghBranch','ghHeight','ghGoal','ghWater',
+   'statusMsg','testConn','saveSettings','donutProgress','phasePill','centerTime','centerSub','donutClickArea','mainAction','syncDot','syncText',
+   'cardStorico','storicoNum','modalStorico','closeStorico','storicoTableWrap','storicoPrev','storicoNext','storicoDate','storicoRangeLabel',
+   'cardTraguardi','traguardiNum','modalTraguardi','closeTraguardi','traguardiTabs','traguardiGrid',
+   'cardPeso','pesoNum','modalPeso','closePeso','newWeightDate','newWeightVal','addWeight','weightNowBox','bmiBanner','weightTableWrap','pesoTabs','weightChart',
+   'cardAcqua','modalAcqua','closeAcqua','acquaSummary','acquaLabel','waterGlassesGrid',
+   'modalTermina','closeTermina','terminaContent'
+  ].forEach(id => els[id] = document.getElementById(id));
+
+  let settings = loadSettings();
+  let state = loadState();
+  let viewMode = 'elapsed';
+  let fileSha = null;
+  let saveTimer = null;
+  let traguardiRange = 'week';
+  let pesoRange = 'week';
+  let weightPage = 0;
+  let storicoRefDate = new Date();
+  let lastBandsType = null;
+
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem('zero_settings');
+      return raw ? JSON.parse(raw) : { token:'', owner:'', repo:'', path:'data/zero.json', branch:'main', fastingType:'16-8', heightCm:null, goalWeight:null, waterGoalL:2 };
+    }catch(e){ return { token:'', owner:'', repo:'', path:'data/zero.json', branch:'main', fastingType:'16-8', heightCm:null, goalWeight:null, waterGoalL:2 }; }
+  }
+  function persistSettings(){ localStorage.setItem('zero_settings', JSON.stringify(settings)); }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem('zero_state');
+      return raw ? JSON.parse(raw) : { current:null, history:[], weight:[], water:[] };
+    }catch(e){ return { current:null, history:[], weight:[], water:[] }; }
+  }
+  function persistState(){ localStorage.setItem('zero_state', JSON.stringify(state)); }
+
+  function parseType(t){ const [f,e] = t.split('-').map(Number); return { fastHours: f, eatHours: e }; }
+  function actualHours(entry){ return (new Date(entry.end).getTime() - new Date(entry.start).getTime()) / 3600000; }
+  function isCompleted(entry){
+    if(entry.ko) return false;
+    if(entry.bonusUsed) return true;
+    return actualHours(entry) >= parseType(entry.type).fastHours;
+  }
+  function dayKey(iso){ return new Date(iso).toISOString().slice(0,10); }
+  function toInputDate(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+  function zoneForHours(h){ return ZONES.find(z => h < z.until) || ZONES[ZONES.length-1]; }
+  function bonusUsedLast7Days(){
+    const now = Date.now();
+    return state.history.filter(h => h.bonusUsed && (now - new Date(h.start).getTime()) <= 7*DAY_MS).length;
+  }
+  function bonusRemaining(){ return Math.max(0, 2 - bonusUsedLast7Days()); }
+
+  function openBackdrop(el){ el.classList.add('open'); }
+  function closeBackdrop(el){ el.classList.remove('open'); }
+
+  // ---------- Type grid (settings) ----------
+  function renderTypeGrid(){
+    els.typeGrid.innerHTML = '';
+    FAST_TYPES.forEach(t => {
+      const pill = document.createElement('div');
+      pill.className = 'type-pill' + (settings.fastingType === t ? ' active' : '');
+      pill.textContent = t;
+      pill.addEventListener('click', () => { settings.fastingType = t; renderTypeGrid(); });
+      els.typeGrid.appendChild(pill);
+    });
+  }
+
+  // ---------- Settings modal ----------
+  function openSettings(){
+    els.ghToken.value = settings.token || '';
+    els.ghOwner.value = settings.owner || '';
+    els.ghRepo.value = settings.repo || '';
+    els.ghPath.value = settings.path || 'data/zero.json';
+    els.ghBranch.value = settings.branch || 'main';
+    els.ghHeight.value = settings.heightCm || '';
+    els.ghGoal.value = settings.goalWeight || '';
+    els.ghWater.value = settings.waterGoalL || 2;
+    els.statusMsg.className = 'status-msg';
+    els.statusMsg.textContent = '';
+    renderTypeGrid();
+    openBackdrop(els.modalBackdrop);
+  }
+  els.settingsBtn.addEventListener('click', openSettings);
+  els.closeModal.addEventListener('click', () => closeBackdrop(els.modalBackdrop));
+  els.modalBackdrop.addEventListener('click', (e) => { if(e.target === els.modalBackdrop) closeBackdrop(els.modalBackdrop); });
+
+  els.saveSettings.addEventListener('click', () => {
+    settings.token = els.ghToken.value.trim();
+    settings.owner = els.ghOwner.value.trim();
+    settings.repo = els.ghRepo.value.trim();
+    settings.path = els.ghPath.value.trim() || 'data/zero.json';
+    settings.branch = els.ghBranch.value.trim() || 'main';
+    settings.heightCm = els.ghHeight.value ? parseFloat(els.ghHeight.value) : null;
+    settings.goalWeight = els.ghGoal.value ? parseFloat(els.ghGoal.value) : null;
+    settings.waterGoalL = els.ghWater.value ? parseFloat(els.ghWater.value) : 2;
+    persistSettings();
+    updateTypeLabel();
+    updateSyncNote();
+    renderAllCards();
+    closeBackdrop(els.modalBackdrop);
+    syncFromGitHub();
+  });
+
+  function setStatus(kind, text){ els.statusMsg.className = 'status-msg ' + kind; els.statusMsg.textContent = text; }
+
+  els.testConn.addEventListener('click', async () => {
+    const token = els.ghToken.value.trim(), owner = els.ghOwner.value.trim(), repo = els.ghRepo.value.trim();
+    const path = els.ghPath.value.trim() || 'data/zero.json', branch = els.ghBranch.value.trim() || 'main';
+    if(!token || !owner || !repo){ setStatus('error', 'Compila token, owner e repository prima di testare.'); return; }
+    setStatus('busy', 'Connessione in corso…');
+    try{
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`, { headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' } });
+      if(res.status === 200) setStatus('ok', 'Connessione riuscita: file trovato nella repository.');
+      else if(res.status === 404) setStatus('ok', 'Connessione riuscita: la repository è raggiungibile, il file verrà creato al primo salvataggio.');
+      else if(res.status === 401 || res.status === 403) setStatus('error', 'Token non valido o senza i permessi necessari.');
+      else setStatus('error', `Errore inatteso (${res.status}).`);
+    }catch(e){ setStatus('error', 'Impossibile raggiungere GitHub. Controlla la connessione.'); }
+  });
+
+  // ---------- GitHub sync ----------
+  function ghReady(){ return !!(settings.token && settings.owner && settings.repo); }
+  function updateSyncNote(kind, text){
+    els.syncDot.className = 'sync-dot' + (kind ? ' ' + kind : '');
+    els.syncText.textContent = text || (ghReady() ? 'Collegato a GitHub' : 'Non collegato a GitHub');
+  }
+
+  async function syncFromGitHub(){
+    if(!ghReady()){ updateSyncNote(); return; }
+    updateSyncNote('busy', 'Sincronizzazione…');
+    try{
+      const url = `https://api.github.com/repos/${settings.owner}/${settings.repo}/contents/${settings.path}?ref=${settings.branch || 'main'}`;
+      const res = await fetch(url, { headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github+json' }});
+      if(res.status === 200){
+        const data = await res.json();
+        fileSha = data.sha;
+        const decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+        const remote = JSON.parse(decoded);
+        state = { current: remote.current || null, history: remote.history || [], weight: remote.weight || [], water: remote.water || [] };
+        if(remote.settings){
+          if(remote.settings.fastingType) settings.fastingType = remote.settings.fastingType;
+          if(remote.settings.heightCm != null) settings.heightCm = remote.settings.heightCm;
+          if(remote.settings.goalWeight != null) settings.goalWeight = remote.settings.goalWeight;
+          if(remote.settings.waterGoalL != null) settings.waterGoalL = remote.settings.waterGoalL;
+          persistSettings();
+        }
+        persistState();
+        updateSyncNote(null, 'Sincronizzato con GitHub');
+      } else if(res.status === 404){ fileSha = null; updateSyncNote(null, 'Nessun file remoto: verrà creato al primo salvataggio'); }
+      else updateSyncNote('err', 'Errore di sincronizzazione');
+    }catch(e){ updateSyncNote('err', 'Errore di rete durante la sincronizzazione'); }
+    renderAllCards();
+  }
+
+  async function saveToGitHub(){
+    if(!ghReady()) return;
+    updateSyncNote('busy', 'Salvataggio…');
+    try{
+      const payload = { settings: { fastingType: settings.fastingType, heightCm: settings.heightCm, goalWeight: settings.goalWeight, waterGoalL: settings.waterGoalL }, current: state.current, history: state.history, weight: state.weight, water: state.water };
+      const contentStr = JSON.stringify(payload, null, 2);
+      const b64 = btoa(unescape(encodeURIComponent(contentStr)));
+      const url = `https://api.github.com/repos/${settings.owner}/${settings.repo}/contents/${settings.path}`;
+      const body = { message: 'Aggiornamento dati Zero', content: b64, branch: settings.branch || 'main' };
+      if(fileSha) body.sha = fileSha;
+      const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github+json' }, body: JSON.stringify(body) });
+      if(res.ok){ const data = await res.json(); fileSha = data.content.sha; updateSyncNote(null, 'Sincronizzato con GitHub'); }
+      else updateSyncNote('err', 'Errore nel salvataggio su GitHub');
+    }catch(e){ updateSyncNote('err', 'Errore di rete durante il salvataggio'); }
+  }
+
+  function queueSave(){ persistState(); clearTimeout(saveTimer); saveTimer = setTimeout(saveToGitHub, 600); renderAllCards(); }
+
+  // ---------- Fasting logic (hero) ----------
+  function updateTypeLabel(){ els.typeLabel.textContent = settings.fastingType; }
+
+  els.mainAction.addEventListener('click', () => {
+    if(state.current){
+      openTerminaModal();
+    } else {
+      state.current = { start: new Date().toISOString(), type: settings.fastingType };
+      lastBandsType = null;
+      queueSave();
+      renderMain();
+    }
+  });
+
+  els.donutClickArea.addEventListener('click', () => { viewMode = viewMode === 'elapsed' ? 'remaining' : 'elapsed'; tick(); });
+
+  function fmt(ms){ if(ms < 0) ms = 0; const totalSec = Math.floor(ms/1000); const h = Math.floor(totalSec/3600); const m = Math.floor((totalSec%3600)/60); const s = totalSec%60; return [h,m,s].map(v => String(v).padStart(2,'0')).join(':'); }
+  function fmtHM(ms){ const totalMin = Math.round(Math.abs(ms)/60000); const h = Math.floor(totalMin/60), m = totalMin%60; return `${h}h ${m}m`; }
+
+  function renderZoneBands(totalSpanH){
+    const group = els.donutProgress.parentElement.querySelector('#zoneBandsGroup');
+    group.innerHTML = '';
+    const boundaries = [0,4,8,12,totalSpanH];
+    const ns = 'http://www.w3.org/2000/svg';
+    for(let i=0;i<4;i++){
+      const h0 = boundaries[i], h1 = boundaries[i+1];
+      if(h1 <= h0) continue;
+      const fracStart = h0/totalSpanH, fracLen = (h1-h0)/totalSpanH;
+      const len = fracLen * CIRC;
+      const circle = document.createElementNS(ns,'circle');
+      circle.setAttribute('cx','115'); circle.setAttribute('cy','115'); circle.setAttribute('r', RADIUS);
+      circle.setAttribute('fill','none');
+      circle.setAttribute('stroke', ZONES[i].band);
+      circle.setAttribute('stroke-width','14');
+      circle.setAttribute('stroke-dasharray', `${len} ${CIRC-len}`);
+      circle.setAttribute('stroke-dashoffset', -fracStart*CIRC);
+      group.appendChild(circle);
+    }
+  }
+
+  function tick(){
+    if(!state.current){
+      const group = els.donutProgress.parentElement.querySelector('#zoneBandsGroup');
+      group.innerHTML = '';
+      lastBandsType = null;
+      els.donutProgress.setAttribute('stroke-dasharray', CIRC);
+      els.donutProgress.setAttribute('stroke-dashoffset', CIRC);
+      els.donutProgress.style.stroke = 'var(--green-pale)';
+      els.phasePill.textContent = 'In attesa';
+      els.phasePill.style.background = 'var(--surface-tint)';
+      els.phasePill.style.color = 'var(--text-muted)';
+      els.centerTime.textContent = '00:00:00';
+      els.centerSub.textContent = 'Avvia il digiuno per iniziare';
+      return;
+    }
+    const { fastHours } = parseType(state.current.type);
+    const totalSpanH = Math.max(16, fastHours);
+    if(lastBandsType !== state.current.type){ renderZoneBands(totalSpanH); lastBandsType = state.current.type; }
+
+    const startMs = new Date(state.current.start).getTime();
+    const elapsed = Date.now() - startMs;
+    const elapsedH = elapsed/3600000;
+    const zone = zoneForHours(elapsedH);
+    const pct = Math.min(1, Math.max(0, elapsed / (totalSpanH*3600000)));
+
+    els.donutProgress.setAttribute('stroke-dasharray', CIRC);
+    els.donutProgress.setAttribute('stroke-dashoffset', CIRC * (1 - pct));
+    els.donutProgress.style.stroke = zone.solid;
+
+    els.phasePill.textContent = zone.label;
+    els.phasePill.style.background = zone.band;
+    els.phasePill.style.color = zone.text;
+
+    const targetMs = fastHours * 3600000;
+    const remaining = targetMs - elapsed;
+    if(viewMode === 'elapsed'){
+      els.centerTime.textContent = fmt(elapsed);
+      els.centerSub.textContent = 'trascorse di digiuno';
+    } else {
+      if(remaining >= 0){ els.centerTime.textContent = fmt(remaining); els.centerSub.textContent = 'al traguardo'; }
+      else { els.centerTime.textContent = '+' + fmt(-remaining); els.centerSub.textContent = 'oltre l\'obiettivo'; }
+    }
+  }
+
+  function renderMain(){
+    updateTypeLabel();
+    els.mainAction.textContent = state.current ? 'Termina digiuno' : 'Inizia digiuno';
+    els.mainAction.className = 'cta ' + (state.current ? 'stop' : 'start');
+    tick();
+  }
+
+  // ---------- Termina digiuno flow ----------
+  function finalizeStop(opts){
+    const entry = { start: state.current.start, end: new Date().toISOString(), type: state.current.type };
+    if(opts.bonusUsed) entry.bonusUsed = true;
+    if(opts.ko) entry.ko = true;
+    state.history.unshift(entry);
+    state.current = null;
+    lastBandsType = null;
+    queueSave();
+    renderMain();
+    closeBackdrop(els.modalTermina);
+  }
+
+  function renderTerminaModal(){
+    const target = parseType(state.current.type).fastHours * 3600000;
+    const startMs = new Date(state.current.start).getTime();
+    const elapsed = Date.now() - startMs;
+    const diff = target - elapsed;
+    const targetH = parseType(state.current.type).fastHours;
+    const summary = `<p style="font-size:13.5px;color:var(--text-muted);margin:0 0 14px;">Obiettivo ${targetH}h · Trascorse ${fmtHM(elapsed)}</p>`;
+    let html;
+    if(diff <= 0){
+      html = summary + `<div class="status-msg ok">🎉 Complimenti, hai raggiunto l'obiettivo di ${targetH}h!</div>
+        <div class="modal-actions"><button class="btn-primary" id="terminaSave" style="width:100%;">Salva risultato</button></div>`;
+    } else if(diff <= 15*60000){
+      html = summary + `<div class="status-msg busy">A un passo dal traguardo (mancano ${fmtHM(diff)}): verrà comunque registrato come completato.</div>
+        <div class="modal-actions"><button class="btn-primary" id="terminaSave" style="width:100%;">Salva risultato</button></div>`;
+    } else {
+      const remain = bonusRemaining();
+      html = summary + `<div class="status-msg error">Mancano ancora ${fmtHM(diff)} al traguardo.</div>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="terminaBonus" ${remain<=0?'disabled':''}>Usa un bonus (${remain}/2)</button>
+          <button class="btn-primary" id="terminaKo" style="background:linear-gradient(135deg,#c96a6a,#a44646);">Registra KO</button>
+        </div>`;
+    }
+    html += `<button class="btn-secondary" id="terminaCancel" style="width:100%;margin-top:10px;">Annulla</button>`;
+    els.terminaContent.innerHTML = html;
+    const saveBtn = document.getElementById('terminaSave'); if(saveBtn) saveBtn.addEventListener('click', () => finalizeStop({}));
+    const bonusBtn = document.getElementById('terminaBonus'); if(bonusBtn) bonusBtn.addEventListener('click', () => finalizeStop({bonusUsed:true}));
+    const koBtn = document.getElementById('terminaKo'); if(koBtn) koBtn.addEventListener('click', () => finalizeStop({ko:true}));
+    document.getElementById('terminaCancel').addEventListener('click', () => closeBackdrop(els.modalTermina));
+  }
+
+  function openTerminaModal(){ renderTerminaModal(); openBackdrop(els.modalTermina); }
+  els.closeTermina.addEventListener('click', () => closeBackdrop(els.modalTermina));
+  els.modalTermina.addEventListener('click', (e) => { if(e.target === els.modalTermina) closeBackdrop(els.modalTermina); });
+
+  // ---------- Card 1: Storico ----------
+  function renderStorico(){
+    const now = Date.now();
+    const last7 = state.history.filter(h => (now - new Date(h.start).getTime()) <= 7*DAY_MS);
+    const completedCount = last7.filter(isCompleted).length;
+    els.storicoNum.textContent = completedCount;
+    els.storicoNum.className = 'mini-num ' + (completedCount >= 5 ? 'ok' : 'warn');
+  }
+
+  function storicoWindow(){
+    const refDay = new Date(storicoRefDate.getFullYear(), storicoRefDate.getMonth(), storicoRefDate.getDate());
+    const windowStart = new Date(refDay.getTime() - 6*DAY_MS);
+    const windowEnd = new Date(refDay.getTime() + DAY_MS - 1);
+    return { refDay, windowStart, windowEnd };
+  }
+
+  function renderStoricoTable(){
+    const { refDay, windowStart, windowEnd } = storicoWindow();
+    els.storicoRangeLabel.textContent = `${windowStart.toLocaleDateString('it-IT')} – ${refDay.toLocaleDateString('it-IT')}`;
+    const today = new Date(); const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    els.storicoNext.disabled = refDay.getTime() >= todayDay.getTime();
+
+    const rowsData = state.history.filter(h => { const t = new Date(h.start).getTime(); return t >= windowStart.getTime() && t <= windowEnd.getTime(); });
+    if(!rowsData.length){ els.storicoTableWrap.innerHTML = '<div class="empty-note">Nessun digiuno registrato in questa settimana.</div>'; return; }
+    const rows = rowsData.map(h => {
+      const hrs = actualHours(h);
+      const ok = isCompleted(h);
+      const d = new Date(h.start);
+      const dateStr = d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'numeric' });
+      const startStr = new Date(h.start).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+      const endStr = new Date(h.end).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+      return `<tr><td>${dateStr}</td><td>${h.type}</td><td>${hrs.toFixed(1)}h</td><td>${ok ? '<span class="check-yes">&#10003;</span>' : '<span class="check-no">&#10005;</span>'}</td><td>${startStr}</td><td>${endStr}</td></tr>`;
+    }).join('');
+    els.storicoTableWrap.innerHTML = `<table class="data-table"><thead><tr><th>Data</th><th>Tipo</th><th>Ore</th><th>Digiuno</th><th>Inizio</th><th>Fine</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  els.cardStorico.addEventListener('click', () => {
+    storicoRefDate = new Date();
+    els.storicoDate.value = toInputDate(storicoRefDate);
+    renderStoricoTable();
+    openBackdrop(els.modalStorico);
+  });
+  els.closeStorico.addEventListener('click', () => closeBackdrop(els.modalStorico));
+  els.modalStorico.addEventListener('click', (e) => { if(e.target === els.modalStorico) closeBackdrop(els.modalStorico); });
+  function shiftStoricoWeek(deltaDays){
+    storicoRefDate = new Date(storicoRefDate.getTime() + deltaDays*DAY_MS);
+    const today = new Date();
+    if(storicoRefDate.getTime() > today.getTime()) storicoRefDate = today;
+    els.storicoDate.value = toInputDate(storicoRefDate);
+    renderStoricoTable();
+  }
+  els.storicoPrev.addEventListener('click', () => shiftStoricoWeek(-7));
+  els.storicoNext.addEventListener('click', () => shiftStoricoWeek(7));
+  els.storicoDate.addEventListener('change', () => {
+    const val = els.storicoDate.value; if(!val) return;
+    storicoRefDate = new Date(val + 'T00:00:00');
+    renderStoricoTable();
+  });
+
+  // ---------- Card 2: Traguardi ----------
+  function rangeStartMs(range){
+    const now = Date.now();
+    if(range === 'week') return now - 7*DAY_MS;
+    if(range === 'month') return now - 30*DAY_MS;
+    if(range === 'year') return now - 365*DAY_MS;
+    return 0;
+  }
+  function renderTraguardiTeaser(){ els.traguardiNum.textContent = state.history.length; }
+
+  function computeTraguardi(range){
+    const start = rangeStartMs(range);
+    const subset = state.history.filter(h => new Date(h.start).getTime() >= start);
+    const totalCount = subset.length;
+    const completedSubset = subset.filter(isCompleted);
+    const completedCount = completedSubset.length;
+    const totalHours = subset.reduce((s,h) => s + actualHours(h), 0);
+    const longest = subset.reduce((m,h) => Math.max(m, actualHours(h)), 0);
+    const avg = totalCount ? totalHours / totalCount : 0;
+    const completionRate = totalCount ? (completedCount/totalCount*100) : 0;
+    const completedDays = [...new Set(completedSubset.map(h => dayKey(h.start)))].sort();
+    let streak = 0, best = 0, prevDay = null;
+    completedDays.forEach(dk => {
+      const t = new Date(dk).getTime();
+      if(prevDay !== null && t - prevDay === DAY_MS) streak += 1; else streak = 1;
+      best = Math.max(best, streak);
+      prevDay = t;
+    });
+    return { completedCount, totalHours, longest, avg, best, completionRate };
+  }
+
+  function renderTraguardiGrid(){
+    const r = computeTraguardi(traguardiRange);
+    els.traguardiGrid.innerHTML = `
+      <div class="stat-card"><div class="stat-val">${r.best}</div><div class="stat-lbl">Serie più lunga (giorni)</div></div>
+      <div class="stat-card"><div class="stat-val">${r.completedCount}</div><div class="stat-lbl">Digiuni totali</div></div>
+      <div class="stat-card"><div class="stat-val">${r.longest.toFixed(1)}h</div><div class="stat-lbl">Digiuno più lungo</div></div>
+      <div class="stat-card"><div class="stat-val">${r.totalHours.toFixed(0)}h</div><div class="stat-lbl">Ore totali</div></div>
+      <div class="stat-card"><div class="stat-val">${r.avg.toFixed(1)}h</div><div class="stat-lbl">Digiuno medio</div></div>
+      <div class="stat-card"><div class="stat-val">${r.completionRate.toFixed(0)}%</div><div class="stat-lbl">Tasso di completamento</div></div>`;
+  }
+
+  els.cardTraguardi.addEventListener('click', () => { renderTraguardiGrid(); openBackdrop(els.modalTraguardi); });
+  els.closeTraguardi.addEventListener('click', () => closeBackdrop(els.modalTraguardi));
+  els.modalTraguardi.addEventListener('click', (e) => { if(e.target === els.modalTraguardi) closeBackdrop(els.modalTraguardi); });
+  els.traguardiTabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('button'); if(!btn) return;
+    traguardiRange = btn.dataset.range;
+    [...els.traguardiTabs.children].forEach(b => b.classList.toggle('active', b === btn));
+    renderTraguardiGrid();
+  });
+
+  // ---------- Card 3: Peso ----------
+  function bmiCategory(bmi){
+    if(bmi < 16.5) return { label: 'Sottopeso severo', color: '#a44646', bg:'#fbe0e0' };
+    if(bmi < 18.5) return { label: 'Sottopeso', color: '#8a6d1f', bg:'#faf3df' };
+    if(bmi < 25.0) return { label: 'Normopeso', color: '#2f6b48', bg:'#e3f3e9' };
+    if(bmi < 30.0) return { label: 'Sovrappeso', color: '#8a6d1f', bg:'#faf3df' };
+    if(bmi < 35.0) return { label: 'Obesità di I grado', color: '#a3672f', bg:'#f7e8d6' };
+    if(bmi < 40.0) return { label: 'Obesità di II grado', color: '#a3502f', bg:'#f7e0d3' };
+    return { label: 'Obesità di III grado', color: '#a44646', bg:'#fbe0e0' };
+  }
+  function latestWeight(){ if(!state.weight.length) return null; return [...state.weight].sort((a,b) => new Date(b.date) - new Date(a.date))[0]; }
+
+  function renderPesoTeaser(){
+    const lw = latestWeight();
+    if(!lw){ els.pesoNum.textContent = '—'; els.pesoNum.className = 'mini-num'; return; }
+    let deltaHtml = '';
+    if(settings.goalWeight){
+      const diff = lw.value - settings.goalWeight;
+      const cls = diff <= 0 ? 'ok' : 'warn';
+      deltaHtml = ` <span class="mini-delta ${cls}">${diff > 0 ? '+' : ''}${diff.toFixed(1)}</span>`;
+    }
+    els.pesoNum.className = 'mini-num';
+    els.pesoNum.innerHTML = lw.value.toFixed(1) + deltaHtml;
+  }
+
+  function renderWeightNowBox(){
+    const lw = latestWeight();
+    let html = '';
+    if(!lw){ html = `<div class="wn-block"><div class="wn-val">—</div><div class="wn-lbl">Nessuna registrazione</div></div>`; }
+    else{
+      html += `<div class="wn-block"><div class="wn-val">${lw.value.toFixed(1)} kg</div><div class="wn-lbl">Ultimo peso registrato</div></div>`;
+      if(settings.goalWeight) html += `<div class="wn-block" style="text-align:right;"><div class="wn-val">${settings.goalWeight.toFixed(1)} kg</div><div class="wn-lbl">Obiettivo</div></div>`;
+    }
+    els.weightNowBox.innerHTML = html;
+  }
+
+  function renderBmiBanner(){
+    const lw = latestWeight();
+    if(!lw || !settings.heightCm){
+      els.bmiBanner.style.background = 'var(--surface-tint)';
+      els.bmiBanner.innerHTML = `<div class="bmi-none" style="color:var(--text-muted);">${!settings.heightCm ? "Imposta l'altezza nelle impostazioni per calcolare il BMI." : 'Registra un peso per calcolare il BMI.'}</div>`;
+      return;
+    }
+    const hM = settings.heightCm/100;
+    const bmi = lw.value / (hM*hM);
+    const cat = bmiCategory(bmi);
+    els.bmiBanner.style.background = cat.bg;
+    els.bmiBanner.innerHTML = `<div class="bmi-num" style="color:${cat.color};">BMI ${bmi.toFixed(1)}</div><div class="bmi-cat" style="color:${cat.color};">${cat.label}</div>`;
+  }
+
+  function renderWeightTable(){
+    const sorted = [...state.weight].sort((a,b) => new Date(b.date) - new Date(a.date));
+    if(!sorted.length){ els.weightTableWrap.innerHTML = '<div class="empty-note">Nessun peso registrato.</div>'; return; }
+    const perPage = 10;
+    const totalPages = Math.max(1, Math.ceil(sorted.length/perPage));
+    if(weightPage > totalPages-1) weightPage = totalPages-1;
+    if(weightPage < 0) weightPage = 0;
+    const pageItems = sorted.slice(weightPage*perPage, weightPage*perPage+perPage);
+    const rows = pageItems.map(w => {
+      let bmiStr = '—';
+      if(settings.heightCm){ const hM = settings.heightCm/100; bmiStr = (w.value/(hM*hM)).toFixed(1); }
+      const dateStr = new Date(w.date).toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'numeric' });
+      return `<tr><td>${dateStr}</td><td>${w.value.toFixed(1)} kg</td><td>${bmiStr}</td></tr>`;
+    }).join('');
+    let html = `<table class="data-table"><thead><tr><th>Data</th><th>Peso</th><th>BMI</th></tr></thead><tbody>${rows}</tbody></table>`;
+    if(totalPages > 1){
+      html += `<div class="pagination"><button id="wtPrev" ${weightPage===0?'disabled':''}>‹ Prec.</button><span>Pagina ${weightPage+1} di ${totalPages}</span><button id="wtNext" ${weightPage>=totalPages-1?'disabled':''}>Succ. ›</button></div>`;
+    }
+    els.weightTableWrap.innerHTML = html;
+  }
+  els.weightTableWrap.addEventListener('click', (e) => {
+    if(e.target.id === 'wtPrev'){ weightPage--; renderWeightTable(); }
+    else if(e.target.id === 'wtNext'){ weightPage++; renderWeightTable(); }
+  });
+
+  function renderWeightChart(){
+    const start = rangeStartMs(pesoRange);
+    const subset = state.weight.filter(w => new Date(w.date).getTime() >= start).sort((a,b) => new Date(a.date) - new Date(b.date));
+    const svg = els.weightChart;
+    svg.innerHTML = '';
+    if(subset.length < 1){ svg.innerHTML = '<text x="160" y="78" text-anchor="middle" font-size="11" fill="#6b8478">Nessun dato nel periodo</text>'; return; }
+    const values = subset.map(w => w.value);
+    const minV = Math.min(...values), maxV = Math.max(...values);
+    const pad = (maxV - minV) * 0.15 || 1;
+    const lo = minV - pad, hi = maxV + pad;
+    const W = 320, H = 150, ML = 8, MR = 8, MT = 10, MB = 10;
+    const xFor = (i) => subset.length === 1 ? W/2 : ML + (i/(subset.length-1)) * (W-ML-MR);
+    const yFor = (v) => MT + (1 - (v-lo)/(hi-lo)) * (H-MT-MB);
+    let path = '';
+    subset.forEach((w,i) => { const x = xFor(i), y = yFor(w.value); path += (i===0 ? `M${x},${y}` : ` L${x},${y}`); });
+    const areaPath = path + ` L${xFor(subset.length-1)},${H-MB} L${xFor(0)},${H-MB} Z`;
+    const ns = 'http://www.w3.org/2000/svg';
+    const area = document.createElementNS(ns,'path'); area.setAttribute('d', areaPath); area.setAttribute('fill','var(--green-pale)'); area.setAttribute('opacity','0.6');
+    const line = document.createElementNS(ns,'path'); line.setAttribute('d', path); line.setAttribute('fill','none'); line.setAttribute('stroke','var(--green)'); line.setAttribute('stroke-width','2.5'); line.setAttribute('stroke-linecap','round'); line.setAttribute('stroke-linejoin','round');
+    svg.appendChild(area); svg.appendChild(line);
+    subset.forEach((w,i) => {
+      const x = xFor(i), y = yFor(w.value);
+      const c = document.createElementNS(ns,'circle'); c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r','3.2'); c.setAttribute('fill','var(--green-deep)');
+      svg.appendChild(c);
+    });
+  }
+
+  els.cardPeso.addEventListener('click', () => {
+    els.newWeightDate.value = toInputDate(new Date());
+    els.newWeightVal.value = '';
+    weightPage = 0;
+    renderBmiBanner(); renderWeightNowBox(); renderWeightTable(); renderWeightChart();
+    openBackdrop(els.modalPeso);
+  });
+  els.closePeso.addEventListener('click', () => closeBackdrop(els.modalPeso));
+  els.modalPeso.addEventListener('click', (e) => { if(e.target === els.modalPeso) closeBackdrop(els.modalPeso); });
+  els.pesoTabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('button'); if(!btn) return;
+    pesoRange = btn.dataset.range;
+    [...els.pesoTabs.children].forEach(b => b.classList.toggle('active', b === btn));
+    renderWeightChart();
+  });
+  els.addWeight.addEventListener('click', () => {
+    const dateVal = els.newWeightDate.value;
+    const val = parseFloat(els.newWeightVal.value);
+    if(!dateVal || !val || val <= 0) return;
+    const existingIdx = state.weight.findIndex(w => w.date === dateVal);
+    if(existingIdx >= 0) state.weight[existingIdx].value = val; else state.weight.push({ date: dateVal, value: val });
+    queueSave();
+    weightPage = 0;
+    renderBmiBanner(); renderWeightNowBox(); renderWeightTable(); renderWeightChart();
+  });
+
+  // ---------- Card 4: Acqua ----------
+  function targetGlasses(){ return Math.max(1, Math.round((settings.waterGoalL || 2) * 1000 / 250)); }
+  function todayWaterCount(){ const e = state.water.find(w => w.date === toInputDate(new Date())); return e ? e.count : 0; }
+  function setTodayWaterCount(n){
+    const tk = toInputDate(new Date());
+    const clamped = Math.max(0, Math.min(targetGlasses(), n));
+    const idx = state.water.findIndex(w => w.date === tk);
+    if(idx >= 0) state.water[idx].count = clamped; else state.water.push({ date: tk, count: clamped });
+    queueSave();
+    renderWaterCard();
+    renderWaterModal();
+  }
+  function renderWaterCard(){
+    const n = targetGlasses(), count = todayWaterCount();
+    const pct = Math.min(1, count/n);
+    const rect = document.getElementById('waterClipRectCard');
+    const h = 80*pct;
+    rect.setAttribute('y', 80-h);
+    rect.setAttribute('height', h);
+    els.acquaLabel.textContent = `${count}/${n}`;
+  }
+  function renderWaterModal(){
+    const n = targetGlasses(), count = todayWaterCount();
+    els.acquaSummary.textContent = `${count} di ${n} bicchieri · ${(count*0.25).toFixed(2)} L su ${(settings.waterGoalL||2).toFixed(1)} L`;
+    els.waterGlassesGrid.innerHTML = '';
+    for(let i=0;i<n;i++){
+      const wrap = document.createElement('div');
+      wrap.className = 'glass-icon' + (i < count ? ' filled' : '');
+      wrap.innerHTML = `<svg viewBox="0 0 44 44"><path class="go" d="M22 4 C22 4 6 24 6 38 A16 16 0 0 0 38 38 C38 24 22 4 22 4 Z"></path></svg>`;
+      wrap.addEventListener('click', () => {
+        const current = todayWaterCount();
+        if(i < current) setTodayWaterCount(i); else setTodayWaterCount(i+1);
+      });
+      els.waterGlassesGrid.appendChild(wrap);
+    }
+  }
+  els.cardAcqua.addEventListener('click', () => { renderWaterModal(); openBackdrop(els.modalAcqua); });
+  els.closeAcqua.addEventListener('click', () => closeBackdrop(els.modalAcqua));
+  els.modalAcqua.addEventListener('click', (e) => { if(e.target === els.modalAcqua) closeBackdrop(els.modalAcqua); });
+
+  // ---------- Render everything ----------
+  function renderAllCards(){
+    renderStorico();
+    renderTraguardiTeaser();
+    renderPesoTeaser();
+    renderWaterCard();
+  }
+
+  // ---------- Init ----------
+  els.storicoDate.value = toInputDate(storicoRefDate);
+  renderTypeGrid();
+  updateTypeLabel();
+  updateSyncNote();
+  renderMain();
+  renderAllCards();
+  syncFromGitHub().then(() => { renderMain(); renderAllCards(); });
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
