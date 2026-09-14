@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#081426">
+  <title>Partite in TV</title>
+  <style>
+    :root{
+      --bg:#07111f; --panel:#0d1b2d; --panel-2:#11243b; --text:#f5f7fb;
+      --muted:#9fb0c5; --line:#203650; --accent:#33d17a; --accent-2:#5aa7ff;
+      --danger:#ff6b6b; --shadow:0 18px 45px rgba(0,0,0,.28);
+    }
+    *{box-sizing:border-box}
+    html{color-scheme:dark}
+    body{margin:0; min-height:100vh; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(circle at 85% 0,#12335a 0,transparent 34%),var(--bg); color:var(--text)}
+    button{font:inherit}
+    .shell{width:min(1040px,calc(100% - 28px)); margin:0 auto; padding:28px 0 54px}
+    header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px}
+    .eyebrow{margin:0 0 5px;color:var(--accent);font-size:.78rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+    h1{font-size:clamp(2rem,5vw,3.7rem);line-height:1;margin:0;letter-spacing:-.045em}
+    #clock{color:var(--muted);font-weight:650;white-space:nowrap}
+    .tabs{display:flex;gap:9px;overflow:auto;padding:3px 1px 12px;margin-bottom:15px;scrollbar-width:thin}
+    .tab{border:1px solid var(--line);background:rgba(13,27,45,.76);color:var(--muted);padding:10px 16px;border-radius:999px;cursor:pointer;font-weight:750;transition:.2s ease;white-space:nowrap}
+    .tab:hover{border-color:#3f5e80;color:var(--text)}
+    .tab[aria-selected="true"]{background:var(--text);border-color:var(--text);color:#081426}
+    .section{margin-top:22px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:11px}
+    .section-title{display:flex;align-items:center;gap:10px;margin:0;font-size:1.08rem}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 6px rgba(51,209,122,.12)}
+    .count{color:var(--muted);font-size:.86rem;font-weight:700}
+    .grid{display:grid;gap:12px}
+    .card{position:relative;display:grid;grid-template-columns:112px 1fr auto;gap:18px;align-items:center;padding:18px;border:1px solid var(--line);border-radius:19px;background:linear-gradient(145deg,rgba(17,36,59,.98),rgba(10,25,42,.96));box-shadow:var(--shadow)}
+    .card.live{border-color:rgba(51,209,122,.48)}
+    .time{font-size:1.45rem;font-weight:850;letter-spacing:-.03em}
+    .date{margin-top:4px;color:var(--muted);font-size:.78rem;text-transform:capitalize}
+    .match{font-size:clamp(1.05rem,3vw,1.3rem);font-weight:780;letter-spacing:-.015em}
+    .meta{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:7px;color:var(--muted);font-size:.9rem}
+    .league{color:#d4e6ff}
+    .badge{align-self:start;padding:7px 10px;border-radius:999px;color:var(--accent);background:rgba(51,209,122,.1);font-size:.72rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+    .badge.next{color:var(--accent-2);background:rgba(90,167,255,.11)}
+    .empty,.error{border:1px dashed var(--line);border-radius:18px;background:rgba(13,27,45,.55);color:var(--muted);padding:28px;text-align:center}
+    .error{border-color:rgba(255,107,107,.42);color:#ffd0d0}
+    .loading{height:98px;border-radius:18px;background:linear-gradient(90deg,var(--panel) 25%,var(--panel-2) 50%,var(--panel) 75%);background-size:200% 100%;animation:shine 1.15s infinite}
+    @keyframes shine{to{background-position:-200% 0}}
+    footer{margin-top:28px;color:#71869f;font-size:.78rem;text-align:center}
+    @media(max-width:650px){
+      .shell{width:min(100% - 20px,1040px);padding-top:20px}
+      header{align-items:flex-start;flex-direction:column;gap:10px}
+      .card{grid-template-columns:76px 1fr;gap:12px;padding:15px}
+      .badge{position:absolute;right:13px;top:13px;font-size:.65rem;padding:5px 8px}
+      .match{padding-right:55px}.meta{flex-direction:column;gap:4px}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div><p class="eyebrow">Programmazione calcio</p><h1>Partite in TV</h1></div>
+      <div id="clock" aria-live="polite"></div>
+    </header>
+
+    <nav class="tabs" aria-label="Giorno da visualizzare">
+      <button class="tab" data-day="0" aria-selected="true">Oggi</button>
+      <button class="tab" data-day="1" aria-selected="false">Domani</button>
+      <button class="tab" data-day="2" aria-selected="false">Dopodomani</button>
+    </nav>
+
+    <div id="status" aria-live="polite"><div class="loading"></div></div>
+    <div id="content" hidden></div>
+    <footer>I dati sono letti automaticamente da <strong>partite.json</strong>. Aggiornamento della schermata ogni 30 secondi.</footer>
+  </main>
+
+  <script>
+    const DATA_URL = './partite.json';
+    const MATCH_MINUTES = 105;
+    const REFRESH_MS = 30_000;
+    const TIME_ZONE = 'Europe/Rome';
+
+    let matches = [];
+    let selectedDay = 0;
+
+    const content = document.querySelector('#content');
+    const statusBox = document.querySelector('#status');
+    const clock = document.querySelector('#clock');
+    const tabs = [...document.querySelectorAll('.tab')];
+
+    const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+    function parseLocalDateTime(value){
+      const m = String(value).trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})$/);
+      if(!m) return null;
+      const [,y,mo,d,h,mi] = m.map(Number);
+      const date = new Date(y,mo-1,d,h,mi,0,0);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function startOfDay(date){ return new Date(date.getFullYear(),date.getMonth(),date.getDate()); }
+    function addDays(date,n){ const d = new Date(date); d.setDate(d.getDate()+n); return d; }
+    function sameLocalDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+    function endTime(start){ return new Date(start.getTime()+MATCH_MINUTES*60_000); }
+
+    const timeFmt = new Intl.DateTimeFormat('it-IT',{hour:'2-digit',minute:'2-digit'});
+    const dateFmt = new Intl.DateTimeFormat('it-IT',{weekday:'short',day:'2-digit',month:'short'});
+    const clockFmt = new Intl.DateTimeFormat('it-IT',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:TIME_ZONE});
+
+    function card(match,isLive){
+      const start = match._start;
+      return `<article class="card ${isLive?'live':''}">
+        <div><div class="time">${timeFmt.format(start)}</div><div class="date">${dateFmt.format(start)}</div></div>
+        <div><div class="match">${esc(match.Partita)}</div><div class="meta"><span class="league">${esc(match.Lega || 'Lega non indicata')}</span><span>${esc(match.Canale || 'Canale non indicato')}</span></div></div>
+        <span class="badge ${isLive?'':'next'}">${isLive?'In onda':'In programma'}</span>
+      </article>`;
+    }
+
+    function section(title,list,type){
+      const isLive = type==='live';
+      const body = list.length ? `<div class="grid">${list.map(m=>card(m,isLive)).join('')}</div>` : `<div class="empty">${isLive?'Nessuna partita in onda in questo momento.':'Nessuna partita prevista.'}</div>`;
+      return `<section class="section"><div class="section-head"><h2 class="section-title">${isLive?'<span class="dot"></span>':''}${title}</h2><span class="count">${list.length} ${list.length===1?'partita':'partite'}</span></div>${body}</section>`;
+    }
+
+    function render(){
+      const now = new Date();
+      clock.textContent = clockFmt.format(now);
+      if(!matches.length){ content.innerHTML='<div class="empty">Nessuna partita disponibile nel file JSON.</div>'; return; }
+
+      if(selectedDay===0){
+        const live = matches.filter(m => m._start <= now && now < endTime(m._start));
+        const upcoming = matches.filter(m => sameLocalDay(m._start,now) && m._start > now);
+        content.innerHTML = section('In onda ora',live,'live') + section('Prossime di oggi',upcoming,'next');
+      }else{
+        const target = addDays(startOfDay(now),selectedDay);
+        const list = matches.filter(m => sameLocalDay(m._start,target));
+        const label = selectedDay===1 ? 'Partite di domani' : 'Partite di dopodomani';
+        content.innerHTML = section(label,list,'next');
+      }
+    }
+
+    async function loadData(){
+      try{
+        const response = await fetch(`${DATA_URL}?v=${Date.now()}`,{cache:'no-store'});
+        if(!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if(!Array.isArray(data)) throw new Error('Il JSON deve contenere un array.');
+        matches = data.map(item=>({...item,_start:parseLocalDateTime(item.DATA)})).filter(item=>item._start).sort((a,b)=>a._start-b._start);
+        statusBox.hidden = true; content.hidden = false; render();
+      }catch(error){
+        statusBox.innerHTML = `<div class="error"><strong>Impossibile caricare partite.json</strong><br><small>${esc(error.message)}. Verifica che il file sia nella stessa cartella di index.html e che il JSON sia valido.</small></div>`;
+        content.hidden = true;
+      }
+    }
+
+    tabs.forEach(tab=>tab.addEventListener('click',()=>{
+      selectedDay=Number(tab.dataset.day);
+      tabs.forEach(t=>t.setAttribute('aria-selected',String(t===tab)));
+      render();
+    }));
+
+    loadData();
+    setInterval(render,REFRESH_MS);
+  </script>
+</body>
+</html>
