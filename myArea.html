@@ -282,9 +282,10 @@ function has(f,pt){
 function check(ll){
   selected=(data.features||[]).find(f=>has(f,ll));
   pos=ll;
+  draw(false);
   if(marker)map.removeLayer(marker);
   marker=L.circleMarker(ll,{radius:8,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).addTo(map);
-  draw(false);
+  marker.bringToFront();
   $('google').disabled=false;
   let c=$('card');
   if(selected){
