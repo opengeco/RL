@@ -27,7 +27,9 @@ html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;color:var(-
 .ttl{font-size:17px;font-weight:750;margin-bottom:5px}
 .det{font-size:13px;line-height:1.5}
 .det b{color:var(--b)}
+.ag-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ag{font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--t)}
+.stato{font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.4px;color:#166534;background:#dcfce7;border-radius:20px;padding:3px 9px;white-space:nowrap}
 .mand{font-size:13px;color:#9aa4b1;margin-top:1px}
 .zline{font-size:12px;color:var(--m);margin-top:6px}
 .contacts{display:flex;flex-direction:column;gap:5px;margin-top:9px}
@@ -207,10 +209,10 @@ select.txt{background:#fff;appearance:auto}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@tmcw/togeojson@5.8.1/dist/togeojson.umd.js"></script>
 <script>
-const BUILTIN={"type":"FeatureCollection","features":[{"type":"Feature","properties":{"agenzia":"Nettuno (esempio)","zona":"Lazio 2","rdz":"Marco Esposito","emailRdz":"rdz.lazio2@esempio.it","mandatario":"Studio Bianchi & Verdi","telefonoMandatario":"+39 06 1234567","emailMandatario":"mandatario.nettuno@esempio.it","emailAgenzia":"agenzia.nettuno@esempio.it","colore":"#16a34a"},"geometry":{"type":"Polygon","coordinates":[[[12.61,41.405],[12.755,41.405],[12.755,41.535],[12.61,41.535],[12.61,41.405]]]}},{"type":"Feature","properties":{"agenzia":"Latina (esempio)","zona":"Lazio 2","rdz":"Marco Esposito","emailRdz":"rdz.lazio2@esempio.it","mandatario":"Agenzia Colonna","telefonoMandatario":"+39 077 3456789","emailMandatario":"mandatario.latina@esempio.it","emailAgenzia":"agenzia.latina@esempio.it","colore":"#2563eb"},"geometry":{"type":"Polygon","coordinates":[[[12.78,41.38],[13.02,41.38],[13.02,41.56],[12.78,41.56],[12.78,41.38]]]}}]};
+const BUILTIN={"type":"FeatureCollection","features":[{"type":"Feature","properties":{"AGENZIA":"ATESSA (esempio)","STATO":"ASSEGNATA","ZONA":"ABRUZZO","RDZ":"CHIARAMONTE","EMAILAGENZIA":"atessa@mandatarie.siae.it","EMAILRDZ":"abruzzo.areacentro@siae.it","TELEFONOMANDATARIO":"","MANDATARIO":"RE Giulio"},"geometry":{"type":"Polygon","coordinates":[[[14.05,42.2],[14.22,42.2],[14.22,42.34],[14.05,42.34],[14.05,42.2]]]}},{"type":"Feature","properties":{"AGENZIA":"PESCARA (esempio)","STATO":"ASSEGNATA","ZONA":"ABRUZZO","RDZ":"CHIARAMONTE","EMAILAGENZIA":"pescara@mandatarie.siae.it","EMAILRDZ":"abruzzo.areacentro@siae.it","TELEFONOMANDATARIO":"+39 085 1234567","MANDATARIO":"Verdi Anna"},"geometry":{"type":"Polygon","coordinates":[[[14.15,42.38],[14.35,42.38],[14.35,42.52],[14.15,42.52],[14.15,42.38]]]}}]};
 
 const $=i=>document.getElementById(i);
-const map=L.map('map').setView([42.2,12.7],6);
+const map=L.map('map').setView([42.2,12.7],10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
 
 let data=BUILTIN, layer, marker, selected, pos;
@@ -229,25 +231,25 @@ function notice(msg,type='muted'){
 
 function contactsHTML(p){
   let out='';
-  if(p.telefonoMandatario){
-    let tel=String(p.telefonoMandatario).replace(/[^\d+]/g,'');
-    out+=`<a class="clink" href="tel:${tel}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(p.telefonoMandatario)}</a>`;
+  if(p.TELEFONOMANDATARIO){
+    let tel=String(p.TELEFONOMANDATARIO).replace(/[^\d+]/g,'');
+    out+=`<a class="clink" href="tel:${tel}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(p.TELEFONOMANDATARIO)}</a>`;
   }
-  if(p.emailMandatario){
-    out+=`<a class="clink" href="mailto:${esc(p.emailMandatario)}"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${esc(p.emailMandatario)}</a>`;
+  if(p.EMAILMANDATARIO){
+    out+=`<a class="clink" href="mailto:${esc(p.EMAILMANDATARIO)}"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${esc(p.EMAILMANDATARIO)}</a>`;
   }
   return out?`<div class="contacts">${out}</div>`:'';
 }
 function style(f){
-  let a=f===selected, c=a?(f.properties?.colore||'#16a34a'):'#64748b';
-  return{color:c,weight:a?4:2,fillColor:c,fillOpacity:a?.35:.13};
+  let a=f===selected;
+  return{color:a?'#16a34a':'#64748b',weight:a?4:2,fillColor:a?'#16a34a':'#64748b',fillOpacity:a?.35:.13};
 }
 function infoBlock(p){
   return `<div class="info-wrap">`
-    +`<button class="rb" onclick="reportIssue('${esc(p.agenzia||'')}')" title="Segnala anomalia" aria-label="Segnala anomalia"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>`
-    +`<div class="ag">${esc(p.agenzia||'Territorio')}</div>`
-    +(p.mandatario?`<div class="mand">${esc(p.mandatario)}</div>`:'')
-    +`<div class="zline">Zona: ${esc(p.zona||'Non indicata')}${p.rdz?' · RdZ: '+esc(p.rdz):''}</div>`
+    +`<button class="rb" onclick="reportIssue('${esc(p.AGENZIA||'')}')" title="Segnala anomalia" aria-label="Segnala anomalia"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>`
+    +`<div class="ag-row"><div class="ag">${esc(p.AGENZIA||'Territorio')}</div>${p.STATO?`<span class="stato">${esc(p.STATO)}</span>`:''}</div>`
+    +(p.MANDATARIO?`<div class="mand">${esc(p.MANDATARIO)}</div>`:'')
+    +`<div class="zline">Zona: ${esc(p.ZONA||'Non indicata')}${p.RDZ?' · RdZ: '+esc(p.RDZ):''}</div>`
     +contactsHTML(p)
     +`</div>`;
 }
@@ -256,7 +258,7 @@ function popup(f){
 }
 function draw(fit=true){
   if(layer)map.removeLayer(layer);
-  layer=L.geoJSON(data,{style,onEachFeature:(f,l)=>l.bindPopup(popup(f))}).addTo(map);
+  layer=L.geoJSON(data,{style,onEachFeature:(f,l)=>{l.bindPopup(popup(f));l.on('click',e=>check(e.latlng));}}).addTo(map);
   if(fit&&layer.getBounds().isValid())map.fitBounds(layer.getBounds(),{padding:[25,25]});
 }
 function ring(pt,r){
@@ -336,7 +338,7 @@ let reportPhotoFile=null;
 function renderReportCoord(){
   reportCtx.lat=pos?pos.lat:null;
   reportCtx.lng=pos?pos.lng:null;
-  reportCtx.nome=selected?.properties?.agenzia||reportCtx.nome;
+  reportCtx.nome=selected?.properties?.AGENZIA||reportCtx.nome;
   const hasPos=reportCtx.lat!=null&&reportCtx.lng!=null;
   $('reportCoord').innerHTML=hasPos
     ? `<a class="clink" href="https://www.google.com/maps?q=${reportCtx.lat},${reportCtx.lng}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${reportCtx.lat.toFixed(6)}, ${reportCtx.lng.toFixed(6)}</a>${reportCtx.nome?`<div class="mand" style="margin-top:6px">${esc(reportCtx.nome)}</div>`:''}`
@@ -418,12 +420,12 @@ $('reportSend').onclick=async()=>{
 
 $('reportMail').onclick=()=>{
   const p=selected?.properties||{};
-  const to=encodeURIComponent(p.emailAgenzia||'');
-  const cc=encodeURIComponent(p.emailRdz||'');
+  const to=encodeURIComponent(p.EMAILAGENZIA||'');
+  const cc=encodeURIComponent(p.EMAILRDZ||'');
   const oggi=new Date().toLocaleDateString('it-IT');
-  const subject=encodeURIComponent(`Segnalazione - ${reportCtx.nome||p.agenzia||''} - ${oggi}`);
+  const subject=encodeURIComponent(`Segnalazione - ${reportCtx.nome||p.AGENZIA||''} - ${oggi}`);
   const body=encodeURIComponent(reportLines().join('\n')+'\n\nmyArea');
-  if(!p.emailAgenzia)notice('Email agenzia non presente nei dati: compila il destinatario a mano','muted');
+  if(!p.EMAILAGENZIA)notice('Email agenzia non presente nei dati: compila il destinatario a mano','muted');
   if(reportPhotoFile)notice('La foto viene scaricata: allegala manualmente alla mail (i link email non supportano allegati automatici)','muted');
   if(reportPhotoFile){
     const a=document.createElement('a');
@@ -438,7 +440,7 @@ $('reportMail').onclick=()=>{
 };
 
 function reportIssue(nome){
-  const n=nome||selected?.properties?.agenzia||'';
+  const n=nome||selected?.properties?.AGENZIA||'';
   openReportModal(n);
 }
 map.on('click',e=>check(e.latlng));
