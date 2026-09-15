@@ -702,8 +702,20 @@ async function loadRegistry(silent){
 }
 async function saveIndex(message){
   const content=b64EncodeUtf8(JSON.stringify(regEntries,null,2));
-  const res=await ghPutFile(REG_PATH,content,regSha,message);
-  regSha=res.content?res.content.sha:regSha;
+  try{
+    const res=await ghPutFile(REG_PATH,content,regSha,message);
+    regSha=res.content?res.content.sha:regSha;
+  }catch(x){
+    // sha mancante o non aggiornato (es. modifica concorrente): ricarica e ritenta una volta
+    if(/sha/i.test(x.message)){
+      const f=await ghGetFile(REG_PATH).catch(()=>null);
+      regSha=f?f.sha:null;
+      const res2=await ghPutFile(REG_PATH,content,regSha,message);
+      regSha=res2.content?res2.content.sha:regSha;
+    }else{
+      throw x;
+    }
+  }
 }
 async function openView(id){
   const r=regEntries.find(x=>x.id===id);
@@ -790,7 +802,12 @@ $('reportRegistra').onclick=async()=>{
       const res=await ghPutFile(path,b64,null,'Allegato segnalazione '+id);
       foto.push({path,type:reportPhotoFile.type||'image/jpeg',sha:res.content?res.content.sha:null});
     }
-    const f=await ghGetFile(REG_PATH).catch(()=>null);
+    let f;
+    try{
+      f=await ghGetFile(REG_PATH);
+    }catch(x){
+      throw Error('Impossibile leggere il registro segnalazioni: '+x.message);
+    }
     regSha=f?f.sha:null;
     regEntries=f&&f.content?JSON.parse(f.content):[];
     regEntries.push({
