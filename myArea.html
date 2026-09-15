@@ -83,6 +83,28 @@ select.txt{background:#fff;appearance:auto}
 .notice.show{display:block}
 .notice.ok{border-color:var(--g);color:#166534}
 .notice.err{border-color:#b91c1c;color:#991b1b}
+.stat-row{display:flex;gap:10px;margin-bottom:14px}
+.stat-card{flex:1;background:#f4f7fa;border-radius:12px;padding:12px 14px;text-align:center}
+.stat-num{font-size:24px;font-weight:800;color:var(--b)}
+.stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--m);font-weight:700;margin-top:2px}
+.reg-toolbar{display:flex;gap:9px;margin-bottom:12px}
+.reg-toolbar .ab{min-height:38px}
+.reg-table-wrap{overflow-x:auto}
+.reg-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.reg-table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--m);font-weight:700;padding:6px 8px;border-bottom:2px solid var(--l);white-space:nowrap}
+.reg-table td{padding:7px 8px;border-bottom:1px solid var(--l);vertical-align:middle;white-space:nowrap}
+.reg-table tr.sent{opacity:.55}
+.reg-table input[type=checkbox]{width:16px;height:16px;accent-color:var(--b);cursor:pointer}
+.reg-locale{color:var(--b);text-decoration:none;font-weight:650}
+.reg-locale:hover{text-decoration:underline}
+.tbtn{width:30px;height:30px;border:0;border-radius:8px;background:#f4f7fa;color:var(--m);display:grid;place-items:center;cursor:pointer}
+.tbtn:hover{background:#e7eef5;color:var(--t)}
+.tbtn.del:hover{background:#fdeaea;color:#b91c1c}
+.badge-sent{font-size:10px;font-weight:750;text-transform:uppercase;color:#166534;background:#dcfce7;border-radius:20px;padding:2px 7px;margin-left:6px}
+.view-row{font-size:13px;line-height:1.6;margin-bottom:9px}
+.view-row b{color:var(--b);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.view-photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.view-photos img{width:84px;height:84px;object-fit:cover;border-radius:9px;cursor:pointer}
 @media(max-width:600px){.back{align-items:flex-end;padding:0}.modal{width:100%;max-height:88vh;border-radius:18px 18px 0 0}.card{bottom:11px}}
 </style>
 </head>
@@ -91,6 +113,8 @@ select.txt{background:#fff;appearance:auto}
   <div class="brand">myArea</div>
   <div class="icons">
     <button id="gpsTop" class="ib" title="Localizzami" aria-label="Localizzami"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>
+    <button id="addressBtn" class="ib" title="Cerca indirizzo" aria-label="Cerca indirizzo"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+    <button id="registryBtn" class="ib" title="Segnalazioni registrate" aria-label="Segnalazioni registrate"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button>
     <button id="gear" class="ib" title="Configurazione" aria-label="Configurazione"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
 </header>
@@ -130,7 +154,7 @@ select.txt{background:#fff;appearance:auto}
           <div id="ghStatus" class="status">Nessuna sorgente remota configurata — in uso il file demo incorporato.</div>
         </div>
         <div class="help" style="margin-top:10px">
-          Il token resta solo in questo browser (<code>localStorage</code>), non viene mai scritto nel codice dell'app. Crea un <b>fine-grained personal access token</b> con accesso in sola lettura ("Contents: Read-only") limitato a questa singola repo privata, così anche se qualcuno lo intercettasse non avrebbe accesso ad altro.
+          Il token resta solo in questo browser (<code>localStorage</code>), non viene mai scritto nel codice dell'app. Lo stesso token viene usato anche per registrare le segnalazioni (cartella <code>segnalazioni/</code> nella stessa repo): crea un <b>fine-grained personal access token</b> con permesso <b>"Contents: Read and write"</b> limitato a questa singola repo privata, così anche se qualcuno lo intercettasse non avrebbe accesso ad altro.
         </div>
       </section>
 
@@ -156,7 +180,10 @@ select.txt{background:#fff;appearance:auto}
     <div class="mc">
       <section class="sec">
         <div id="reportCoord"></div>
-        <button id="reportGps" class="ab secbtn wide" style="margin-top:9px"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Recupera posizione GPS</button>
+        <div class="grid" style="margin-top:9px">
+          <input id="reportNomeLuogo" class="txt" style="grid-column:auto" placeholder="Nome del posto segnalato">
+          <button id="reportGps" class="ab secbtn"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Recupera posizione GPS</button>
+        </div>
       </section>
       <section class="sec">
         <h2>Categoria</h2>
@@ -195,14 +222,62 @@ select.txt{background:#fff;appearance:auto}
       <section class="sec">
         <div id="reportPhotoPreview"></div>
         <input type="file" id="reportPhoto" accept="image/*" capture="environment" style="display:none">
-        <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
           <button id="reportCancel" class="ab secbtn" title="Annulla" aria-label="Annulla"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <button id="reportPhotoBtn" class="ab secbtn" title="Scatta foto" aria-label="Scatta foto"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          <button id="reportRegistra" class="ab secbtn" title="Registra" aria-label="Registra"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
           <button id="reportMail" class="ab secbtn" title="Invia via email (agenzia + RdZ in cc)" aria-label="Invia via email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></button>
           <button id="reportSend" class="ab pri" title="Invia segnalazione" aria-label="Invia segnalazione"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
         </div>
       </section>
     </div>
+  </div>
+</div>
+
+<div id="addrBack" class="back" role="dialog" aria-modal="true" aria-labelledby="addrTitle">
+  <div class="modal">
+    <div class="mh"><div id="addrTitle" class="mt">Cerca indirizzo</div><button id="addrClose" class="x" aria-label="Chiudi">×</button></div>
+    <div class="mc">
+      <section class="sec">
+        <div class="grid">
+          <input id="addrInput" class="txt wide" placeholder="Toponimo, indirizzo, civico, comune, provincia">
+          <div class="help wide">Es: Via, Roma, 12, Pescara, PE. Se il civico non è noto, ometterlo: verrà usato il centro della via.</div>
+          <button id="addrCancel" class="ab secbtn">Annulla</button>
+          <button id="addrSearch" class="ab pri">Cerca</button>
+          <div id="addrStatus" class="status wide"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div id="regBack" class="back" role="dialog" aria-modal="true" aria-labelledby="regTitle">
+  <div class="modal" style="width:min(720px,100%)">
+    <div class="mh"><div id="regTitle" class="mt">Segnalazioni</div><button id="regClose" class="x" aria-label="Chiudi">×</button></div>
+    <div class="mc">
+      <div class="stat-row">
+        <div class="stat-card"><div id="statInviate" class="stat-num">0</div><div class="stat-lbl">Inviate</div></div>
+        <div class="stat-card"><div id="statRegistrate" class="stat-num">0</div><div class="stat-lbl">Registrate</div></div>
+      </div>
+      <div class="reg-toolbar">
+        <button id="regRefresh" class="ab secbtn" title="Aggiorna" aria-label="Aggiorna"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+        <button id="regSendSel" class="ab pri" title="Invia selezionate" aria-label="Invia selezionate"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Invia selezionate</button>
+      </div>
+      <div id="regTableWrap" class="reg-table-wrap">
+        <table class="reg-table">
+          <thead><tr><th></th><th>Data</th><th>Zona</th><th>Agenzia</th><th>Locale</th><th>Categoria</th><th></th><th></th></tr></thead>
+          <tbody id="regBody"></tbody>
+        </table>
+        <div id="regEmpty" class="muted" style="padding:14px 4px">Nessuna segnalazione registrata.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="viewBack" class="back" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
+  <div class="modal">
+    <div class="mh"><div id="viewTitle" class="mt">Segnalazione</div><button id="viewClose" class="x" aria-label="Chiudi">×</button></div>
+    <div class="mc" id="viewBody"></div>
   </div>
 </div>
 
@@ -253,12 +328,9 @@ function infoBlock(p){
     +contactsHTML(p)
     +`</div>`;
 }
-function popup(f){
-  return infoBlock(f.properties||{});
-}
 function draw(fit=true){
   if(layer)map.removeLayer(layer);
-  layer=L.geoJSON(data,{style,onEachFeature:(f,l)=>{l.bindPopup(popup(f));l.on('click',e=>check(e.latlng));}}).addTo(map);
+  layer=L.geoJSON(data,{style,onEachFeature:(f,l)=>{l.on('click',e=>check(e.latlng));}}).addTo(map);
   if(fit&&layer.getBounds().isValid())map.fitBounds(layer.getBounds(),{padding:[25,25]});
 }
 function ring(pt,r){
@@ -295,7 +367,7 @@ function check(ll){
     $('details').innerHTML=infoBlock(p)
       +`<div class="coord" style="margin-top:8px;color:#a3b0c0">${ll.lat.toFixed(6)}, ${ll.lng.toFixed(6)}</div>`;
     let x=layer.getLayers().find(l=>l.feature===selected);
-    if(x){map.fitBounds(x.getBounds(),{padding:[45,45],maxZoom:13});x.openPopup();}
+    if(x){map.fitBounds(x.getBounds(),{padding:[45,45],maxZoom:13});}
   }else{
     c.className='card out';
     $('title').textContent='Nessuna competenza trovata';
@@ -328,7 +400,7 @@ function reset(){
 $('gear').onclick=()=>$('back').classList.add('open');
 $('close').onclick=closeModal;
 $('back').onclick=e=>{if(e.target===$('back'))closeModal();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeReportModal();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeReportModal();$('regBack').classList.remove('open');$('viewBack').classList.remove('open');$('addrBack').classList.remove('open');}});
 $('gps').onclick=$('gpsTop').onclick=gps;
 $('fit').onclick=()=>{closeModal();map.fitBounds(layer.getBounds(),{padding:[25,25]});};
 $('reset').onclick=reset;
@@ -348,6 +420,7 @@ function renderReportCoord(){
 function openReportModal(nome){
   reportCtx={nome:nome||'',lat:pos?pos.lat:null,lng:pos?pos.lng:null};
   renderReportCoord();
+  $('reportNomeLuogo').value='';
   $('chkMda').checked=false;
   $('chkSky').checked=false;
   $('chkEvento').checked=false;
@@ -390,11 +463,13 @@ function reportLines(){
   if($('chkEvento').checked)cats.push('Evento');
   const tipo=$('reportTipo').value;
   const note=$('reportNote').value.trim();
+  const nomeLuogo=$('reportNomeLuogo').value.trim();
   let lines=['Segnalazione'];
   if(reportCtx.nome)lines.push(`Agenzia: ${reportCtx.nome}`);
   if(reportCtx.lat!=null)lines.push(`Coordinate: https://www.google.com/maps?q=${reportCtx.lat},${reportCtx.lng}`);
   if(cats.length)lines.push(`Categoria: ${cats.join(', ')}`);
   if(tipo)lines.push(`Tipo: ${tipo}`);
+  if(nomeLuogo)lines.push(`Nome: ${nomeLuogo}`);
   if(note)lines.push(`Note: ${note}`);
   return lines;
 }
@@ -524,6 +599,300 @@ $('ghClear').onclick=()=>{
   selected=null;
   draw(true);
   notice('Configurazione rimossa, ripristinato il file demo');
+};
+
+// --- Utility base64 (UTF-8 safe) e file->base64 ---
+function b64EncodeUtf8(str){return btoa(unescape(encodeURIComponent(str)));}
+function b64DecodeUtf8(b64){return decodeURIComponent(escape(atob(b64)));}
+function fileToBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result.split(',')[1]);
+    r.onerror=()=>rej(Error('Lettura file non riuscita'));
+    r.readAsDataURL(file);
+  });
+}
+
+// --- GitHub Contents API (lettura/scrittura), repo condivisa con la sorgente dati ---
+async function ghApi(path,opts={}){
+  const c=ghConfig();
+  const url=`https://api.github.com/repos/${c.repo}/contents/${encodeURIComponent(path).replace(/%2F/g,'/')}`;
+  return fetch(url,{...opts,headers:{
+    'Accept':'application/vnd.github.v3+json',
+    ...(c.token?{'Authorization':'token '+c.token}:{}),
+    ...(opts.headers||{})
+  }});
+}
+async function ghGetFile(path){
+  const c=ghConfig();
+  const res=await ghApi(path+`?ref=${encodeURIComponent(c.branch||'main')}`);
+  if(res.status===404)return null;
+  if(!res.ok)throw Error(`Errore GitHub (${res.status})`);
+  const j=await res.json();
+  return{sha:j.sha,content:j.content?b64DecodeUtf8(j.content.replace(/\n/g,'')):''};
+}
+async function ghGetFileRaw(path){
+  const c=ghConfig();
+  const res=await ghApi(path+`?ref=${encodeURIComponent(c.branch||'main')}`);
+  if(!res.ok)throw Error('Allegato non trovato');
+  const j=await res.json();
+  return(j.content||'').replace(/\n/g,'');
+}
+async function ghPutFile(path,contentBase64,sha,message){
+  const c=ghConfig();
+  const res=await ghApi(path,{method:'PUT',body:JSON.stringify({message,content:contentBase64,branch:c.branch||'main',...(sha?{sha}:{})})});
+  if(!res.ok){const j=await res.json().catch(()=>({}));throw Error(j.message||`Errore GitHub (${res.status})`);}
+  return res.json();
+}
+async function ghDeleteFile(path,sha,message){
+  const c=ghConfig();
+  const res=await ghApi(path,{method:'DELETE',body:JSON.stringify({message,sha,branch:c.branch||'main'})});
+  if(!res.ok){const j=await res.json().catch(()=>({}));throw Error(j.message||`Errore GitHub (${res.status})`);}
+}
+
+// --- Registro segnalazioni ---
+const REG_PATH='segnalazioni/index.json';
+let regEntries=[],regSha=null;
+
+function updateStatCards(){
+  $('statInviate').textContent=regEntries.filter(r=>r.inviata).length;
+  $('statRegistrate').textContent=regEntries.length;
+}
+function renderRegistry(){
+  updateStatCards();
+  const body=$('regBody');
+  if(!regEntries.length){body.innerHTML='';$('regEmpty').style.display='block';return;}
+  $('regEmpty').style.display='none';
+  body.innerHTML=regEntries.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(r=>{
+    const mapsUrl=(r.lat!=null)?`https://www.google.com/maps?q=${r.lat},${r.lng}`:'';
+    return `<tr class="${r.inviata?'sent':''}" data-id="${esc(r.id)}">
+      <td><input type="checkbox" class="regChk" ${r.inviata?'disabled':''}></td>
+      <td>${esc(r.data||'')}</td>
+      <td>${esc(r.zona||'')}</td>
+      <td>${esc(r.agenzia||'')}</td>
+      <td>${mapsUrl?`<a class="reg-locale" href="${mapsUrl}" target="_blank" rel="noopener">${esc(r.locale||'—')}</a>`:esc(r.locale||'—')}</td>
+      <td>${esc((r.categoria||[]).join(', '))}${r.inviata?'<span class="badge-sent">Inviata</span>':''}</td>
+      <td><button class="tbtn viewBtn" title="Dettagli" aria-label="Dettagli"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></td>
+      <td><button class="tbtn del delBtn" title="Elimina" aria-label="Elimina"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('.viewBtn').forEach(b=>b.onclick=e=>openView(e.target.closest('tr').dataset.id));
+  body.querySelectorAll('.delBtn').forEach(b=>b.onclick=e=>deleteEntry(e.target.closest('tr').dataset.id));
+}
+async function loadRegistry(silent){
+  const c=ghConfig();
+  if(!c.repo){
+    regEntries=[];regSha=null;
+    $('regBody').innerHTML='';
+    $('regEmpty').textContent='Configura repository e token (icona Impostazioni) per usare le segnalazioni.';
+    $('regEmpty').style.display='block';
+    updateStatCards();
+    return;
+  }
+  try{
+    const f=await ghGetFile(REG_PATH);
+    regSha=f?f.sha:null;
+    regEntries=f&&f.content?JSON.parse(f.content):[];
+  }catch(x){
+    if(!silent)notice('Errore caricamento segnalazioni: '+x.message,'err');
+    regEntries=[];regSha=null;
+  }
+  $('regEmpty').textContent='Nessuna segnalazione registrata.';
+  renderRegistry();
+}
+async function saveIndex(message){
+  const content=b64EncodeUtf8(JSON.stringify(regEntries,null,2));
+  const res=await ghPutFile(REG_PATH,content,regSha,message);
+  regSha=res.content?res.content.sha:regSha;
+}
+async function openView(id){
+  const r=regEntries.find(x=>x.id===id);
+  if(!r)return;
+  const mapsUrl=(r.lat!=null)?`https://www.google.com/maps?q=${r.lat},${r.lng}`:'';
+  $('viewBody').innerHTML=
+     `<div class="view-row"><b>Data</b>${esc(r.data||'—')}</div>`
+    +`<div class="view-row"><b>Zona</b>${esc(r.zona||'—')}</div>`
+    +`<div class="view-row"><b>Agenzia</b>${esc(r.agenzia||'—')}</div>`
+    +`<div class="view-row"><b>Locale</b>${esc(r.locale||'—')}</div>`
+    +`<div class="view-row"><b>Categoria</b>${esc((r.categoria||[]).join(', ')||'—')}</div>`
+    +`<div class="view-row"><b>Tipo</b>${esc(r.tipo||'—')}</div>`
+    +`<div class="view-row"><b>Note</b>${esc(r.note||'—')}</div>`
+    +`<div class="view-row"><b>Coordinate</b>${mapsUrl?`<a class="clink" href="${mapsUrl}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${r.lat.toFixed(6)}, ${r.lng.toFixed(6)}</a>`:'—'}</div>`
+    +`<div class="view-row"><b>Allegati</b><div class="view-photos" id="viewPhotos">${r.foto&&r.foto.length?'Caricamento…':'Nessuna foto'}</div></div>`;
+  $('viewBack').classList.add('open');
+  if(r.foto&&r.foto.length){
+    const box=$('viewPhotos');
+    box.innerHTML='';
+    for(const ph of r.foto){
+      try{
+        const b64=await ghGetFileRaw(ph.path);
+        const img=document.createElement('img');
+        img.src=`data:${ph.type||'image/jpeg'};base64,${b64}`;
+        img.alt='Allegato';
+        img.onclick=()=>window.open(img.src,'_blank');
+        box.appendChild(img);
+      }catch(x){/* allegato non disponibile */}
+    }
+    if(!box.children.length)box.textContent='Foto non disponibili';
+  }
+}
+async function deleteEntry(id){
+  const r=regEntries.find(x=>x.id===id);
+  if(!r)return;
+  if(!confirm(`Eliminare la segnalazione "${r.locale||r.agenzia||'senza nome'}"?`))return;
+  const prev=regEntries;
+  try{
+    regEntries=regEntries.filter(x=>x.id!==id);
+    await saveIndex('Elimina segnalazione '+id);
+    if(r.foto&&r.foto.length){
+      for(const ph of r.foto){
+        if(ph.sha){try{await ghDeleteFile(ph.path,ph.sha,'Elimina allegato segnalazione '+id);}catch(e){/* allegato già assente */}}
+      }
+    }
+    renderRegistry();
+    notice('Segnalazione eliminata','ok');
+  }catch(x){
+    regEntries=prev;
+    notice('Errore eliminazione: '+x.message,'err');
+    loadRegistry(true);
+  }
+}
+$('registryBtn').onclick=()=>{$('regBack').classList.add('open');loadRegistry();};
+$('regClose').onclick=()=>$('regBack').classList.remove('open');
+$('regBack').onclick=e=>{if(e.target===$('regBack'))$('regBack').classList.remove('open');};
+$('regRefresh').onclick=()=>loadRegistry();
+$('viewClose').onclick=()=>$('viewBack').classList.remove('open');
+$('viewBack').onclick=e=>{if(e.target===$('viewBack'))$('viewBack').classList.remove('open');};
+
+$('reportRegistra').onclick=async()=>{
+  const c=ghConfig();
+  if(!c.repo||!c.token){notice('Configura repository e token (con permessi di scrittura) nelle Impostazioni per registrare le segnalazioni','err');return;}
+  if(reportCtx.lat==null){notice('Nessuna posizione rilevata: usa GPS o tocca un punto della mappa','err');return;}
+  const cats=[];
+  if($('chkMda').checked)cats.push('MdA');
+  if($('chkSky').checked)cats.push('Sky');
+  if($('chkEvento').checked)cats.push('Evento');
+  const tipo=$('reportTipo').value;
+  const note=$('reportNote').value.trim();
+  const nomeLuogo=$('reportNomeLuogo').value.trim();
+  const p=selected?.properties||{};
+  const id='seg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+  const btn=$('reportRegistra');
+  const orig=btn.innerHTML;
+  btn.disabled=true;
+  btn.innerHTML='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>';
+  try{
+    let foto=[];
+    if(reportPhotoFile){
+      const b64=await fileToBase64(reportPhotoFile);
+      const ext=(reportPhotoFile.type&&reportPhotoFile.type.split('/')[1])||'jpg';
+      const path=`segnalazioni/foto/${id}.${ext}`;
+      const res=await ghPutFile(path,b64,null,'Allegato segnalazione '+id);
+      foto.push({path,type:reportPhotoFile.type||'image/jpeg',sha:res.content?res.content.sha:null});
+    }
+    const f=await ghGetFile(REG_PATH).catch(()=>null);
+    regSha=f?f.sha:null;
+    regEntries=f&&f.content?JSON.parse(f.content):[];
+    regEntries.push({
+      id,ts:Date.now(),
+      data:new Date().toLocaleDateString('it-IT'),
+      zona:p.ZONA||'',
+      agenzia:reportCtx.nome||p.AGENZIA||'',
+      locale:nomeLuogo,
+      categoria:cats,tipo,note,
+      lat:reportCtx.lat,lng:reportCtx.lng,
+      foto,inviata:false
+    });
+    await saveIndex('Registra segnalazione '+id);
+    notice('Segnalazione registrata','ok');
+    closeReportModal();
+    renderRegistry();
+  }catch(x){
+    notice('Errore nel salvataggio: '+x.message,'err');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML=orig;
+  }
+};
+
+$('regSendSel').onclick=async()=>{
+  const ids=[...document.querySelectorAll('.regChk:checked')].map(chk=>chk.closest('tr').dataset.id);
+  if(!ids.length){notice('Seleziona almeno una segnalazione','err');return;}
+  const items=regEntries.filter(r=>ids.includes(r.id));
+  const lines=['Segnalazione multipla myArea',''];
+  items.forEach((r,i)=>{
+    lines.push(`${i+1}. ${r.locale||r.agenzia||'Senza nome'}`);
+    if(r.zona)lines.push(`   Zona: ${r.zona}`);
+    if(r.agenzia)lines.push(`   Agenzia: ${r.agenzia}`);
+    if(r.lat!=null)lines.push(`   Coordinate: https://www.google.com/maps?q=${r.lat},${r.lng}`);
+    if(r.categoria&&r.categoria.length)lines.push(`   Categoria: ${r.categoria.join(', ')}`);
+    if(r.tipo)lines.push(`   Tipo: ${r.tipo}`);
+    if(r.note)lines.push(`   Note: ${r.note}`);
+    lines.push('');
+  });
+  const msg=lines.join('\n');
+  const shareData={title:'Segnalazione multipla myArea',text:msg};
+  try{
+    if(navigator.share){await navigator.share(shareData);}
+    else{await navigator.clipboard.writeText(msg);notice('Condivisione non supportata: testo copiato negli appunti','ok');}
+  }catch(e){return;}
+  items.forEach(r=>r.inviata=true);
+  try{
+    await saveIndex('Invia segnalazioni multiple');
+    renderRegistry();
+    notice(`${items.length} segnalazioni inviate`,'ok');
+  }catch(x){
+    notice('Errore aggiornamento stato: '+x.message,'err');
+  }
+};
+
+// --- Ricerca indirizzo (geocodifica OpenStreetMap/Nominatim) ---
+async function geocode(q){
+  const url=`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=it&q=${encodeURIComponent(q)}`;
+  const res=await fetch(url,{headers:{'Accept':'application/json'}});
+  if(!res.ok)throw Error('Servizio di geocodifica non disponibile');
+  const j=await res.json();
+  return j&&j.length?j[0]:null;
+}
+$('addressBtn').onclick=()=>{
+  $('addrInput').value='';
+  $('addrStatus').textContent='';
+  $('addrBack').classList.add('open');
+  setTimeout(()=>$('addrInput').focus(),50);
+};
+$('addrClose').onclick=$('addrCancel').onclick=()=>$('addrBack').classList.remove('open');
+$('addrBack').onclick=e=>{if(e.target===$('addrBack'))$('addrBack').classList.remove('open');};
+$('addrSearch').onclick=async()=>{
+  const raw=$('addrInput').value.trim();
+  if(!raw){$('addrStatus').textContent='Inserisci un indirizzo';return;}
+  const parts=raw.split(',').map(s=>s.trim()).filter(Boolean);
+  let toponimo='',indirizzo='',civico='',comune='',provincia='';
+  if(parts.length>=5){[toponimo,indirizzo,civico,comune,provincia]=parts;}
+  else if(parts.length===4){[toponimo,indirizzo,comune,provincia]=parts;}
+  else{comune=parts[parts.length-1]||'';}
+  const btn=$('addrSearch');
+  const orig=btn.textContent;
+  btn.disabled=true;btn.textContent='Ricerca…';
+  $('addrStatus').textContent='';
+  try{
+    const street=[toponimo,indirizzo,civico].filter(Boolean).join(' ').trim();
+    let q=[street,comune,provincia,'Italia'].filter(Boolean).join(', ')||raw;
+    let r=await geocode(q);
+    if(!r&&civico){
+      q=[[toponimo,indirizzo].filter(Boolean).join(' '),comune,provincia,'Italia'].filter(Boolean).join(', ');
+      r=await geocode(q);
+    }
+    if(!r){$('addrStatus').textContent='Indirizzo non trovato';return;}
+    const ll=L.latLng(parseFloat(r.lat),parseFloat(r.lon));
+    check(ll);
+    map.setView(ll,17);
+    $('addrBack').classList.remove('open');
+    notice('Posizione impostata sull\'indirizzo indicato','ok');
+  }catch(x){
+    $('addrStatus').textContent=x.message;
+  }finally{
+    btn.disabled=false;btn.textContent=orig;
+  }
 };
 
 fillGhForm();
