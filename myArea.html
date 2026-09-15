@@ -114,7 +114,7 @@ select.txt{background:#fff;appearance:auto}
   <div class="icons">
     <button id="gpsTop" class="ib" title="Localizzami" aria-label="Localizzami"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>
     <button id="addressBtn" class="ib" title="Cerca indirizzo" aria-label="Cerca indirizzo"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
-    <button id="registryBtn" class="ib" title="Segnalazioni registrate" aria-label="Segnalazioni registrate"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button>
+    <button id="registryBtn" class="ib" title="Segnalazioni registrate" aria-label="Segnalazioni registrate"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
     <button id="gear" class="ib" title="Configurazione" aria-label="Configurazione"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
 </header>
@@ -445,14 +445,43 @@ $('reportGps').onclick=()=>{
   );
 };
 
+function compressImage(file,maxDim=1600,quality=0.75){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      let{width,height}=img;
+      if(width>maxDim||height>maxDim){
+        if(width>height){height=Math.round(height*maxDim/width);width=maxDim;}
+        else{width=Math.round(width*maxDim/height);height=maxDim;}
+      }
+      const canvas=document.createElement('canvas');
+      canvas.width=width;canvas.height=height;
+      canvas.getContext('2d').drawImage(img,0,0,width,height);
+      canvas.toBlob(blob=>{
+        URL.revokeObjectURL(url);
+        if(!blob){reject(Error('Compressione foto non riuscita'));return;}
+        resolve(new File([blob],'foto.jpg',{type:'image/jpeg'}));
+      },'image/jpeg',quality);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(Error('Impossibile leggere la foto'));};
+    img.src=url;
+  });
+}
 $('reportPhotoBtn').onclick=()=>$('reportPhoto').click();
-$('reportPhoto').onchange=e=>{
+$('reportPhoto').onchange=async e=>{
   const f=e.target.files[0];
   if(!f)return;
-  reportPhotoFile=f;
-  const url=URL.createObjectURL(f);
-  $('reportPhotoPreview').innerHTML=`<div class="photo-chip"><img src="${url}" alt=""><span>Foto allegata</span><button type="button" class="chip-x" id="reportPhotoClear" aria-label="Rimuovi foto">×</button></div>`;
-  $('reportPhotoClear').onclick=()=>{reportPhotoFile=null;$('reportPhoto').value='';$('reportPhotoPreview').innerHTML='';};
+  try{
+    // ridimensiona/comprime: l'anteprima GitHub mostra solo file sotto 1MB, le foto della fotocamera li superano facilmente
+    reportPhotoFile=await compressImage(f);
+    const url=URL.createObjectURL(reportPhotoFile);
+    $('reportPhotoPreview').innerHTML=`<div class="photo-chip"><img src="${url}" alt=""><span>Foto allegata</span><button type="button" class="chip-x" id="reportPhotoClear" aria-label="Rimuovi foto">×</button></div>`;
+    $('reportPhotoClear').onclick=()=>{reportPhotoFile=null;$('reportPhoto').value='';$('reportPhotoPreview').innerHTML='';};
+  }catch(x){
+    notice('Errore nella foto: '+x.message,'err');
+  }
+  e.target.value='';
 };
 $('reportCancel').onclick=closeReportModal;
 
@@ -673,7 +702,7 @@ function renderRegistry(){
       <td>${esc(r.agenzia||'')}</td>
       <td>${mapsUrl?`<a class="reg-locale" href="${mapsUrl}" target="_blank" rel="noopener">${esc(r.locale||'—')}</a>`:esc(r.locale||'—')}</td>
       <td>${esc((r.categoria||[]).join(', '))}${r.inviata?'<span class="badge-sent">Inviata</span>':''}</td>
-      <td><button class="tbtn viewBtn" title="Dettagli" aria-label="Dettagli"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></td>
+      <td><button class="tbtn viewBtn" title="Dettagli" aria-label="Dettagli"><svg viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg></button></td>
       <td><button class="tbtn del delBtn" title="Elimina" aria-label="Elimina"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></td>
     </tr>`;
   }).join('');
