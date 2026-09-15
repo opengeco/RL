@@ -467,10 +467,10 @@ function reportLines(){
   let lines=['Segnalazione'];
   if(reportCtx.nome)lines.push(`Agenzia: ${reportCtx.nome}`);
   if(reportCtx.lat!=null)lines.push(`Coordinate: https://www.google.com/maps?q=${reportCtx.lat},${reportCtx.lng}`);
-  if(cats.length)lines.push(`Categoria: ${cats.join(', ')}`);
-  if(tipo)lines.push(`Tipo: ${tipo}`);
-  if(nomeLuogo)lines.push(`Nome: ${nomeLuogo}`);
-  if(note)lines.push(`Note: ${note}`);
+  const nomeTipo=[nomeLuogo,tipo].filter(Boolean).join(' - ');
+  if(nomeTipo)lines.push(nomeTipo);
+  if(cats.length)lines.push(cats.join(', '));
+  if(note)lines.push(note);
   return lines;
 }
 
@@ -614,9 +614,10 @@ function fileToBase64(file){
 }
 
 // --- GitHub Contents API (lettura/scrittura), repo condivisa con la sorgente dati ---
-async function ghApi(path,opts={}){
+async function ghApi(path,opts={},query){
   const c=ghConfig();
-  const url=`https://api.github.com/repos/${c.repo}/contents/${encodeURIComponent(path).replace(/%2F/g,'/')}`;
+  let url=`https://api.github.com/repos/${c.repo}/contents/${encodeURIComponent(path).replace(/%2F/g,'/')}`;
+  if(query)url+='?'+query;
   return fetch(url,{...opts,headers:{
     'Accept':'application/vnd.github.v3+json',
     ...(c.token?{'Authorization':'token '+c.token}:{}),
@@ -625,7 +626,7 @@ async function ghApi(path,opts={}){
 }
 async function ghGetFile(path){
   const c=ghConfig();
-  const res=await ghApi(path+`?ref=${encodeURIComponent(c.branch||'main')}`);
+  const res=await ghApi(path,{},`ref=${encodeURIComponent(c.branch||'main')}`);
   if(res.status===404)return null;
   if(!res.ok)throw Error(`Errore GitHub (${res.status})`);
   const j=await res.json();
@@ -633,7 +634,7 @@ async function ghGetFile(path){
 }
 async function ghGetFileRaw(path){
   const c=ghConfig();
-  const res=await ghApi(path+`?ref=${encodeURIComponent(c.branch||'main')}`);
+  const res=await ghApi(path,{},`ref=${encodeURIComponent(c.branch||'main')}`);
   if(!res.ok)throw Error('Allegato non trovato');
   const j=await res.json();
   return(j.content||'').replace(/\n/g,'');
