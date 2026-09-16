@@ -30,7 +30,11 @@ html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;color:var(-
 .ag-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ag{font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--t)}
 .stato{font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.4px;color:#166534;background:#dcfce7;border-radius:20px;padding:3px 9px;white-space:nowrap}
-.mand{font-size:13px;color:#9aa4b1;margin-top:1px}
+.stato-warn{color:#9a3412;background:#ffedd5}
+.mand{font-size:13px;color:#9aa4b1;margin-top:1px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.mand-tel{display:inline-flex;align-items:center;gap:4px;color:var(--b);text-decoration:none;font-weight:650;font-size:12.5px}
+.mand-tel:hover{text-decoration:underline}
+.mand-tel svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .zline{font-size:12px;color:var(--m);margin-top:6px}
 .contacts{display:flex;flex-direction:column;gap:5px;margin-top:9px}
 .clink{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--b);text-decoration:none;font-weight:600}
@@ -87,16 +91,24 @@ select.txt{background:#fff;appearance:auto}
 .stat-card{flex:1;background:#f4f7fa;border-radius:12px;padding:12px 14px;text-align:center}
 .stat-num{font-size:24px;font-weight:800;color:var(--b)}
 .stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--m);font-weight:700;margin-top:2px}
-.reg-toolbar{display:flex;gap:9px;margin-bottom:12px}
-.reg-toolbar .ab{min-height:38px}
+.reg-toolbar{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.reg-toolbar .ab{min-height:40px;width:100%;justify-content:center;gap:6px}
 .reg-table-wrap{overflow-x:auto}
 .reg-table{width:100%;border-collapse:collapse;font-size:12.5px}
 .reg-table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--m);font-weight:700;padding:6px 8px;border-bottom:2px solid var(--l);white-space:nowrap}
+.reg-table th.sortable{cursor:pointer;user-select:none}
+.reg-table th.sortable:after{content:'';display:inline-block;vertical-align:middle;margin-left:5px;border:4px solid transparent;border-top-color:var(--m);opacity:.35}
+.reg-table th.sortable.sorted:after{opacity:1;border-top-color:var(--b)}
+.reg-table th.sortable.sorted[data-dir="asc"]:after{transform:rotate(180deg)}
 .reg-table td{padding:7px 8px;border-bottom:1px solid var(--l);vertical-align:middle;white-space:nowrap}
 .reg-table tr.sent{opacity:.55}
 .reg-table input[type=checkbox]{width:16px;height:16px;accent-color:var(--b);cursor:pointer}
 .reg-locale{color:var(--b);text-decoration:none;font-weight:650}
 .reg-locale:hover{text-decoration:underline}
+.reg-pagination{display:flex;align-items:center;justify-content:center;gap:14px;padding:10px 0 2px;font-size:12.5px;color:var(--m)}
+.pgbtn{width:32px;height:32px;border:0;border-radius:8px;background:#f4f7fa;color:var(--t);font-size:16px;cursor:pointer}
+.pgbtn:disabled{opacity:.35;cursor:default}
+.pgnum{font-weight:700}
 .tbtn{width:30px;height:30px;border:0;border-radius:8px;background:#f4f7fa;color:var(--m);display:grid;place-items:center;cursor:pointer}
 .tbtn:hover{background:#e7eef5;color:var(--t)}
 .tbtn.del:hover{background:#fdeaea;color:#b91c1c}
@@ -179,41 +191,43 @@ select.txt{background:#fff;appearance:auto}
     <div class="mh"><div id="reportTitle" class="mt">Segnalazione</div><button id="reportClose" class="x" aria-label="Chiudi">×</button></div>
     <div class="mc">
       <section class="sec">
-        <div id="reportCoord"></div>
-        <div class="grid" style="margin-top:9px">
-          <input id="reportNomeLuogo" class="txt" style="grid-column:auto" placeholder="Nome del posto segnalato">
+        <div class="grid" style="align-items:start">
+          <div id="reportCoord"></div>
           <button id="reportGps" class="ab secbtn"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Recupera posizione GPS</button>
         </div>
       </section>
       <section class="sec">
-        <h2>Categoria</h2>
         <div class="grid">
-          <label class="chk"><input type="checkbox" id="chkMda">MdA</label>
-          <label class="chk"><input type="checkbox" id="chkSky">Sky</label>
-          <label class="chk"><input type="checkbox" id="chkEvento">Evento</label>
+          <input id="reportNomeLuogo" class="txt" placeholder="Nome del posto segnalato">
+          <select id="reportTipo" class="txt">
+            <option value="">Genere...</option>
+            <option>Agriturismo</option>
+            <option>Albergo &lt;3</option>
+            <option>All'aperto</option>
+            <option>B&amp;B</option>
+            <option>Bar</option>
+            <option>Circo</option>
+            <option>Hotel 3</option>
+            <option>Hotel 4</option>
+            <option>Hotel 5</option>
+            <option>Lido</option>
+            <option>Locale</option>
+            <option>Parco</option>
+            <option>Pub</option>
+            <option>Ristorante</option>
+            <option>Stabilimento</option>
+            <option>Teatro</option>
+          </select>
         </div>
       </section>
       <section class="sec">
         <h2>Tipo</h2>
-        <select id="reportTipo" class="txt wide">
-          <option value="">Seleziona...</option>
-          <option>Agriturismo</option>
-          <option>Albergo &lt;3</option>
-          <option>All'aperto</option>
-          <option>B&amp;B</option>
-          <option>Bar</option>
-          <option>Circo</option>
-          <option>Hotel 3</option>
-          <option>Hotel 4</option>
-          <option>Hotel 5</option>
-          <option>Lido</option>
-          <option>Locale</option>
-          <option>Parco</option>
-          <option>Pub</option>
-          <option>Ristorante</option>
-          <option>Stabilimento</option>
-          <option>Teatro</option>
-        </select>
+        <div class="grid">
+          <label class="chk"><input type="checkbox" id="chkMda">MdA</label>
+          <label class="chk"><input type="checkbox" id="chkBis">Bis</label>
+          <label class="chk"><input type="checkbox" id="chkAde">AdE</label>
+          <label class="chk"><input type="checkbox" id="chkSky">Sky</label>
+        </div>
       </section>
       <section class="sec">
         <h2>Note</h2>
@@ -252,23 +266,33 @@ select.txt{background:#fff;appearance:auto}
 </div>
 
 <div id="regBack" class="back" role="dialog" aria-modal="true" aria-labelledby="regTitle">
-  <div class="modal" style="width:min(720px,100%)">
+  <div class="modal" style="width:min(760px,100%)">
     <div class="mh"><div id="regTitle" class="mt">Segnalazioni</div><button id="regClose" class="x" aria-label="Chiudi">×</button></div>
     <div class="mc">
       <div class="stat-row">
         <div class="stat-card"><div id="statInviate" class="stat-num">0</div><div class="stat-lbl">Inviate</div></div>
         <div class="stat-card"><div id="statRegistrate" class="stat-num">0</div><div class="stat-lbl">Registrate</div></div>
       </div>
-      <div class="reg-toolbar">
-        <button id="regRefresh" class="ab secbtn" title="Aggiorna" aria-label="Aggiorna"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
-        <button id="regSendSel" class="ab pri" title="Invia selezionate" aria-label="Invia selezionate"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Invia selezionate</button>
-      </div>
       <div id="regTableWrap" class="reg-table-wrap">
         <table class="reg-table">
-          <thead><tr><th></th><th>Data</th><th>Zona</th><th>Agenzia</th><th>Locale</th><th>Categoria</th><th></th><th></th></tr></thead>
+          <thead><tr>
+            <th></th>
+            <th class="sortable" data-field="ts">Data</th>
+            <th class="sortable" data-field="zona">Zona</th>
+            <th class="sortable" data-field="agenzia">Agenzia</th>
+            <th class="sortable" data-field="locale">Locale</th>
+            <th class="sortable" data-field="categoria">Tipo</th>
+            <th></th><th></th>
+          </tr></thead>
           <tbody id="regBody"></tbody>
         </table>
         <div id="regEmpty" class="muted" style="padding:14px 4px">Nessuna segnalazione registrata.</div>
+      </div>
+      <div id="regPagination" class="reg-pagination"></div>
+      <div class="reg-toolbar">
+        <button id="regRefresh" class="ab secbtn" title="Aggiorna" aria-label="Aggiorna"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Aggiorna</button>
+        <button id="regClean" class="ab secbtn" title="Rimuovi le segnalazioni già inviate" aria-label="Pulisci"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Pulisci</button>
+        <button id="regSendSel" class="ab pri" title="Invia selezionate" aria-label="Invia selezionate"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Invia</button>
       </div>
     </div>
   </div>
@@ -306,7 +330,7 @@ function notice(msg,type='muted'){
 
 function contactsHTML(p){
   let out='';
-  if(p.TELEFONOMANDATARIO){
+  if(p.TELEFONOMANDATARIO&&!p.MANDATARIO){
     let tel=String(p.TELEFONOMANDATARIO).replace(/[^\d+]/g,'');
     out+=`<a class="clink" href="tel:${tel}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(p.TELEFONOMANDATARIO)}</a>`;
   }
@@ -320,10 +344,13 @@ function style(f){
   return{color:a?'#16a34a':'#64748b',weight:a?4:2,fillColor:a?'#16a34a':'#64748b',fillOpacity:a?.35:.13};
 }
 function infoBlock(p){
+  const statoNorm=(p.STATO||'').trim().toUpperCase();
+  const statoClass=statoNorm&&statoNorm!=='ASSEGNATA'?'stato stato-warn':'stato';
+  const tel=p.TELEFONOMANDATARIO?String(p.TELEFONOMANDATARIO).replace(/[^\d+]/g,''):'';
   return `<div class="info-wrap">`
     +`<button class="rb" onclick="reportIssue('${esc(p.AGENZIA||'')}')" title="Segnala anomalia" aria-label="Segnala anomalia"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>`
-    +`<div class="ag-row"><div class="ag">${esc(p.AGENZIA||'Territorio')}</div>${p.STATO?`<span class="stato">${esc(p.STATO)}</span>`:''}</div>`
-    +(p.MANDATARIO?`<div class="mand">${esc(p.MANDATARIO)}</div>`:'')
+    +`<div class="ag-row"><div class="ag">${esc(p.AGENZIA||'Territorio')}</div>${p.STATO?`<span class="${statoClass}">${esc(p.STATO)}</span>`:''}</div>`
+    +(p.MANDATARIO?`<div class="mand">${esc(p.MANDATARIO)}${tel?`<a class="mand-tel" href="tel:${tel}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(p.TELEFONOMANDATARIO)}</a>`:''}</div>`:'')
     +`<div class="zline">Zona: ${esc(p.ZONA||'Non indicata')}${p.RDZ?' · RdZ: '+esc(p.RDZ):''}</div>`
     +contactsHTML(p)
     +`</div>`;
@@ -423,7 +450,8 @@ function openReportModal(nome){
   $('reportNomeLuogo').value='';
   $('chkMda').checked=false;
   $('chkSky').checked=false;
-  $('chkEvento').checked=false;
+  $('chkAde').checked=false;
+  $('chkBis').checked=false;
   $('reportTipo').value='';
   $('reportNote').value='';
   reportPhotoFile=null;
@@ -488,8 +516,9 @@ $('reportCancel').onclick=closeReportModal;
 function reportLines(){
   const cats=[];
   if($('chkMda').checked)cats.push('MdA');
+  if($('chkBis').checked)cats.push('Bis');
+  if($('chkAde').checked)cats.push('AdE');
   if($('chkSky').checked)cats.push('Sky');
-  if($('chkEvento').checked)cats.push('Evento');
   const tipo=$('reportTipo').value;
   const note=$('reportNote').value.trim();
   const nomeLuogo=$('reportNomeLuogo').value.trim();
@@ -682,18 +711,68 @@ async function ghDeleteFile(path,sha,message){
 
 // --- Registro segnalazioni ---
 const REG_PATH='segnalazioni/index.json';
+const REG_PAGE_SIZE=20;
 let regEntries=[],regSha=null;
+let regStats={registrate:0,inviate:0};
+let regSortField='ts',regSortDir='desc',regPage=1;
 
+function parseRegistryPayload(text){
+  if(!text)return{entries:[],stats:{registrate:0,inviate:0}};
+  let data;
+  try{data=JSON.parse(text);}catch(e){return{entries:[],stats:{registrate:0,inviate:0}};}
+  if(Array.isArray(data)){
+    return{entries:data,stats:{registrate:data.length,inviate:data.filter(r=>r.inviata).length}};
+  }
+  const entries=data.entries||[];
+  const stats=data.stats||{registrate:entries.length,inviate:entries.filter(r=>r.inviata).length};
+  return{entries,stats};
+}
 function updateStatCards(){
-  $('statInviate').textContent=regEntries.filter(r=>r.inviata).length;
-  $('statRegistrate').textContent=regEntries.length;
+  $('statInviate').textContent=regStats.inviate||0;
+  $('statRegistrate').textContent=regStats.registrate||0;
+}
+function regSortValue(r,field){
+  switch(field){
+    case 'ts':return r.ts||0;
+    case 'zona':return(r.zona||'').toLowerCase();
+    case 'agenzia':return(r.agenzia||'').toLowerCase();
+    case 'locale':return(r.locale||'').toLowerCase();
+    case 'categoria':return(r.categoria||[]).join(', ').toLowerCase();
+    default:return '';
+  }
+}
+function renderSortHeaders(){
+  document.querySelectorAll('#regTableWrap th.sortable').forEach(th=>{
+    const on=th.dataset.field===regSortField;
+    th.classList.toggle('sorted',on);
+    if(on)th.dataset.dir=regSortDir;else th.removeAttribute('data-dir');
+  });
+}
+function renderPagination(pages){
+  const el=$('regPagination');
+  if(pages<=1){el.innerHTML='';return;}
+  el.innerHTML=`<button class="pgbtn" id="regPrev" ${regPage<=1?'disabled':''} aria-label="Pagina precedente">‹</button><span class="pgnum">${regPage} / ${pages}</span><button class="pgbtn" id="regNext" ${regPage>=pages?'disabled':''} aria-label="Pagina successiva">›</button>`;
+  if($('regPrev'))$('regPrev').onclick=()=>{regPage--;renderRegistry();};
+  if($('regNext'))$('regNext').onclick=()=>{regPage++;renderRegistry();};
 }
 function renderRegistry(){
   updateStatCards();
+  renderSortHeaders();
   const body=$('regBody');
-  if(!regEntries.length){body.innerHTML='';$('regEmpty').style.display='block';return;}
+  const list=regEntries.slice().sort((a,b)=>{
+    const va=regSortValue(a,regSortField),vb=regSortValue(b,regSortField);
+    const cmp=va<vb?-1:va>vb?1:0;
+    return regSortDir==='asc'?cmp:-cmp;
+  });
+  const total=list.length;
+  if(!total){body.innerHTML='';$('regEmpty').style.display='block';renderPagination(1);return;}
   $('regEmpty').style.display='none';
-  body.innerHTML=regEntries.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(r=>{
+  const pages=Math.max(1,Math.ceil(total/REG_PAGE_SIZE));
+  if(regPage>pages)regPage=pages;
+  if(regPage<1)regPage=1;
+  const startIdx=(regPage-1)*REG_PAGE_SIZE;
+  const pageItems=list.slice(startIdx,startIdx+REG_PAGE_SIZE);
+  body.innerHTML=pageItems.map(r=>{
     const mapsUrl=(r.lat!=null)?`https://www.google.com/maps?q=${r.lat},${r.lng}`:'';
     return `<tr class="${r.inviata?'sent':''}" data-id="${esc(r.id)}">
       <td><input type="checkbox" class="regChk" ${r.inviata?'disabled':''}></td>
@@ -708,30 +787,44 @@ function renderRegistry(){
   }).join('');
   body.querySelectorAll('.viewBtn').forEach(b=>b.onclick=e=>openView(e.target.closest('tr').dataset.id));
   body.querySelectorAll('.delBtn').forEach(b=>b.onclick=e=>deleteEntry(e.target.closest('tr').dataset.id));
+  renderPagination(pages);
 }
+document.querySelector('#regTableWrap thead').addEventListener('click',e=>{
+  const th=e.target.closest('th.sortable');
+  if(!th)return;
+  const f=th.dataset.field;
+  if(regSortField===f){regSortDir=regSortDir==='asc'?'desc':'asc';}
+  else{regSortField=f;regSortDir='asc';}
+  regPage=1;
+  renderRegistry();
+});
 async function loadRegistry(silent){
   const c=ghConfig();
   if(!c.repo){
-    regEntries=[];regSha=null;
+    regEntries=[];regSha=null;regStats={registrate:0,inviate:0};
     $('regBody').innerHTML='';
     $('regEmpty').textContent='Configura repository e token (icona Impostazioni) per usare le segnalazioni.';
     $('regEmpty').style.display='block';
+    renderPagination(1);
     updateStatCards();
     return;
   }
   try{
     const f=await ghGetFile(REG_PATH);
     regSha=f?f.sha:null;
-    regEntries=f&&f.content?JSON.parse(f.content):[];
+    const parsed=parseRegistryPayload(f?f.content:'');
+    regEntries=parsed.entries;
+    regStats=parsed.stats;
   }catch(x){
     if(!silent)notice('Errore caricamento segnalazioni: '+x.message,'err');
-    regEntries=[];regSha=null;
+    regEntries=[];regSha=null;regStats={registrate:0,inviate:0};
   }
   $('regEmpty').textContent='Nessuna segnalazione registrata.';
   renderRegistry();
 }
 async function saveIndex(message){
-  const content=b64EncodeUtf8(JSON.stringify(regEntries,null,2));
+  const payload={stats:regStats,entries:regEntries};
+  const content=b64EncodeUtf8(JSON.stringify(payload,null,2));
   try{
     const res=await ghPutFile(REG_PATH,content,regSha,message);
     regSha=res.content?res.content.sha:regSha;
@@ -756,8 +849,8 @@ async function openView(id){
     +`<div class="view-row"><b>Zona</b>${esc(r.zona||'—')}</div>`
     +`<div class="view-row"><b>Agenzia</b>${esc(r.agenzia||'—')}</div>`
     +`<div class="view-row"><b>Locale</b>${esc(r.locale||'—')}</div>`
-    +`<div class="view-row"><b>Categoria</b>${esc((r.categoria||[]).join(', ')||'—')}</div>`
-    +`<div class="view-row"><b>Tipo</b>${esc(r.tipo||'—')}</div>`
+    +`<div class="view-row"><b>Tipo</b>${esc((r.categoria||[]).join(', ')||'—')}</div>`
+    +`<div class="view-row"><b>Genere</b>${esc(r.tipo||'—')}</div>`
     +`<div class="view-row"><b>Note</b>${esc(r.note||'—')}</div>`
     +`<div class="view-row"><b>Coordinate</b>${mapsUrl?`<a class="clink" href="${mapsUrl}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${r.lat.toFixed(6)}, ${r.lng.toFixed(6)}</a>`:'—'}</div>`
     +`<div class="view-row"><b>Allegati</b><div class="view-photos" id="viewPhotos">${r.foto&&r.foto.length?'Caricamento…':'Nessuna foto'}</div></div>`;
@@ -782,9 +875,11 @@ async function deleteEntry(id){
   const r=regEntries.find(x=>x.id===id);
   if(!r)return;
   if(!confirm(`Eliminare la segnalazione "${r.locale||r.agenzia||'senza nome'}"?`))return;
-  const prev=regEntries;
+  const prevEntries=regEntries,prevStats={...regStats};
   try{
     regEntries=regEntries.filter(x=>x.id!==id);
+    regStats.registrate=Math.max(0,(regStats.registrate||0)-1);
+    if(r.inviata)regStats.inviate=Math.max(0,(regStats.inviate||0)-1);
     await saveIndex('Elimina segnalazione '+id);
     if(r.foto&&r.foto.length){
       for(const ph of r.foto){
@@ -794,11 +889,35 @@ async function deleteEntry(id){
     renderRegistry();
     notice('Segnalazione eliminata','ok');
   }catch(x){
-    regEntries=prev;
+    regEntries=prevEntries;regStats=prevStats;
     notice('Errore eliminazione: '+x.message,'err');
     loadRegistry(true);
   }
 }
+$('regClean').onclick=async()=>{
+  const toRemove=regEntries.filter(r=>r.inviata);
+  if(!toRemove.length){notice('Nessuna segnalazione inviata da rimuovere','muted');return;}
+  if(!confirm(`Rimuovere dall'elenco ${toRemove.length} segnalazioni già inviate? I contatori non diminuiscono.`))return;
+  const prevEntries=regEntries;
+  try{
+    regEntries=regEntries.filter(r=>!r.inviata);
+    await saveIndex('Pulisci segnalazioni inviate');
+    for(const r of toRemove){
+      if(r.foto&&r.foto.length){
+        for(const ph of r.foto){
+          if(ph.sha){try{await ghDeleteFile(ph.path,ph.sha,'Elimina allegato (pulizia) '+r.id);}catch(e){/* allegato già assente */}}
+        }
+      }
+    }
+    regPage=1;
+    renderRegistry();
+    notice(`${toRemove.length} segnalazioni inviate rimosse dall'elenco`,'ok');
+  }catch(x){
+    regEntries=prevEntries;
+    notice('Errore pulizia: '+x.message,'err');
+    loadRegistry(true);
+  }
+};
 $('registryBtn').onclick=()=>{$('regBack').classList.add('open');loadRegistry();};
 $('regClose').onclick=()=>$('regBack').classList.remove('open');
 $('regBack').onclick=e=>{if(e.target===$('regBack'))$('regBack').classList.remove('open');};
@@ -812,8 +931,9 @@ $('reportRegistra').onclick=async()=>{
   if(reportCtx.lat==null){notice('Nessuna posizione rilevata: usa GPS o tocca un punto della mappa','err');return;}
   const cats=[];
   if($('chkMda').checked)cats.push('MdA');
+  if($('chkBis').checked)cats.push('Bis');
+  if($('chkAde').checked)cats.push('AdE');
   if($('chkSky').checked)cats.push('Sky');
-  if($('chkEvento').checked)cats.push('Evento');
   const tipo=$('reportTipo').value;
   const note=$('reportNote').value.trim();
   const nomeLuogo=$('reportNomeLuogo').value.trim();
@@ -839,7 +959,9 @@ $('reportRegistra').onclick=async()=>{
       throw Error('Impossibile leggere il registro segnalazioni: '+x.message);
     }
     regSha=f?f.sha:null;
-    regEntries=f&&f.content?JSON.parse(f.content):[];
+    const parsed=parseRegistryPayload(f?f.content:'');
+    regEntries=parsed.entries;
+    regStats=parsed.stats;
     regEntries.push({
       id,ts:Date.now(),
       data:new Date().toLocaleDateString('it-IT'),
@@ -850,6 +972,7 @@ $('reportRegistra').onclick=async()=>{
       lat:reportCtx.lat,lng:reportCtx.lng,
       foto,inviata:false
     });
+    regStats.registrate=(regStats.registrate||0)+1;
     await saveIndex('Registra segnalazione '+id);
     notice('Segnalazione registrata','ok');
     closeReportModal();
@@ -872,8 +995,8 @@ $('regSendSel').onclick=async()=>{
     if(r.zona)lines.push(`   Zona: ${r.zona}`);
     if(r.agenzia)lines.push(`   Agenzia: ${r.agenzia}`);
     if(r.lat!=null)lines.push(`   Coordinate: https://www.google.com/maps?q=${r.lat},${r.lng}`);
-    if(r.categoria&&r.categoria.length)lines.push(`   Categoria: ${r.categoria.join(', ')}`);
-    if(r.tipo)lines.push(`   Tipo: ${r.tipo}`);
+    if(r.categoria&&r.categoria.length)lines.push(`   Tipo: ${r.categoria.join(', ')}`);
+    if(r.tipo)lines.push(`   Genere: ${r.tipo}`);
     if(r.note)lines.push(`   Note: ${r.note}`);
     lines.push('');
   });
@@ -884,6 +1007,7 @@ $('regSendSel').onclick=async()=>{
     else{await navigator.clipboard.writeText(msg);notice('Condivisione non supportata: testo copiato negli appunti','ok');}
   }catch(e){return;}
   items.forEach(r=>r.inviata=true);
+  regStats.inviate=(regStats.inviate||0)+items.length;
   try{
     await saveIndex('Invia segnalazioni multiple');
     renderRegistry();
