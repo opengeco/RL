@@ -1,116 +1,51 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta name="theme-color" content="#0b3b67">
-<title>myArea Analytics - Dashboard coloreutica</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta name="theme-color" content="#0b3b67">
+<title>myArea Analytics - Vista generale e per zona</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--navy:#0b3b67;--blue:#2563eb;--ink:#172435;--muted:#64748b;--line:#d9e2ea;--bg:#f4f7fa;--white:#fff;--green:#16a34a;--yellow:#eab308;--orange:#f97316;--red:#dc2626;--gray:#94a3b8}
-*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;color:var(--ink);background:var(--bg)}
-body{overflow:hidden}.topbar{height:58px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-shadow:0 2px 12px #0004;position:relative;z-index:1200}.brand{font-weight:800;font-size:21px}.brand small{font-size:12px;font-weight:500;opacity:.75;margin-left:8px}.top-actions{display:flex;gap:8px}.btn{border:0;border-radius:9px;padding:9px 12px;font-weight:700;cursor:pointer;font:inherit}.btn.light{background:#ffffff1c;color:#fff}.btn.light:hover{background:#ffffff2d}.btn.primary{background:var(--navy);color:#fff}.btn.soft{background:#e7eef5;color:var(--navy)}.layout{height:calc(100% - 58px);display:grid;grid-template-columns:330px 1fr}.sidebar{background:#fff;border-right:1px solid var(--line);overflow:auto;padding:15px;z-index:1000}.map-wrap{position:relative;min-width:0}.map{height:100%;width:100%}.section{border-bottom:1px solid var(--line);padding-bottom:15px;margin-bottom:15px}.section:last-child{border:0;margin:0}.section h2{font-size:11px;text-transform:uppercase;letter-spacing:.75px;color:var(--navy);margin:0 0 10px}.field{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 11px;font:inherit;color:var(--ink);background:#fff}.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kpi{background:var(--bg);border-radius:11px;padding:11px;text-align:center}.kpi strong{display:block;font-size:21px;color:var(--navy)}.kpi span{font-size:10px;text-transform:uppercase;letter-spacing:.45px;color:var(--muted);font-weight:700}.legend-row{display:flex;align-items:center;gap:9px;font-size:12.5px;margin:7px 0}.swatch{width:18px;height:18px;border-radius:4px;flex:none}.upload-grid{display:grid;gap:8px}.file-label{display:flex;align-items:center;justify-content:center;text-align:center;background:#e7eef5;color:var(--navy);border-radius:9px;padding:10px;font-size:12px;font-weight:750;cursor:pointer}.file-label input{display:none}.status{font-size:11px;color:var(--muted);line-height:1.4}.detail{position:absolute;right:14px;top:14px;z-index:900;background:#fff;width:min(340px,calc(100% - 28px));border-radius:14px;box-shadow:0 8px 28px #102a4355;padding:15px;border-left:5px solid var(--gray)}.detail.active{border-left-color:var(--blue)}.detail h3{margin:0 0 3px;font-size:18px;color:var(--navy)}.detail .zone{font-size:12px;color:var(--muted);margin-bottom:11px}.metric-big{font-size:29px;font-weight:850;color:var(--navy);margin:4px 0}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.detail-cell{background:var(--bg);padding:8px;border-radius:8px;font-size:11px;color:var(--muted)}.detail-cell b{display:block;color:var(--ink);font-size:13px;margin-top:2px}.empty{font-size:13px;color:var(--muted);line-height:1.45}.note{font-size:11px;color:var(--muted);line-height:1.45;background:var(--bg);padding:9px;border-radius:9px}.leaflet-tooltip{border:0!important;border-radius:8px!important;box-shadow:0 3px 12px #0003!important;font-weight:700!important}.mobile-toggle{display:none}
-@media(max-width:800px){.layout{display:block}.sidebar{position:fixed;left:0;top:58px;bottom:0;width:min(330px,88vw);transform:translateX(-102%);transition:.2s;box-shadow:5px 0 20px #0004}.sidebar.open{transform:none}.mobile-toggle{display:inline-block}.detail{top:10px;right:10px}.brand small{display:none}}
-</style>
-</head>
-<body>
-<header class="topbar">
-  <div class="brand">myArea Analytics <small>Dashboard coloreutica</small></div>
-  <div class="top-actions">
-    <button class="btn light mobile-toggle" id="menuBtn">Filtri</button>
-    <button class="btn light" id="fitBtn">Mappa generale</button>
-    <button class="btn light" id="demoBtn">Ripristina demo</button>
-  </div>
-</header>
-<div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <section class="section">
-      <h2>Indicatore di colorazione</h2>
-      <select class="field" id="metricSelect">
-        <option value="performance">Raggiungimento target</option>
-        <option value="incasso">Valore incasso</option>
-        <option value="eventi">Numero eventi</option>
-        <option value="sky">Controlli SKY</option>
-      </select>
-    </section>
-    <section class="section">
-      <h2>Sintesi area</h2>
-      <div class="kpis">
-        <div class="kpi"><strong id="kpiAgenzie">0</strong><span>Agenzie</span></div>
-        <div class="kpi"><strong id="kpiPerf">0%</strong><span>Target</span></div>
-        <div class="kpi"><strong id="kpiIncasso">€ 0</strong><span>Incasso</span></div>
-        <div class="kpi"><strong id="kpiEventi">0</strong><span>Eventi</span></div>
-      </div>
-    </section>
-    <section class="section">
-      <h2>Legenda dinamica</h2>
-      <div id="legend"></div>
-    </section>
-    <section class="section">
-      <h2>Carica i tuoi dati</h2>
-      <div class="upload-grid">
-        <label class="file-label">Carica GeoJSON delle agenzie<input id="geoFile" type="file" accept=".geojson,.json,application/json"></label>
-        <label class="file-label">Carica JSON target e valori<input id="dataFile" type="file" accept=".json,application/json"></label>
-        <button class="btn primary" id="exportBtn">Scarica JSON di esempio</button>
-        <div class="status" id="status">In uso: dati dimostrativi incorporati.</div>
-      </div>
-    </section>
-    <section class="section">
-      <h2>Chiave di collegamento</h2>
-      <div class="note">Il collegamento tra GeoJSON e dati avviene tramite il campo <b>CODICE</b>. Il JSON deve contenere almeno CODICE, TARGET e VALORE. Sono supportati anche INCASSO, EVENTI, SKY, ZONA e RDZ.</div>
-    </section>
-  </aside>
-  <main class="map-wrap">
-    <div id="map" class="map"></div>
-    <section class="detail" id="detail">
-      <div id="detailContent" class="empty">Seleziona un'area sulla mappa per visualizzare target, valore, performance e indicatori operativi.</div>
-    </section>
-  </main>
-</div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script>
-const SAMPLE_GEOJSON={"type":"FeatureCollection","features":[
-{"type":"Feature","properties":{"CODICE":"RM01","AGENZIA":"Roma Centro"},"geometry":{"type":"Polygon","coordinates":[[[12.34,41.84],[12.61,41.84],[12.61,42.04],[12.34,42.04],[12.34,41.84]]]}},
-{"type":"Feature","properties":{"CODICE":"RM02","AGENZIA":"Roma Sud"},"geometry":{"type":"Polygon","coordinates":[[[12.34,41.62],[12.61,41.62],[12.61,41.84],[12.34,41.84],[12.34,41.62]]]}},
-{"type":"Feature","properties":{"CODICE":"LT01","AGENZIA":"Latina"},"geometry":{"type":"Polygon","coordinates":[[[12.61,41.28],[13.08,41.28],[13.08,41.72],[12.61,41.72],[12.61,41.28]]]}},
-{"type":"Feature","properties":{"CODICE":"FR01","AGENZIA":"Frosinone"},"geometry":{"type":"Polygon","coordinates":[[[13.08,41.42],[13.72,41.42],[13.72,41.78],[13.08,41.78],[13.08,41.42]]]}},
-{"type":"Feature","properties":{"CODICE":"VT01","AGENZIA":"Viterbo"},"geometry":{"type":"Polygon","coordinates":[[[11.72,42.20],[12.38,42.20],[12.38,42.66],[11.72,42.66],[11.72,42.20]]]}},
-{"type":"Feature","properties":{"CODICE":"RI01","AGENZIA":"Rieti"},"geometry":{"type":"Polygon","coordinates":[[[12.62,42.10],[13.22,42.10],[13.22,42.58],[12.62,42.58],[12.62,42.10]]]}}
-]};
-const SAMPLE_DATA=[
-{"CODICE":"RM01","AGENZIA":"Roma Centro","ZONA":"Lazio 1","RDZ":"Responsabile Lazio 1","TARGET":1500000,"VALORE":1420000,"INCASSO":1420000,"EVENTI":287,"SKY":34},
-{"CODICE":"RM02","AGENZIA":"Roma Sud","ZONA":"Lazio 2","RDZ":"Responsabile Lazio 2","TARGET":1300000,"VALORE":1180000,"INCASSO":1180000,"EVENTI":221,"SKY":28},
-{"CODICE":"LT01","AGENZIA":"Latina","ZONA":"Lazio 2","RDZ":"Responsabile Lazio 2","TARGET":850000,"VALORE":790000,"INCASSO":790000,"EVENTI":165,"SKY":22},
-{"CODICE":"FR01","AGENZIA":"Frosinone","ZONA":"Lazio 2","RDZ":"Responsabile Lazio 2","TARGET":720000,"VALORE":520000,"INCASSO":520000,"EVENTI":112,"SKY":15},
-{"CODICE":"VT01","AGENZIA":"Viterbo","ZONA":"Lazio 1","RDZ":"Responsabile Lazio 1","TARGET":650000,"VALORE":684000,"INCASSO":684000,"EVENTI":143,"SKY":18},
-{"CODICE":"RI01","AGENZIA":"Rieti","ZONA":"Lazio 1","RDZ":"Responsabile Lazio 1","TARGET":320000,"VALORE":245000,"INCASSO":245000,"EVENTI":74,"SKY":8}
-];
-const $=id=>document.getElementById(id);const num=v=>Number(v)||0;const money=v=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(num(v));const fmt=v=>new Intl.NumberFormat('it-IT').format(num(v));
-let geoData=structuredClone(SAMPLE_GEOJSON),perfData=structuredClone(SAMPLE_DATA),geoLayer=null,selectedCode=null;
-const map=L.map('map',{zoomControl:true}).setView([42,12.6],7);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-function indexData(){return Object.fromEntries(perfData.map(r=>[String(r.CODICE),r]));}
-function performance(r){return r&&num(r.TARGET)>0?(num(r.VALORE??r.INCASSO)/num(r.TARGET))*100:null;}
-const scales={
- performance:{items:[['#16a34a','≥ 100%'],['#eab308','90% - 99,9%'],['#f97316','80% - 89,9%'],['#dc2626','< 80%'],['#94a3b8','Dato assente']],color:v=>v==null?'#94a3b8':v>=100?'#16a34a':v>=90?'#eab308':v>=80?'#f97316':'#dc2626'},
- incasso:{items:[['#08306b','≥ € 1,25 mln'],['#2171b5','€ 750 mila - 1,25 mln'],['#6baed6','€ 400 mila - 750 mila'],['#c6dbef','< € 400 mila'],['#94a3b8','Dato assente']],color:v=>v==null?'#94a3b8':v>=1250000?'#08306b':v>=750000?'#2171b5':v>=400000?'#6baed6':'#c6dbef'},
- eventi:{items:[['#00441b','≥ 220'],['#238b45','150 - 219'],['#74c476','100 - 149'],['#c7e9c0','< 100'],['#94a3b8','Dato assente']],color:v=>v==null?'#94a3b8':v>=220?'#00441b':v>=150?'#238b45':v>=100?'#74c476':'#c7e9c0'},
- sky:{items:[['#54278f','≥ 30'],['#756bb1','20 - 29'],['#9e9ac8','10 - 19'],['#dadaeb','< 10'],['#94a3b8','Dato assente']],color:v=>v==null?'#94a3b8':v>=30?'#54278f':v>=20?'#756bb1':v>=10?'#9e9ac8':'#dadaeb'}
-};
-function metricValue(r){if(!r)return null;const m=$('metricSelect').value;if(m==='performance')return performance(r);if(m==='incasso')return r.INCASSO??r.VALORE??null;if(m==='eventi')return r.EVENTI??null;if(m==='sky')return r.SKY??null;return null;}
-function metricLabel(v){const m=$('metricSelect').value;if(v==null)return 'Dato assente';if(m==='performance')return v.toFixed(1).replace('.',',')+'%';if(m==='incasso')return money(v);return fmt(v);}
-function renderLegend(){const s=scales[$('metricSelect').value];$('legend').innerHTML=s.items.map(([c,l])=>`<div class="legend-row"><span class="swatch" style="background:${c}"></span>${l}</div>`).join('');}
-function layerStyle(f){const r=indexData()[String(f.properties?.CODICE??'')];const v=metricValue(r);const active=String(f.properties?.CODICE)===selectedCode;return{color:active?'#0b3b67':'#fff',weight:active?4:1.5,fillColor:scales[$('metricSelect').value].color(v),fillOpacity:.78};}
-function renderMap(fit=false){if(geoLayer)map.removeLayer(geoLayer);const idx=indexData();geoLayer=L.geoJSON(geoData,{style:layerStyle,onEachFeature:(f,l)=>{const code=String(f.properties?.CODICE??'');const r=idx[code];const name=f.properties?.AGENZIA||r?.AGENZIA||code||'Area';l.bindTooltip(`${name}<br>${metricLabel(metricValue(r))}`,{sticky:true});l.on('click',()=>selectArea(code,f,l));}}).addTo(map);if(fit&&geoLayer.getBounds().isValid())map.fitBounds(geoLayer.getBounds(),{padding:[25,25]});}
-function selectArea(code,f,l){selectedCode=code;geoLayer.setStyle(layerStyle);const r=indexData()[code];const name=f.properties?.AGENZIA||r?.AGENZIA||code||'Area';const p=performance(r);$('detail').classList.add('active');$('detailContent').innerHTML=`<h3>${escapeHtml(name)}</h3><div class="zone">${escapeHtml(r?.ZONA||'Zona non indicata')}${r?.RDZ?' · '+escapeHtml(r.RDZ):''}</div><div class="metric-big">${metricLabel(metricValue(r))}</div><div class="status">Indicatore selezionato: ${escapeHtml($('metricSelect').selectedOptions[0].text)}</div><div class="detail-grid"><div class="detail-cell">Target<b>${r?money(r.TARGET):'—'}</b></div><div class="detail-cell">Valore<b>${r?money(r.VALORE??r.INCASSO):'—'}</b></div><div class="detail-cell">Performance<b>${p==null?'—':p.toFixed(1).replace('.',',')+'%'}</b></div><div class="detail-cell">Eventi<b>${r?fmt(r.EVENTI):'—'}</b></div><div class="detail-cell">Controlli SKY<b>${r?fmt(r.SKY):'—'}</b></div><div class="detail-cell">Codice<b>${escapeHtml(code||'—')}</b></div></div>`;if(l?.getBounds)map.fitBounds(l.getBounds(),{padding:[55,55],maxZoom:11});}
-function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function renderKpis(){const totalTarget=perfData.reduce((s,r)=>s+num(r.TARGET),0),totalValue=perfData.reduce((s,r)=>s+num(r.VALORE??r.INCASSO),0),events=perfData.reduce((s,r)=>s+num(r.EVENTI),0);$('kpiAgenzie').textContent=fmt(perfData.length);$('kpiPerf').textContent=totalTarget?(totalValue/totalTarget*100).toFixed(1).replace('.',',')+'%':'—';$('kpiIncasso').textContent=money(totalValue).replace(',00','');$('kpiEventi').textContent=fmt(events);}
-function refresh(fit=false){renderLegend();renderKpis();renderMap(fit);if(selectedCode){const lyr=geoLayer.getLayers().find(x=>String(x.feature?.properties?.CODICE)===selectedCode);if(lyr)selectArea(selectedCode,lyr.feature,null);}}
-async function readJson(file){const text=await file.text();return JSON.parse(text);}
-$('geoFile').onchange=async e=>{try{let j=await readJson(e.target.files[0]);if(j.type==='Feature')j={type:'FeatureCollection',features:[j]};if(j.type!=='FeatureCollection'||!Array.isArray(j.features))throw Error('Il file non è un FeatureCollection valido');geoData=j;selectedCode=null;refresh(true);$('status').textContent=`GeoJSON caricato: ${e.target.files[0].name}`;}catch(err){alert('Errore GeoJSON: '+err.message);}e.target.value='';};
-$('dataFile').onchange=async e=>{try{const j=await readJson(e.target.files[0]);const rows=Array.isArray(j)?j:j.dati;if(!Array.isArray(rows))throw Error('Il JSON deve essere un array o contenere la proprietà dati');perfData=rows;selectedCode=null;refresh(false);$('status').textContent=`Dati caricati: ${e.target.files[0].name}`;}catch(err){alert('Errore JSON dati: '+err.message);}e.target.value='';};
-$('metricSelect').onchange=()=>refresh(false);$('fitBtn').onclick=()=>geoLayer&&geoLayer.getBounds().isValid()&&map.fitBounds(geoLayer.getBounds(),{padding:[25,25]});$('demoBtn').onclick=()=>{geoData=structuredClone(SAMPLE_GEOJSON);perfData=structuredClone(SAMPLE_DATA);selectedCode=null;$('status').textContent='In uso: dati dimostrativi incorporati.';$('detail').classList.remove('active');$('detailContent').className='empty';$('detailContent').textContent="Seleziona un'area sulla mappa per visualizzare target, valore, performance e indicatori operativi.";refresh(true);};
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(SAMPLE_DATA,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='performance_esempio.json';a.click();URL.revokeObjectURL(a.href);};$('menuBtn').onclick=()=>$('sidebar').classList.toggle('open');map.on('click',()=>{if(innerWidth<=800)$('sidebar').classList.remove('open');});
-refresh(true);
-</script>
-</body>
-</html>
+:root{--b:#0b3b67;--blue:#2563eb;--t:#172435;--m:#64748b;--l:#d9e2ea;--bg:#f4f7fa;--g:#16a34a;--y:#eab308;--o:#f97316;--r:#dc2626;--x:#94a3b8}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;color:var(--t);background:var(--bg)}body{overflow:hidden}
+.top{height:58px;background:var(--b);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;position:relative;z-index:1200;box-shadow:0 2px 12px #0004}.brand{font-size:21px;font-weight:800}.brand small{font-size:12px;font-weight:500;opacity:.75;margin-left:8px}.actions{display:flex;gap:7px}.btn{border:0;border-radius:9px;padding:9px 11px;font:inherit;font-size:12px;font-weight:750;cursor:pointer}.btn.light{background:#ffffff1c;color:#fff}.btn.light:hover{background:#ffffff30}.btn.pri{background:var(--b);color:#fff}.btn.soft{background:#e7eef5;color:var(--b)}
+.layout{height:calc(100% - 58px);display:grid;grid-template-columns:350px 1fr}.side{background:#fff;border-right:1px solid var(--l);overflow:auto;padding:14px;z-index:1050}.mapwrap{position:relative;min-width:0}.map{height:100%}.sec{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--l)}.sec:last-child{border:0}.sec h2{font-size:10.5px;text-transform:uppercase;letter-spacing:.75px;color:var(--b);margin:0 0 9px}.field{width:100%;border:1px solid var(--l);border-radius:9px;padding:9px 10px;background:#fff;font:inherit;font-size:13px;color:var(--t)}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kpi{background:var(--bg);border-radius:11px;padding:10px;text-align:center}.kpi b{display:block;font-size:20px;color:var(--b)}.kpi span{font-size:9.5px;text-transform:uppercase;color:var(--m);font-weight:750;letter-spacing:.4px}.legendrow{display:flex;gap:8px;align-items:center;font-size:12px;margin:6px 0}.sw{width:17px;height:17px;border-radius:4px}.uploads{display:grid;gap:7px}.filebtn{background:#e7eef5;color:var(--b);border-radius:9px;padding:9px;text-align:center;font-size:11.5px;font-weight:750;cursor:pointer}.filebtn input{display:none}.status,.note{font-size:10.5px;color:var(--m);line-height:1.4}.note{background:var(--bg);padding:8px;border-radius:8px}
+.zone-table{width:100%;border-collapse:collapse;font-size:11px}.zone-table th{text-align:left;color:var(--m);font-size:9px;text-transform:uppercase;padding:5px;border-bottom:2px solid var(--l)}.zone-table td{padding:7px 5px;border-bottom:1px solid var(--l)}.zone-table tr{cursor:pointer}.zone-table tbody tr:hover,.zone-table tr.sel{background:#eaf2fb}.pill{display:inline-block;border-radius:20px;padding:2px 7px;color:#fff;font-weight:800;min-width:50px;text-align:center}.zone-scroll{max-height:190px;overflow:auto}
+.detail{position:absolute;right:13px;top:13px;z-index:900;width:min(340px,calc(100% - 26px));background:#fff;border-radius:14px;padding:14px;box-shadow:0 8px 28px #102a4355;border-left:5px solid var(--x)}.detail.active{border-color:var(--blue)}.detail h3{margin:0 0 3px;color:var(--b);font-size:18px}.sub{font-size:11px;color:var(--m);margin-bottom:9px}.big{font-size:28px;font-weight:850;color:var(--b)}.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.cell{background:var(--bg);border-radius:8px;padding:7px;font-size:10px;color:var(--m)}.cell b{display:block;color:var(--t);font-size:12.5px;margin-top:2px}.empty{font-size:12px;color:var(--m);line-height:1.45}.mobile{display:none}
+@media(max-width:820px){.layout{display:block}.side{position:fixed;left:0;top:58px;bottom:0;width:min(350px,90vw);transform:translateX(-102%);transition:.2s;box-shadow:5px 0 22px #0004}.side.open{transform:none}.mobile{display:inline-block}.brand small{display:none}.detail{top:10px;right:10px}}
+</style></head><body>
+<header class="top"><div class="brand">myArea Analytics <small>Vista generale e per zona</small></div><div class="actions"><button class="btn light mobile" id="menu">Filtri</button><button class="btn light" id="fit">Inquadra</button><button class="btn light" id="reset">Demo</button></div></header>
+<div class="layout"><aside class="side" id="side">
+<section class="sec"><h2>Vista dashboard</h2><div class="twocol"><select class="field" id="view"><option value="all">Vista generale</option><option value="zone">Vista per zona</option></select><select class="field" id="zone" disabled><option value="">Tutte le zone</option></select></div></section>
+<section class="sec"><h2>Indicatore di colorazione</h2><select class="field" id="metric"><option value="performance">Raggiungimento target</option><option value="incasso">Valore incasso</option><option value="eventi">Numero eventi</option><option value="sky">Controlli SKY</option></select></section>
+<section class="sec"><h2 id="scopeTitle">Sintesi Area Centro</h2><div class="kpis"><div class="kpi"><b id="ka">0</b><span>Agenzie</span></div><div class="kpi"><b id="kp">0%</b><span>Target</span></div><div class="kpi"><b id="ki">€ 0</b><span>Valore</span></div><div class="kpi"><b id="ke">0</b><span>Eventi</span></div></div></section>
+<section class="sec"><h2>Confronto fra zone</h2><div class="zone-scroll"><table class="zone-table"><thead><tr><th>Zona</th><th>Agenzie</th><th>Target</th><th>Valore</th></tr></thead><tbody id="zoneRows"></tbody></table></div><div class="status">Tocca una riga per aprire direttamente la vista della zona.</div></section>
+<section class="sec"><h2>Legenda dinamica</h2><div id="legend"></div></section>
+<section class="sec"><h2>Carica dati</h2><div class="uploads"><label class="filebtn">Carica GeoJSON agenzie<input id="geoFile" type="file" accept=".geojson,.json"></label><label class="filebtn">Carica JSON target e valori<input id="dataFile" type="file" accept=".json"></label><button class="btn pri" id="download">Scarica JSON di esempio</button><div class="status" id="status">In uso: dati dimostrativi incorporati.</div></div></section>
+<section class="sec"><div class="note">Il join usa <b>CODICE</b>. Per la vista per zona, ogni record del JSON deve contenere <b>ZONA</b>. Campi supportati: TARGET, VALORE, INCASSO, EVENTI, SKY, RDZ.</div></section>
+</aside><main class="mapwrap"><div id="map" class="map"></div><section class="detail" id="detail"><div id="detailBody" class="empty">Seleziona un'agenzia. Usa “Vista per zona” per isolare una zona e confrontare le sue agenzie.</div></section></main></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+const G={type:'FeatureCollection',features:[
+['RM01','Roma Centro','Lazio 1',[[12.34,41.84],[12.61,41.84],[12.61,42.04],[12.34,42.04],[12.34,41.84]]],['VT01','Viterbo','Lazio 1',[[11.72,42.20],[12.38,42.20],[12.38,42.66],[11.72,42.66],[11.72,42.20]]],['RI01','Rieti','Lazio 1',[[12.62,42.10],[13.22,42.10],[13.22,42.58],[12.62,42.58],[12.62,42.10]]],['RM02','Roma Sud','Lazio 2',[[12.34,41.62],[12.61,41.62],[12.61,41.84],[12.34,41.84],[12.34,41.62]]],['LT01','Latina','Lazio 2',[[12.61,41.28],[13.08,41.28],[13.08,41.72],[12.61,41.72],[12.61,41.28]]],['FR01','Frosinone','Lazio 2',[[13.08,41.42],[13.72,41.42],[13.72,41.78],[13.08,41.78],[13.08,41.42]]],['FI01','Firenze 1','Toscana 1',[[10.80,43.55],[11.45,43.55],[11.45,43.98],[10.80,43.98],[10.80,43.55]]],['FI02','Firenze 2','Toscana 2',[[11.45,43.40],[12.05,43.40],[12.05,43.88],[11.45,43.88],[11.45,43.40]]]
+].map(x=>({type:'Feature',properties:{CODICE:x[0],AGENZIA:x[1],ZONA:x[2]},geometry:{type:'Polygon',coordinates:[x[3]]}}))};
+const D=[
+{CODICE:'RM01',AGENZIA:'Roma Centro',ZONA:'Lazio 1',RDZ:'Paolo Narcisi',TARGET:1500000,VALORE:1420000,INCASSO:1420000,EVENTI:287,SKY:34},{CODICE:'VT01',AGENZIA:'Viterbo',ZONA:'Lazio 1',RDZ:'Paolo Narcisi',TARGET:650000,VALORE:684000,INCASSO:684000,EVENTI:143,SKY:18},{CODICE:'RI01',AGENZIA:'Rieti',ZONA:'Lazio 1',RDZ:'Paolo Narcisi',TARGET:320000,VALORE:245000,INCASSO:245000,EVENTI:74,SKY:8},
+{CODICE:'RM02',AGENZIA:'Roma Sud',ZONA:'Lazio 2',RDZ:'Marco Esposito',TARGET:1300000,VALORE:1180000,INCASSO:1180000,EVENTI:221,SKY:28},{CODICE:'LT01',AGENZIA:'Latina',ZONA:'Lazio 2',RDZ:'Marco Esposito',TARGET:850000,VALORE:790000,INCASSO:790000,EVENTI:165,SKY:22},{CODICE:'FR01',AGENZIA:'Frosinone',ZONA:'Lazio 2',RDZ:'Marco Esposito',TARGET:720000,VALORE:520000,INCASSO:520000,EVENTI:112,SKY:15},
+{CODICE:'FI01',AGENZIA:'Firenze 1',ZONA:'Toscana 1',RDZ:'Fabrizio Sanchini',TARGET:1800000,VALORE:1756000,INCASSO:1756000,EVENTI:351,SKY:41},{CODICE:'FI02',AGENZIA:'Firenze 2',ZONA:'Toscana 2',RDZ:'Sara Innocenti',TARGET:1700000,VALORE:1610000,INCASSO:1610000,EVENTI:338,SKY:37}];
+const $=x=>document.getElementById(x),n=x=>Number(x)||0,fmt=x=>new Intl.NumberFormat('it-IT').format(n(x)),eur=x=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n(x)),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let geo=structuredClone(G),data=structuredClone(D),layer,selected='';const map=L.map('map').setView([42.3,12.4],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+const scales={performance:{l:[['#16a34a','≥ 100%'],['#eab308','90% - 99,9%'],['#f97316','80% - 89,9%'],['#dc2626','< 80%'],['#94a3b8','Dato assente']],c:v=>v==null?'#94a3b8':v>=100?'#16a34a':v>=90?'#eab308':v>=80?'#f97316':'#dc2626'},incasso:{l:[['#08306b','≥ € 1,25 mln'],['#2171b5','€ 750 mila - 1,25 mln'],['#6baed6','€ 400 mila - 750 mila'],['#c6dbef','< € 400 mila']],c:v=>v==null?'#94a3b8':v>=1250000?'#08306b':v>=750000?'#2171b5':v>=400000?'#6baed6':'#c6dbef'},eventi:{l:[['#00441b','≥ 220'],['#238b45','150 - 219'],['#74c476','100 - 149'],['#c7e9c0','< 100']],c:v=>v==null?'#94a3b8':v>=220?'#00441b':v>=150?'#238b45':v>=100?'#74c476':'#c7e9c0'},sky:{l:[['#54278f','≥ 30'],['#756bb1','20 - 29'],['#9e9ac8','10 - 19'],['#dadaeb','< 10']],c:v=>v==null?'#94a3b8':v>=30?'#54278f':v>=20?'#756bb1':v>=10?'#9e9ac8':'#dadaeb'}};
+function idx(){return Object.fromEntries(data.map(r=>[String(r.CODICE),r]))}function perf(r){return r&&n(r.TARGET)?n(r.VALORE??r.INCASSO)/n(r.TARGET)*100:null}function val(r){if(!r)return null;return $('metric').value==='performance'?perf(r):$('metric').value==='incasso'?(r.INCASSO??r.VALORE??null):$('metric').value==='eventi'?(r.EVENTI??null):(r.SKY??null)}function label(v){if(v==null)return 'Dato assente';return $('metric').value==='performance'?v.toFixed(1).replace('.',',')+'%':$('metric').value==='incasso'?eur(v):fmt(v)}function color(v){return scales[$('metric').value].c(v)}
+function zones(){return [...new Set(data.map(r=>r.ZONA).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'it'))}function setZoneOptions(){const current=$('zone').value;$('zone').innerHTML='<option value="">Seleziona zona</option>'+zones().map(z=>`<option>${esc(z)}</option>`).join('');if(zones().includes(current))$('zone').value=current}
+function scopeRows(){return $('view').value==='zone'&&$('zone').value?data.filter(r=>r.ZONA===$('zone').value):data}function aggregate(rows){return{a:rows.length,t:rows.reduce((s,r)=>s+n(r.TARGET),0),v:rows.reduce((s,r)=>s+n(r.VALORE??r.INCASSO),0),e:rows.reduce((s,r)=>s+n(r.EVENTI),0)}}
+function renderKpi(){const a=aggregate(scopeRows());$('ka').textContent=fmt(a.a);$('kp').textContent=a.t?(a.v/a.t*100).toFixed(1).replace('.',',')+'%':'—';$('ki').textContent=eur(a.v);$('ke').textContent=fmt(a.e);$('scopeTitle').textContent=$('view').value==='zone'&&$('zone').value?'Sintesi '+$('zone').value:'Sintesi Area Centro'}
+function renderTable(){const rows=zones().map(z=>{const a=aggregate(data.filter(r=>r.ZONA===z)),p=a.t?a.v/a.t*100:null;return{z,a,p,v:a.v}}).sort((a,b)=>(b.p??-1)-(a.p??-1));$('zoneRows').innerHTML=rows.map(r=>`<tr data-z="${esc(r.z)}" class="${$('view').value==='zone'&&$('zone').value===r.z?'sel':''}"><td><b>${esc(r.z)}</b></td><td>${r.a.a}</td><td><span class="pill" style="background:${color(r.p)}">${r.p==null?'—':r.p.toFixed(1).replace('.',',')+'%'}</span></td><td>${eur(r.v)}</td></tr>`).join('');[...$('zoneRows').querySelectorAll('tr')].forEach(tr=>tr.onclick=()=>{$('view').value='zone';$('zone').disabled=false;$('zone').value=tr.dataset.z;selected='';refresh(true)})}
+function renderLegend(){$('legend').innerHTML=scales[$('metric').value].l.map(x=>`<div class="legendrow"><span class="sw" style="background:${x[0]}"></span>${x[1]}</div>`).join('')}
+function visibleGeo(){if($('view').value!=='zone'||!$('zone').value)return geo;const ids=new Set(data.filter(r=>r.ZONA===$('zone').value).map(r=>String(r.CODICE)));return{type:'FeatureCollection',features:geo.features.filter(f=>ids.has(String(f.properties?.CODICE)))}}
+function style(f){const r=idx()[String(f.properties?.CODICE)],active=String(f.properties?.CODICE)===selected;return{color:active?'#0b3b67':'#fff',weight:active?4:1.5,fillColor:color(val(r)),fillOpacity:.78}}
+function draw(fit=false){if(layer)map.removeLayer(layer);const I=idx();layer=L.geoJSON(visibleGeo(),{style,onEachFeature:(f,l)=>{const code=String(f.properties?.CODICE??''),r=I[code],name=f.properties?.AGENZIA||r?.AGENZIA||code;l.bindTooltip(`<b>${esc(name)}</b><br>${label(val(r))}`,{sticky:true});l.on('click',()=>select(code,f,l))}}).addTo(map);if(fit&&layer.getBounds().isValid())map.fitBounds(layer.getBounds(),{padding:[25,25]})}
+function select(code,f,l){selected=code;layer.setStyle(style);const r=idx()[code],p=perf(r),name=f.properties?.AGENZIA||r?.AGENZIA||code;$('detail').classList.add('active');$('detailBody').innerHTML=`<h3>${esc(name)}</h3><div class="sub">${esc(r?.ZONA||'Zona non indicata')}${r?.RDZ?' · '+esc(r.RDZ):''}</div><div class="big">${label(val(r))}</div><div class="status">Indicatore: ${esc($('metric').selectedOptions[0].text)}</div><div class="dgrid"><div class="cell">Target<b>${r?eur(r.TARGET):'—'}</b></div><div class="cell">Valore<b>${r?eur(r.VALORE??r.INCASSO):'—'}</b></div><div class="cell">Performance<b>${p==null?'—':p.toFixed(1).replace('.',',')+'%'}</b></div><div class="cell">Eventi<b>${r?fmt(r.EVENTI):'—'}</b></div><div class="cell">Controlli SKY<b>${r?fmt(r.SKY):'—'}</b></div><div class="cell">Codice<b>${esc(code)}</b></div></div>`;if(l?.getBounds)map.fitBounds(l.getBounds(),{padding:[55,55],maxZoom:11})}
+function refresh(fit=false){setZoneOptions();renderKpi();renderTable();renderLegend();draw(fit)}
+$('view').onchange=()=>{$('zone').disabled=$('view').value!=='zone';if($('view').value==='all')$('zone').value='';selected='';refresh(true)};$('zone').onchange=()=>{selected='';refresh(true)};$('metric').onchange=()=>refresh(false);$('fit').onclick=()=>layer?.getBounds().isValid()&&map.fitBounds(layer.getBounds(),{padding:[25,25]});$('menu').onclick=()=>$('side').classList.toggle('open');
+async function read(f){return JSON.parse(await f.text())}$('geoFile').onchange=async e=>{try{let j=await read(e.target.files[0]);if(j.type==='Feature')j={type:'FeatureCollection',features:[j]};if(j.type!=='FeatureCollection')throw Error('FeatureCollection non valido');geo=j;selected='';refresh(true);$('status').textContent='GeoJSON caricato: '+e.target.files[0].name}catch(x){alert('Errore GeoJSON: '+x.message)}e.target.value=''};$('dataFile').onchange=async e=>{try{const j=await read(e.target.files[0]),rows=Array.isArray(j)?j:j.dati;if(!Array.isArray(rows))throw Error('Il JSON deve essere un array');data=rows;selected='';refresh(true);$('status').textContent='Dati caricati: '+e.target.files[0].name}catch(x){alert('Errore JSON: '+x.message)}e.target.value=''};
+$('download').onclick=()=>{const b=new Blob([JSON.stringify(D,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='performance_zone_esempio.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$('reset').onclick=()=>{geo=structuredClone(G);data=structuredClone(D);$('view').value='all';$('zone').disabled=true;selected='';$('status').textContent='In uso: dati dimostrativi incorporati.';$('detail').classList.remove('active');$('detailBody').textContent="Seleziona un'agenzia. Usa “Vista per zona” per isolare una zona e confrontare le sue agenzie.";refresh(true)};map.on('click',()=>{if(innerWidth<=820)$('side').classList.remove('open')});refresh(true);
+</script></body></html>
