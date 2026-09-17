@@ -40,10 +40,14 @@ html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;color:var(-
 .clink{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--b);text-decoration:none;font-weight:600}
 .clink:hover{text-decoration:underline}
 .clink svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-.info-wrap{position:relative;padding-right:38px}
-.rb{position:absolute;top:-4px;right:-4px;width:30px;height:30px;border:0;border-radius:50%;background:#fdf1e2;color:#b45309;display:grid;place-items:center;cursor:pointer;transition:background .15s}
+.info-wrap{position:relative;padding-right:72px}
+.info-actions{position:absolute;top:-4px;right:-4px;display:flex;gap:6px}
+.rb,.ibi{width:30px;height:30px;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:background .15s}
+.rb{background:#fdf1e2;color:#b45309}
 .rb:hover{background:#fbe4c6}
-.rb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ibi{background:#e8f1fc;color:#1d4ed8}
+.ibi:hover{background:#d3e6fb}
+.rb svg,.ibi svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .muted{color:var(--m);font-size:12px}
 .coord{font:12px Consolas,monospace}
 .back{position:fixed;inset:0;z-index:2000;background:#071b2d99;display:none;align-items:center;justify-content:center;padding:18px}
@@ -248,6 +252,24 @@ select.txt{background:#fff;appearance:auto}
   </div>
 </div>
 
+<div id="agencyInfoBack" class="back" role="dialog" aria-modal="true" aria-labelledby="agencyInfoTitle">
+  <div class="modal">
+    <div class="mh"><div id="agencyInfoTitle" class="mt">Dati agenzia</div><button id="agencyInfoClose" class="x" aria-label="Chiudi">×</button></div>
+    <div class="mc">
+      <section class="sec">
+        <div id="agencyInfoBody"></div>
+      </section>
+      <section class="sec">
+        <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
+          <button id="agencyInfoCancel" class="ab secbtn" title="Annulla" aria-label="Annulla"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          <button id="agencyInfoMail" class="ab secbtn" title="Invia per email" aria-label="Invia per email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></button>
+          <button id="agencyInfoShare" class="ab pri" title="Condividi" aria-label="Condividi"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
 <div id="addrBack" class="back" role="dialog" aria-modal="true" aria-labelledby="addrTitle">
   <div class="modal">
     <div class="mh"><div id="addrTitle" class="mt">Cerca indirizzo</div><button id="addrClose" class="x" aria-label="Chiudi">×</button></div>
@@ -334,8 +356,8 @@ function contactsHTML(p){
     let tel=String(p.TELEFONOMANDATARIO).replace(/[^\d+]/g,'');
     out+=`<a class="clink" href="tel:${tel}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(p.TELEFONOMANDATARIO)}</a>`;
   }
-  if(p.EMAILMANDATARIO){
-    out+=`<a class="clink" href="mailto:${esc(p.EMAILMANDATARIO)}"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${esc(p.EMAILMANDATARIO)}</a>`;
+  if(p.EMAILAGENZIA&&!p.MANDATARIO){
+    out+=`<a class="clink" href="mailto:${esc(p.EMAILAGENZIA)}"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${esc(p.EMAILAGENZIA)}</a>`;
   }
   return out?`<div class="contacts">${out}</div>`:'';
 }
@@ -348,7 +370,10 @@ function infoBlock(p){
   const statoClass=statoNorm&&statoNorm!=='ASSEGNATA'?'stato stato-warn':'stato';
   const tel=p.TELEFONOMANDATARIO?String(p.TELEFONOMANDATARIO).replace(/[^\d+]/g,''):'';
   return `<div class="info-wrap">`
+    +`<div class="info-actions">`
+    +`<button class="ibi" onclick="showAgencyInfo()" title="Dati agenzia" aria-label="Dati agenzia"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>`
     +`<button class="rb" onclick="reportIssue('${esc(p.AGENZIA||'')}')" title="Segnala anomalia" aria-label="Segnala anomalia"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>`
+    +`</div>`
     +`<div class="ag-row"><div class="ag">${esc(p.AGENZIA||'Territorio')}</div>${p.STATO?`<span class="${statoClass}">${esc(p.STATO)}</span>`:''}</div>`
     +(p.MANDATARIO?`<div class="mand">${esc(p.MANDATARIO)}${tel?`<a class="mand-tel" href="tel:${tel}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(p.TELEFONOMANDATARIO)}</a>`:''}</div>`:'')
     +`<div class="zline">Zona: ${esc(p.ZONA||'Non indicata')}${p.RDZ?' · RdZ: '+esc(p.RDZ):''}</div>`
@@ -427,7 +452,7 @@ function reset(){
 $('gear').onclick=()=>$('back').classList.add('open');
 $('close').onclick=closeModal;
 $('back').onclick=e=>{if(e.target===$('back'))closeModal();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeReportModal();$('regBack').classList.remove('open');$('viewBack').classList.remove('open');$('addrBack').classList.remove('open');}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeReportModal();closeAgencyInfoModal();$('regBack').classList.remove('open');$('viewBack').classList.remove('open');$('addrBack').classList.remove('open');}});
 $('gps').onclick=$('gpsTop').onclick=gps;
 $('fit').onclick=()=>{closeModal();map.fitBounds(layer.getBounds(),{padding:[25,25]});};
 $('reset').onclick=reset;
@@ -577,6 +602,58 @@ function reportIssue(nome){
   const n=nome||selected?.properties?.AGENZIA||'';
   openReportModal(n);
 }
+
+// --- Dati agenzia ---
+function agencyInfoLines(){
+  const p=selected?.properties||{};
+  return[
+    `Agenzia: ${p.AGENZIA||'—'}`,
+    `Mandatario: ${p.MANDATARIO||'—'}`,
+    `Indirizzo: ${p.INDIRIZZO||'—'}`,
+    `Mail: ${p.EMAILAGENZIA||'—'}`,
+    `Telefono: ${p.TELEFONOMANDATARIO||'—'}`
+  ];
+}
+function showAgencyInfo(){
+  const p=selected?.properties||{};
+  if(!p.AGENZIA&&!p.MANDATARIO){notice('Nessuna agenzia selezionata','err');return;}
+  const tel=p.TELEFONOMANDATARIO?String(p.TELEFONOMANDATARIO).replace(/[^\d+]/g,''):'';
+  $('agencyInfoBody').innerHTML=
+     `<div class="view-row"><b>Agenzia</b>${esc(p.AGENZIA||'—')}</div>`
+    +`<div class="view-row"><b>Mandatario</b>${esc(p.MANDATARIO||'—')}</div>`
+    +`<div class="view-row"><b>Indirizzo</b>${esc(p.INDIRIZZO||'—')}</div>`
+    +`<div class="view-row"><b>Mail</b>${p.EMAILAGENZIA?`<a class="clink" href="mailto:${esc(p.EMAILAGENZIA)}">${esc(p.EMAILAGENZIA)}</a>`:'—'}</div>`
+    +`<div class="view-row"><b>Telefono</b>${tel?`<a class="clink" href="tel:${tel}">${esc(p.TELEFONOMANDATARIO)}</a>`:'—'}</div>`;
+  $('agencyInfoBack').classList.add('open');
+}
+function closeAgencyInfoModal(){$('agencyInfoBack').classList.remove('open')}
+$('agencyInfoClose').onclick=closeAgencyInfoModal;
+$('agencyInfoCancel').onclick=closeAgencyInfoModal;
+$('agencyInfoBack').onclick=e=>{if(e.target===$('agencyInfoBack'))closeAgencyInfoModal();};
+$('agencyInfoMail').onclick=()=>{
+  const p=selected?.properties||{};
+  const subject=encodeURIComponent(`Info Agenzia ${p.AGENZIA||''}`);
+  const body=encodeURIComponent(agencyInfoLines().join('\n')+'\n\nmyArea2');
+  window.location.href=`mailto:?subject=${subject}&body=${body}`;
+  closeAgencyInfoModal();
+};
+$('agencyInfoShare').onclick=async()=>{
+  const p=selected?.properties||{};
+  const msg=agencyInfoLines().join('\n')+'\n\nmyArea2';
+  const shareData={title:`Info Agenzia ${p.AGENZIA||''}`,text:msg};
+  if(navigator.share){
+    try{await navigator.share(shareData);}
+    catch(e){/* condivisione annullata dall'operatore */}
+  }else{
+    try{
+      await navigator.clipboard.writeText(msg);
+      notice('Condivisione non supportata: testo copiato negli appunti','ok');
+    }catch(e){
+      notice('Condivisione non supportata su questo browser','err');
+    }
+  }
+  closeAgencyInfoModal();
+};
 map.on('click',e=>check(e.latlng));
 
 $('file').onchange=async e=>{
