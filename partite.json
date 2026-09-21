@@ -1,389 +1,110 @@
 [
   {
-    "DATA": "2026-09-14 18:30",
-    "Partita": "Torino-Roma",
-    "Lega": "Serie A",
-    "Canale": "DAZN e DAZN 1 (canale 214 Sky)",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "28"
-  },
-  {
-    "DATA": "2026-09-14 18:30",
-    "Partita": "Como-Parma",
-    "Lega": "Serie A",
-    "Canale": "DAZN e DAZN 2 (canale 215 Sky)",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "56"
-  },
-  {
-    "DATA": "2026-09-14 20:45",
-    "Partita": "Inter-Udinese",
-    "Lega": "Serie A",
-    "Canale": "DAZN,SKY SPORT UNO, SKY SPORT CALCIO, SKY SPORT 4K, SKY SPORT (canale 251) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "57"
-  },
-  {
-    "DATA": "2026-09-16 18:30",
-    "Partita": "Ostiamare-Ravenna",
+    "DATA": "2026-09-21 20:30",
+    "Partita": "Guidonia-Livorno",
     "Lega": "Serie C",
-    "Canale": "SKY SPORT CALCIO, SKY SPORT(canale 253) e NOW",
+    "Canale": "SKY SPORT CALCIO, SKY SPORT",
     "Provincia": "RM",
     "Regione": "Lazio",
-    "Target": "100"
+    "Target": "50"
   },
   {
-    "DATA": "2026-09-16 18:30",
-    "Partita": "Grosseto-Campobasso",
+    "DATA": "2026-09-21 20:30",
+    "Partita": "Guidonia-Livorno",
     "Lega": "Serie C",
-    "Canale": "SKY SPORT(canale 255) e NOW",
-    "Provincia": "GR",
-    "Regione": "Toscana",
-    "Target": "55"
-  },
-  {
-    "DATA": "2026-09-16 18:30",
-    "Partita": "Torres-Pianese",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT(canale 256) e NOW",
-    "Provincia": "SS",
-    "Regione": "Sardegna",
-    "Target": "70"
-  },
-  {
-    "DATA": "2026-09-16 18:30",
-    "Partita": "Pineto-Forlì",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT(canale 257) e NOW",
-    "Provincia": "TE",
-    "Regione": "Abruzzo",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-16 18:30",
-    "Partita": "Latina-Guidonia",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT(canale 258) e NOW",
-    "Provincia": "LT",
-    "Regione": "Lazio",
-    "Target": "98"
-  },
-  {
-    "DATA": "2026-09-16 18:30",
-    "Partita": "Latina-Guidonia",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT(canale 258) e NOW",
-    "Provincia": "RM",
-    "Regione": "Lazio",
-    "Target": "100"
-  },
-  {
-    "DATA": "2026-09-16 18:45",
-    "Partita": "Omonia-Celta",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT UNO, SKY SPORT(canale 251) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-16 18:45",
-    "Partita": "Ararat Armenia-Slavia Praga",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT MAX, SKY SPORT(canale 252) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-16 21:00",
-    "Partita": "Milan-Benfica",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT UNO, SKY SPORT 4K, SKY SPORT(canale 252) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "57"
-  },
-  {
-    "DATA": "2026-09-16 21:00",
-    "Partita": "Bayer Leverkusen-Celje",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT(canale 253) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-16 21:00",
-    "Partita": "Sunderland-AZ",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT(canale 254) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-16 21:00",
-    "Partita": "Hapoel Be'er Sheva-Dinamo Zagabria",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT(canale 255) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-16 21:00",
-    "Partita": "Perugia-Spezia",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT CALCIO, SKY SPORT(canale 256) e NOW",
-    "Provincia": "PG",
-    "Regione": "Umbria",
-    "Target": "85"
-  },
-  {
-    "DATA": "2026-09-16 21:00",
-    "Partita": "Pescara-Gubbio",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT(canale 257) e NOW",
-    "Provincia": "PE",
-    "Regione": "Abruzzo",
-    "Target": "69"
-  },
-  {
-    "DATA": "2026-09-16 21:00",
-    "Partita": "Pescara-Gubbio",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT(canale 257) e NOW",
-    "Provincia": "PG",
-    "Regione": "Umbria",
-    "Target": "72"
-  },
-  {
-    "DATA": "2026-09-16 21:00",
-    "Partita": "Livorno-Vado",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT(canale 259) e NOW",
+    "Canale": "SKY SPORT CALCIO, SKY SPORT",
     "Provincia": "LI",
     "Regione": "Toscana",
-    "Target": "78"
+    "Target": "50"
   },
   {
-    "DATA": "2026-09-17 18:45",
-    "Partita": "Levski Sofia-Salisburgo",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT(canale 251) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-17 18:45",
-    "Partita": "OFI Creta-Hoffenheim",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT(canale 252) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-17 21:00",
-    "Partita": "Juventus-NEC",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT(canale 252) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "55"
-  },
-  {
-    "DATA": "2026-09-17 21:00",
-    "Partita": "Real Sociedad-Bournemouth",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT(canale 253) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-17 21:00",
-    "Partita": "Besiktas-Marsiglia",
-    "Lega": "Europa",
-    "Canale": "TV8, SKY SPORT(canale 254) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-17 21:00",
-    "Partita": "Crystal Palace-Lech Poznan",
-    "Lega": "Europa",
-    "Canale": "SKY SPORT(canale 255) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-18 20:45",
-    "Partita": "Monza-Sassuolo",
-    "Lega": "Serie A",
-    "Canale": "DAZN,SKY SPORT CALCIO, SKY SPORT 4K, SKY SPORT (canale 251) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "59"
-  },
-  {
-    "DATA": "2026-09-19 14:30",
-    "Partita": "Forlì-Torres",
+    "DATA": "2026-09-26 14:30",
+    "Partita": "Pineto-Grosseto",
     "Lega": "Serie C",
-    "Canale": "SKY SPORT e NOW",
-    "Provincia": "SS",
-    "Regione": "Sardegna",
-    "Target": "70"
-  },
-  {
-    "DATA": "2026-09-19 15:00",
-    "Partita": "Bologna-Torino",
-    "Lega": "Serie A",
-    "Canale": "DAZN e DAZN 1 (canale 214 Sky)",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "20"
-  },
-  {
-    "DATA": "2026-09-19 15:00",
-    "Partita": "Udinese-Cagliari",
-    "Lega": "Serie A",
-    "Canale": "DAZN e DAZN 2 (canale 215 Sky)",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "75"
-  },
-  {
-    "DATA": "2026-09-19 18:00",
-    "Partita": "Roma-Inter",
-    "Lega": "Serie A",
-    "Canale": "DAZN e DAZN 1 (canale 214 Sky)",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "58"
-  },
-  {
-    "DATA": "2026-09-19 20:45",
-    "Partita": "Venezia-Lazio",
-    "Lega": "Serie A",
-    "Canale": "DAZN,SKY SPORT CALCIO, SKY SPORT 4K, SKY SPORT (canale 251) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "74"
-  },
-  {
-    "DATA": "2026-09-20 12:30",
-    "Partita": "Fiorentina-Napoli",
-    "Lega": "Serie A",
-    "Canale": "DAZN e DAZN 1 (canale 214 Sky)",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "43"
-  },
-  {
-    "DATA": "2026-09-20 14:30",
-    "Partita": "Vado-Pescara",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT e NOW",
-    "Provincia": "PE",
-    "Regione": "Abruzzo",
-    "Target": "69"
-  },
-  {
-    "DATA": "2026-09-20 14:30",
-    "Partita": "Reggiana-Latina",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT e NOW",
-    "Provincia": "LT",
-    "Regione": "Lazio",
-    "Target": "98"
-  },
-  {
-    "DATA": "2026-09-20 15:00",
-    "Partita": "Frosinone-Como",
-    "Lega": "Serie A",
-    "Canale": "DAZN e DAZN 1 (canale 214 Sky)",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "39"
-  },
-  {
-    "DATA": "2026-09-20 15:00",
-    "Partita": "Parma-Genoa",
-    "Lega": "Serie A",
-    "Canale": "DAZN e DAZN 2 (canale 215 Sky)",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "90"
-  },
-  {
-    "DATA": "2026-09-20 17:30",
-    "Partita": "Campobasso-Pineto",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT e NOW",
+    "Canale": "SKY SPORT",
     "Provincia": "TE",
     "Regione": "Abruzzo",
-    "Target": "58"
+    "Target": "50"
   },
   {
-    "DATA": "2026-09-20 18:00",
-    "Partita": "Juventus-Atalanta",
-    "Lega": "Serie A",
-    "Canale": "DAZN,SKY SPORT CALCIO, SKY SPORT 4K, SKY SPORT (canale 251) e NOW",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "66"
-  },
-  {
-    "DATA": "2026-09-20 20:30",
-    "Partita": "Grosseto-Perugia",
+    "DATA": "2026-09-26 14:30",
+    "Partita": "Pineto-Grosseto",
     "Lega": "Serie C",
-    "Canale": "SKY SPORT e NOW",
+    "Canale": "SKY SPORT",
     "Provincia": "GR",
     "Regione": "Toscana",
-    "Target": "63"
+    "Target": "50"
   },
   {
-    "DATA": "2026-09-20 20:30",
-    "Partita": "Grosseto-Perugia",
+    "DATA": "2026-09-26 14:30",
+    "Partita": "Torres-Vado",
     "Lega": "Serie C",
-    "Canale": "SKY SPORT e NOW",
+    "Canale": "SKY SPORT",
+    "Provincia": "SS",
+    "Regione": "Sardegna",
+    "Target": "50"
+  },
+  {
+    "DATA": "2026-09-26 17:30",
+    "Partita": "Latina-Atalanta U23",
+    "Lega": "Serie C",
+    "Canale": "SKY SPORT",
+    "Provincia": "LT",
+    "Regione": "Lazio",
+    "Target": "50"
+  },
+  {
+    "DATA": "2026-09-26 17:30",
+    "Partita": "Livorno-Pianese",
+    "Lega": "Serie C",
+    "Canale": "SKY SPORT",
+    "Provincia": "LI",
+    "Regione": "Toscana",
+    "Target": "50"
+  },
+  {
+    "DATA": "2026-09-27 14:30",
+    "Partita": "Ravenna-Gubbio",
+    "Lega": "Serie C",
+    "Canale": "SKY SPORT",
     "Provincia": "PG",
     "Regione": "Umbria",
-    "Target": "85"
+    "Target": "50"
   },
   {
-    "DATA": "2026-09-20 20:30",
-    "Partita": "Gubbio-Ostiamare",
+    "DATA": "2026-09-27 14:30",
+    "Partita": "Ostiamare-Forlì",
     "Lega": "Serie C",
-    "Canale": "SKY SPORT e NOW",
-    "Provincia": "PG",
-    "Regione": "Umbria",
-    "Target": "72"
-  },
-  {
-    "DATA": "2026-09-20 20:30",
-    "Partita": "Gubbio-Ostiamare",
-    "Lega": "Serie C",
-    "Canale": "SKY SPORT e NOW",
+    "Canale": "SKY SPORT",
     "Provincia": "RM",
     "Regione": "Lazio",
-    "Target": "100"
+    "Target": "50"
   },
   {
-    "DATA": "2026-09-20 20:45",
-    "Partita": "Milan-Lecce",
-    "Lega": "Serie A",
-    "Canale": "DAZN e DAZN 1 (canale 214 Sky)",
-    "Provincia": "",
-    "Regione": "",
-    "Target": "78"
+    "DATA": "2026-09-27 17:30",
+    "Partita": "Perugia-Reggiana",
+    "Lega": "Serie C",
+    "Canale": "SKY SPORT",
+    "Provincia": "PG",
+    "Regione": "Umbria",
+    "Target": "50"
+  },
+  {
+    "DATA": "2026-09-27 17:30",
+    "Partita": "Vis Pesaro-Guidonia",
+    "Lega": "Serie C",
+    "Canale": "SKY SPORT",
+    "Provincia": "RM",
+    "Regione": "Lazio",
+    "Target": "50"
+  },
+  {
+    "DATA": "2026-09-27 20:30",
+    "Partita": "Pescara-Spezia",
+    "Lega": "Serie C",
+    "Canale": "RAI SPORT, SKY SPORT",
+    "Provincia": "PE",
+    "Regione": "Abruzzo",
+    "Target": "50"
   }
 ]
