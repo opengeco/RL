@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f3546">
+<title>myVisit</title>
+<style>
+:root{
+  /* palette istituzionale SIAE, la stessa di myPlanner */
+  --nero:#000;--p7546:#2f3546;--p533:#2a3a54;--p299:#00b4f9;--bianco:#f6f6f6;--rosso:#a8231b;
+  --bg:#e4e6ea;--card:#f6f6f6;--line:rgba(47,53,70,.28);--line2:rgba(47,53,70,.16);--velo:rgba(42,58,84,.15);--mut:#2f3546;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:#000;font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+header{background:linear-gradient(180deg,#000,#2f3546);color:var(--bianco);border-bottom:3px solid var(--p299);padding:12px 16px calc(10px) ;padding-top:calc(12px + env(safe-area-inset-top));position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px}
+header h1{font-size:22px;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header .sub{font-size:12.5px;color:#d9dce4}
+header button{background:none;border:1px solid var(--bianco);color:var(--bianco);min-height:40px}
+main{max-width:760px;margin:0 auto;padding:14px 12px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.card h2{font-size:17px;margin:0 0 10px}
+details.card>summary{cursor:pointer;font-weight:700;font-size:17px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::after{content:'+';font-weight:800}details.card[open]>summary::after{content:'−'}
+details.card[open]>summary{margin-bottom:10px}
+.mut{color:var(--mut)}.small{font-size:13.5px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sp{flex:1}
+button{font:inherit;border:1px solid var(--p533);background:#fff;color:var(--p533);border-radius:8px;padding:8px 14px;min-height:44px;font-weight:600;cursor:pointer}
+button.pri{background:var(--p299);border-color:var(--p299);color:#000}
+button.scuro{background:var(--p533);border-color:var(--p533);color:var(--bianco)}
+button.lnk{border:0;background:none;padding:4px 6px;min-height:0;text-decoration:underline;text-underline-offset:2px}
+button.rosso{color:var(--rosso);border-color:var(--rosso)}
+button.pieno-rosso{background:var(--rosso);border-color:var(--rosso);color:var(--bianco)}
+button.finto,button.finto:disabled{background:#fff;border:1px dashed var(--p533);color:var(--p533);cursor:default;opacity:1}
+.ico{display:inline-flex;align-items:center;gap:8px}.ico svg{width:18px;height:18px;flex:none}
+button:disabled{opacity:.45}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--p299);outline-offset:1px}
+input,select,textarea{font:inherit;font-size:16px;width:100%;border:1px solid var(--p533);border-radius:8px;padding:9px 10px;background:#fff;color:#000;min-height:44px}
+textarea{min-height:120px;resize:vertical}
+input[type=checkbox]{width:22px;height:22px;min-height:0;accent-color:var(--p533);flex:none;margin:0}
+label.f{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:14px;margin-bottom:10px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chip{display:inline-block;padding:2px 8px;border-radius:4px;background:var(--velo);font-size:12.5px;font-weight:600}
+.chip.b{background:var(--p533);color:var(--bianco)}.chip.cy{background:var(--p299);color:#000}.chip.al{background:var(--rosso);color:var(--bianco)}.chip.k{background:#000;color:var(--bianco)}.chip.t{background:#fff;border:1px solid var(--line)}
+.fr{display:grid;grid-template-columns:120px 1fr;gap:6px;padding:6px 0;border-top:1px solid var(--line2)}.fr:first-of-type{border-top:0}
+.fr>div:first-child{color:var(--mut);font-size:14px}
+.msg{padding:10px 12px;border-radius:8px;background:var(--velo);margin:8px 0;font-size:14px}
+.msg.warn{border-left:4px solid var(--p299)}.msg.bad{background:rgba(168,35,27,.12);border-left:4px solid var(--rosso)}
+.kp{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-top:1px solid var(--line2);align-items:center}
+.kp:first-of-type{border-top:0}
+.kp .n{font-weight:700}.kp .v{font-size:13.5px;color:var(--mut)}
+.kp.st{background:#fff;border:2px solid var(--p299);border-radius:8px;padding:9px 10px;margin-bottom:6px}
+/* scala a sei colori come in myPlanner */
+.k1{background:#a8231b;color:#f6f6f6}.k2{background:#f6f6f6;color:#000;box-shadow:inset 0 0 0 1px #2a3a54}.k3{background:#7bd5f8;color:#000}.k4{background:#00b4f9;color:#000}.k5{background:#1577a7;color:#f6f6f6}.k6{background:#2a3a54;color:#f6f6f6}.k0{background:#e4e6ea;color:#000}
+.pc{display:inline-block;min-width:76px;text-align:center;padding:3px 8px;border-radius:4px;font-weight:700;font-size:14px}
+.arg{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line2);font-size:15px}.arg:first-child{border-top:0}
+.az{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px}
+.az .g2{margin-top:8px}
+.vis{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;color:#000;font-weight:400}
+.vis b{font-size:16px}
+.barra{position:sticky;bottom:0;background:var(--bg);padding:10px 0 calc(10px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:8px}
+.barra button{flex:1 1 140px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#000;color:var(--bianco);padding:10px 16px;border-radius:8px;display:none;z-index:99;max-width:92vw;font-size:14px;text-align:center}
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;overflow:auto;padding:16px 10px}
+.mbox{background:var(--card);max-width:700px;margin:0 auto;border-radius:10px;padding:14px}
+header h1 .ruolo{display:inline-block;vertical-align:middle;margin-left:10px;font-size:14px;font-weight:700;color:var(--p299);border:1px solid var(--p299);border-radius:4px;padding:1px 8px;line-height:1.3}
+.vis .dt{font-size:12.5px;font-weight:400;color:var(--mut);margin-left:6px}
+.stato{position:relative;display:inline-block}
+.stella{position:absolute;top:-9px;right:-9px;width:20px;height:20px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.stella svg{width:12px;height:12px}
+pre.mm{white-space:pre-wrap;font:14px/1.5 system-ui,sans-serif;background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;margin:0}
+@media (max-width:420px){.g2{grid-template-columns:1fr}.fr{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div style="flex:1;min-width:0"><h1><span id="tit">myVisit</span><span id="ruolo" class="ruolo" hidden></span></h1><div class="sub" id="sub">myVisit v.0.1 - MVP</div></div><button id="home" hidden>Elenco</button></header>
+<main id="app"></main>
+<div id="toast" role="status"></div>
+<script>
+(function () {
+'use strict';
+var VER = '0.1', ETICHETTA = 'myVisit v.0.1 - MVP';
+/* le chiavi restano “mg.” per non perdere le visite già salvate sui telefoni con la versione MeetGo */
+var K_VIS = 'mg.visite', K_CFG = 'mg.cfg', K_RUOLO = 'mg.ruolo', K_MAIL = 'mg.mail';
+var GIORNI = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'], MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+
+/* ---------- utilità ---------- */
+function h(tag, props) {
+  var e = document.createElement(tag);
+  if (props) Object.keys(props).forEach(function (k) {
+    var v = props[k]; if (v == null || v === false) return;
+    if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v;
+    else if (k === 'on') Object.keys(v).forEach(function (ev) { e.addEventListener(ev, v[ev]); });
+    else if (k in e && k !== 'style' && k !== 'for') e[k] = v; else e.setAttribute(k, v === true ? '' : v);
+  });
+  for (var i = 2; i < arguments.length; i++) add(e, arguments[i]);
+  return e;
+}
+function add(e, c) { if (c == null || c === false) return; if (Array.isArray(c)) { c.forEach(function (x) { add(e, x); }); return; } e.append(c.nodeType ? c : document.createTextNode(String(c))); }
+function pad(n) { return String(n).padStart(2, '0'); }
+function dkey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function parseD(k) { var p = String(k).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+function dIt(k) { return k && /^\d{4}-\d\d-\d\d/.test(k) ? k.slice(8, 10) + '/' + k.slice(5, 7) + '/' + k.slice(0, 4) : (k || '—'); }
+function dLungo(k) { if (!k) return '—'; var d = parseD(k); return GIORNI[d.getDay()] + ' ' + d.getDate() + ' ' + MESI[d.getMonth()]; }
+function gDiff(a, b) { return Math.round((parseD(b) - parseD(a)) / 86400000); }
+function oraOra() { var d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function nowIso() { var d = new Date(), o = -d.getTimezoneOffset(), s = o >= 0 ? '+' : '-'; o = Math.abs(o); return dkey(d) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + s + pad(Math.floor(o / 60)) + ':' + pad(o % 60); }
+function uid(p) { return p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function low(s) { return String(s || '').trim().toLowerCase(); }
+/* separatore delle migliaia sempre con il punto, anche sotto 10.000 */
+function num(x, dec) {
+  if (x == null || isNaN(x)) return '—';
+  var s = Math.abs(x).toFixed(dec || 0).split('.'), i = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return (x < 0 ? '−' : '') + i + (s[1] && /[1-9]/.test(s[1]) ? ',' + s[1].replace(/0+$/, '') : '');
+}
+function pct(x) { return x == null || isNaN(x) ? '—' : num(x * 100, 1) + '%'; }
+var tT = null;
+function toast(m) { var t = document.getElementById('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(tT); tT = setTimeout(function () { t.style.display = 'none'; }, 3500); }
+function leggi(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+function scrivi(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { toast('Il telefono non lascia salvare: concludi e invia il file prima di chiudere'); return false; } }
+function visite() { return leggi(K_VIS) || {}; }
+function salvaVisita(v) { var t = visite(); v.aggiornato = nowIso(); t[v.esitoId] = v; scrivi(K_VIS, t); }
+function togliVisita(id) { var t = visite(); delete t[id]; scrivi(K_VIS, t); }
+
+/* ---------- busta cifrata per la mail a myPlanner (RSA-OAEP 2048 + AES-GCM 256) ----------
+   myVisit ha solo la chiave pubblica: sa cifrare ma non leggere. Solo myPlanner, con la chiave privata, apre la busta. */
+var CHIAVE_PUBBLICA = {"kty":"RSA","n":"rQwgKvG4K9-BBa7VDktabNNUtZqWd-SlVuHqIxcrRrQdPtdoQL011G-hyMVFCPzu9byP6jNd3E6heZj1Ns3KXmNRtJYcodWu50rPQgHpa_kz0-kvi_uUVds8w69IQ-HSUDdzjEYCBVFi1kVMTODdYX0PUenniGDTppqCtKRQauKieR-LmpfesxVYgQ0kp_Wl0mgYsw2GC9tnpz9VBImpS6jj-SK__P6VNhE8KOjK-6OSEfy1Qy7Ejdq8YjBOE7sAoK-MQoTWUwGcpFCKykCXevYhPxHrnUYdC8mS14A9v82K9BJIVfH7vCRMQTXUOkYuh91gVZkWcuLbQsOCFnl0Mw","e":"AQAB"};
+var MARCA_I = '---MYVISIT-INIZIO---', MARCA_F = '---MYVISIT-FINE---', MAX_URL = 6000;
+var CRC_T = (function () { var t = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(s) { var c = 0xFFFFFFFF; for (var i = 0; i < s.length; i++) c = CRC_T[(c ^ s.charCodeAt(i)) & 255] ^ (c >>> 8); return ((c ^ 0xFFFFFFFF) >>> 0).toString(16).padStart(8, '0'); }
+function b64url(u) { var s = ''; for (var i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+async function busta(E, oggetto) {
+  if (!window.crypto || !crypto.subtle) throw new Error('questo browser non sa cifrare (serve una pagina https)');
+  var dati = new TextEncoder().encode(JSON.stringify(E)), flag = 0;
+  if (typeof CompressionStream === 'function') {
+    try { var z = new Uint8Array(await new Response(new Blob([dati]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); if (z.length < dati.length) { dati = z; flag = 1; } } catch (e) {}
+  }
+  var sb = crypto.subtle, pub = await sb.importKey('jwk', CHIAVE_PUBBLICA, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt']);
+  var k = await sb.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']), iv = crypto.getRandomValues(new Uint8Array(12));
+  var ct = new Uint8Array(await sb.encrypt({ name: 'AES-GCM', iv: iv }, k, dati)), wk = new Uint8Array(await sb.encrypt({ name: 'RSA-OAEP' }, pub, await sb.exportKey('raw', k)));
+  var out = new Uint8Array(2 + wk.length + 12 + ct.length); out[0] = 1; out[1] = flag; out.set(wk, 2); out.set(iv, 2 + wk.length); out.set(ct, 2 + wk.length + 12);
+  var b = b64url(out);
+  return MARCA_I + '\nMV1;' + oggetto + ';' + b.length + ';' + crc32(b) + '\n' + b.match(/.{1,76}/g).join('\n') + '\n' + MARCA_F;
+}
+
+/* ---------- lettura del link (#d= uscita, #c= configurazione per le visite nuove) ---------- */
+function daB64(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+async function decodifica(enc) {
+  var tipo = enc.charAt(0), byt = daB64(enc.slice(1));
+  if (tipo === 'z') {
+    if (typeof DecompressionStream !== 'function') throw new Error('Questo browser è troppo vecchio per leggere il QR: aggiornalo');
+    byt = new Uint8Array(await new Response(new Blob([byt]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+  } else if (tipo !== 'j') throw new Error('Link non riconosciuto');
+  return JSON.parse(new TextDecoder().decode(byt));
+}
+async function daLink() {
+  var hs = location.hash || '', m = hs.match(/^#([dc])=(.+)$/);
+  if (!m) return null;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  var o;
+  try { o = await decodifica(m[2]); } catch (e) { return { errore: e.message || 'Il QR non si legge' }; }
+  if (m[1] === 'c') {
+    if (!o || o.k !== 'mgc' || o.v !== 1) return { errore: 'Configurazione non riconosciuta' };
+    scrivi(K_CFG, o); if (o.ru) scrivi(K_RUOLO, o.ru); if (o.ml) scrivi(K_MAIL, o.ml); return { cfg: o };
+  }
+  if (!o || o.k !== 'mg' || o.v !== 1) return { errore: 'Dati dell’uscita non riconosciuti: aggiorna myVisit o myPlanner' };
+  if (o.ru) scrivi(K_RUOLO, o.ru); if (o.ml) scrivi(K_MAIL, o.ml);
+  var t = visite(), esist = Object.keys(t).map(function (k) { return t[k]; }).filter(function (v) { return v.src && v.src.id === o.id; })[0];
+  if (esist) { esist.src = o; salvaVisita(esist); return { apri: esist.esitoId, gia: true }; }
+  var v = { esitoId: uid('mg'), nuova: false, src: o, stato: 'bozza', dataEff: dkey(new Date()) > o.d ? dkey(new Date()) : o.d, oraEff: '', argomenti: [], emerso: '', azioni: [], creato: nowIso() };
+  if (v.dataEff > dkey(new Date())) v.dataEff = dkey(new Date());
+  salvaVisita(v); return { apri: v.esitoId };
+}
+
+/* ---------- KPI: stessa lettura di myPlanner ---------- */
+var SCALA_RITMO = [0.7, 0.85, 0.95, 1, 1.1], SCALA_TGT = [0.4, 0.6, 0.8, 1, 1.1];
+function classe(x, s) { if (x == null || isNaN(x)) return 'k0'; var n = 1; for (var i = 0; i < 5; i++) if (x >= s[i] - 1e-9) n = i + 2; return 'k' + n; }
+function lettura(r, q) {
+  /* r = [id, nome, tipo c|i|g, valore, target, valuta] */
+  var v = r[3], t = r[4];
+  if (v == null) return { txt: 'n.d.', cls: 'k0', sub: 'nessun dato' };
+  if (r[2] === 'g') return { txt: pct(v), cls: v >= t ? 'k6' : 'k1', sub: 'soglia ' + pct(t) };
+  if (r[2] === 'i') { var a = v <= 0 ? 1 : (t ? t / v : null); return { txt: v <= 0 ? 'azzerato' : pct(a), cls: v <= 0 ? 'k6' : classe(a, SCALA_TGT), sub: 'da gestire ' + num(v) + ' · tetto ' + num(t) }; }
+  if (!t) return { txt: '—', cls: 'k0', sub: (r[5] ? '€ ' : '') + num(v) + ' · obiettivo assente' };
+  var ragg = v / t, rit = q ? ragg / q : null;
+  return { txt: rit != null ? pct(rit) : pct(ragg), cls: rit != null ? classe(rit, SCALA_RITMO) : classe(ragg, SCALA_TGT), sub: (r[5] ? '€ ' : '') + num(v) + ' su ' + (r[5] ? '€ ' : '') + num(t) + ' · ' + pct(ragg) + ' del target' };
+}
+function rigaKpi(r, q, stim) {
+  var L = lettura(r, q);
+  return h('div', { class: 'kp' + (stim ? ' st' : '') }, h('div', null, h('div', { class: 'n' }, r[1]), h('div', { class: 'v' }, L.sub)), h('span', { class: 'pc ' + L.cls }, L.txt));
+}
+
+/* ---------- viste ---------- */
+var root = document.getElementById('app');
+function nomeRuolo(r) { return r === 'am' ? 'AM' : r === 'super' ? 'Super' : r === 'rdz' ? 'RdZ' : ''; }
+function ruoloDi(v) { return v ? (v.nuova ? (v.cfg || {}).ru : (v.src || {}).ru) : leggi(K_RUOLO); }
+function testata(t, s, conHome, ruolo) {
+  document.getElementById('tit').textContent = t; document.getElementById('sub').textContent = s || '';
+  var r = nomeRuolo(ruolo === undefined ? leggi(K_RUOLO) : ruolo), rb = document.getElementById('ruolo'); rb.textContent = r; rb.hidden = !r;
+  var b = document.getElementById('home'); b.hidden = !conHome; b.onclick = function () { elenco(); };
+  window.scrollTo(0, 0);
+}
+function cfg() { return leggi(K_CFG); }
+function titoloVisita(v) { return v.nuova ? (v.agenzia || 'Visita nuova') : (v.src.ag || '—'); }
+
+function elenco(msg) {
+  testata('myVisit', ETICHETTA, false);
+  var w = h('div', null), t = visite(), l = Object.keys(t).map(function (k) { return t[k]; }).sort(function (a, b) { return (b.aggiornato || '') < (a.aggiornato || '') ? -1 : 1; }), C = cfg();
+  if (msg) w.append(h('div', { class: 'msg ' + (msg.bad ? 'bad' : 'warn') }, msg.t));
+  var c = h('div', { class: 'card' }, h('h2', null, 'Visite su questo smartphone'));
+  if (!l.length) c.append(h('p', { class: 'mut small', style: 'margin:0' }, 'Nessuna visita. In myPlanner apri l’uscita e premi “myVisit QR”, poi inquadra il QR con la fotocamera del telefono.'));
+  l.forEach(function (v) {
+    var d = v.nuova ? v.dataEff : v.src.d, gm = d ? d.slice(8, 10) + '.' + d.slice(5, 7) + '.' + d.slice(0, 4) : '';
+    c.append(h('button', { class: 'vis', on: { click: function () { apri(v.esitoId); } } },
+      h('div', { class: 'row', style: 'flex-wrap:nowrap;align-items:flex-start' }, h('span', { style: 'flex:1;min-width:0' }, h('b', null, titoloVisita(v)), gm ? h('span', { class: 'dt', style: 'white-space:nowrap' }, gm) : null),
+        statoVisita(v)),
+      v.nuova
+        ? h('div', { class: 'small mut' }, v.motivazione || 'Tipo di visita da scegliere')
+        : [h('div', { class: 'small mut' }, v.src.c || '—'), h('div', { class: 'small mut' }, v.src.mo || '—')]));
+  });
+  w.append(c);
+  if (C) w.append(h('div', { class: 'card' }, h('h2', null, 'Visita non programmata'), h('p', { class: 'small mut', style: 'margin-top:0' }, 'Per le visite che non hai programmato in myPlanner.', h('br'), 'Area ' + (C.an || C.ar) + ' · configurazione del ' + dIt(C.ts) + '.'),
+    h('button', { class: 'pri', on: { click: nuovaVisita } }, '+ Nuova visita')));
+  w.append(h('p', { class: 'mut small' }, 'I dati restano solo su questo telefono finché non li invii a myPlanner. Se il browser cancella i dati del sito, quello che non hai inviato si perde: invia la visita lo stesso giorno.'));
+  root.replaceChildren(w);
+}
+var STELLA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#a8231b" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
+function statoVisita(v) {
+  var w = h('span', { class: 'stato' }, v.stato === 'conclusa' ? h('span', { class: 'chip b' }, 'inviata a myPlanner') : h('span', { class: 'chip cy' }, 'da inviare'));
+  if (v.nuova) { var st = h('span', { class: 'stella', title: 'Visita nuova, non programmata in myPlanner', 'aria-label': 'Visita nuova' }); st.innerHTML = STELLA; w.append(st); }
+  return w;
+}
+function nuovaVisita() {
+  var C = cfg(); if (!C) return;
+  var v = { esitoId: uid('mg'), nuova: true, src: null, cfg: { ar: C.ar, em: C.em, ru: C.ru }, stato: 'bozza', zonaId: (C.zo[0] || [])[0] || '', utId: '', agenzia: '', motivazioneId: '', dataEff: dkey(new Date()), oraEff: oraOra(), argomenti: [], emerso: '', azioni: [], creato: nowIso() };
+  salvaVisita(v); apri(v.esitoId);
+}
+function argomentiDi(v) { var l = v.nuova ? (cfg() || {}).arg : v.src.arg; return (l || []).map(function (x) { return { id: x[0], nome: x[1] }; }); }
+function kpiDi(v) { var l = v.nuova ? (cfg() || {}).kp : v.src.kp; return (l || []).map(function (x) { return { id: x[0], nome: x[1] }; }); }
+
+function apri(id) {
+  var v = visite()[id]; if (!v) { elenco({ t: 'Visita non trovata', bad: true }); return; }
+  if (v.stato === 'conclusa') { riepilogo(v); return; }
+  var P = v.src, w = h('div', null), salva = function () { salvaVisita(v); };
+  testata(titoloVisita(v), v.nuova ? 'Visita nuova' : (P.c || ''), true, ruoloDi(v));
+  /* --- la visita --- */
+  if (!v.nuova) {
+    var rit = v.dataEff && P.d && v.dataEff > P.d ? gDiff(P.d, v.dataEff) : 0;
+    var c1 = h('div', { class: 'card' }, h('div', { class: 'row', style: 'margin-bottom:8px' }, h('span', { class: 'chip t' }, P.mo || '—'), h('span', { class: 'chip ' + (P.st === 'Scaduta' ? 'al' : 'b') }, P.st || ''), P.am ? h('span', { class: 'chip k' }, 'AM presente') : null));
+    var fr = function (l, x) { if (x) c1.append(h('div', { class: 'fr' }, h('div', null, l), h('div', null, x))); };
+    fr('Agenzia', h('b', null, P.ag)); fr('Zona', P.zn);
+    fr('Programmata', dLungo(P.d) + (P.o ? ' alle ' + P.o : ''));
+    fr(P.rg ? 'Reggente' : 'Mandatario', P.rg || P.md); if (P.rg && P.md) fr('Titolare', P.md);
+    fr('Obiettivo', P.no);
+    if (rit > 0) c1.append(h('div', { class: 'msg warn' }, 'Visita fatta in ritardo di ' + rit + (rit === 1 ? ' giorno' : ' giorni') + ' rispetto al programma.'));
+    w.append(c1);
+    /* KPI */
+    var ks = P.ks || [], kp = P.kp || [], stim = kp.filter(function (r) { return ks.indexOf(r[0]) >= 0; });
+    if (kp.length) {
+      var testoK = P.dr ? 'Report KPI del ' + dIt(P.dr) + (P.q ? ' · ritmo atteso ' + pct(P.q) + (P.pe ? ' del ' + P.pe : '') : '') : 'Nessun report KPI';
+      if (stim.length) w.append(h('div', { class: 'card' }, h('h2', null, 'KPI da stimolare'), stim.map(function (r) { return rigaKpi(r, P.q, true); }), h('p', { class: 'mut small', style: 'margin:6px 0 0' }, testoK)));
+      w.append(h('details', { class: 'card', open: !stim.length }, h('summary', null, 'Tutti i KPI dell’agenzia'), kp.map(function (r) { return rigaKpi(r, P.q, false); }),
+        h('p', { class: 'mut small', style: 'margin:8px 0 0' }, testoK + '. Il numero colorato è la % del ritmo (valore ÷ obiettivo ÷ ritmo atteso); per Validate il raggiungimento del tetto; per TuneX la media rispetto alla soglia.')));
+    }
+  } else {
+    var C = cfg() || { zo: [], ag: [], tv: [] };
+    var zsel = h('select', null, C.zo.map(function (z) { return h('option', { value: z[0], selected: z[0] === v.zonaId }, z[1]); }));
+    var asel = h('select', null), riempi = function () { asel.replaceChildren(); add(asel, [h('option', { value: '' }, '— altro luogo —'), C.ag.filter(function (a) { return a[2] === zsel.value; }).map(function (a) { return h('option', { value: a[0], selected: a[0] === v.utId }, a[1]); })]); luogo.style.display = asel.value ? 'none' : ''; };
+    var luogo = h('input', { type: 'text', placeholder: 'Luogo', value: v.utId ? '' : (v.agenzia || '') });
+    var tv = h('select', null, h('option', { value: '' }, 'Tipo di visita…'), (C.tv || []).map(function (m) { return h('option', { value: m[0], selected: m[0] === v.motivazioneId }, m[1]); }));
+    zsel.addEventListener('change', function () { v.zonaId = zsel.value; v.utId = ''; riempi(); salva(); });
+    asel.addEventListener('change', function () { v.utId = asel.value; v.agenzia = asel.value ? asel.selectedOptions[0].textContent : ''; luogo.style.display = asel.value ? 'none' : ''; testata(titoloVisita(v), 'Visita nuova', true, ruoloDi(v)); salva(); });
+    luogo.addEventListener('input', function () { if (!asel.value) { v.agenzia = luogo.value; salva(); } });
+    tv.addEventListener('change', function () { v.motivazioneId = tv.value; v.motivazione = tv.value ? tv.selectedOptions[0].textContent : ''; salva(); });
+    riempi();
+    w.append(h('div', { class: 'card' }, h('h2', null, 'Dove'), h('label', { class: 'f' }, 'Zona', zsel), h('label', { class: 'f' }, 'Agenzia', asel, luogo), h('label', { class: 'f' }, 'Tipo di visita', tv)));
+  }
+  /* --- quando --- */
+  var dE = h('input', { type: 'date', value: v.dataEff, max: dkey(new Date()) }), oE = h('input', { type: 'time', value: v.oraEff || '' });
+  dE.addEventListener('change', function () { v.dataEff = dE.value; salva(); apri(v.esitoId); }); oE.addEventListener('change', function () { v.oraEff = oE.value; salva(); });
+  w.append(h('div', { class: 'card' }, h('h2', null, 'Quando è stata fatta'), h('div', { class: 'g2' }, h('label', { class: 'f' }, 'Data', dE), h('label', { class: 'f' }, 'Ora', oE)),
+    !v.oraEff ? h('button', { class: 'lnk', on: { click: function () { v.oraEff = oraOra(); salva(); apri(v.esitoId); } } }, 'Adesso') : null));
+  /* --- report --- */
+  var args = argomentiDi(v), cA = h('div', { class: 'card' }, h('h2', null, 'Argomenti trattati'));
+  if (!args.length) cA.append(h('p', { class: 'mut small' }, 'Nessun argomento configurato.'));
+  args.forEach(function (g) {
+    var cb = h('input', { type: 'checkbox', checked: v.argomenti.indexOf(g.id) >= 0, on: { change: function (e) { var i = v.argomenti.indexOf(g.id); if (e.target.checked) { if (i < 0) v.argomenti.push(g.id); } else if (i >= 0) v.argomenti.splice(i, 1); salva(); } } });
+    cA.append(h('label', { class: 'arg' }, cb, g.nome));
+  });
+  w.append(cA);
+  var em = h('textarea', { value: v.emerso, placeholder: 'Che cosa è emerso dalla visita: fatti, numeri, impegni presi' }), tE = null;
+  em.addEventListener('input', function () { v.emerso = em.value; clearTimeout(tE); tE = setTimeout(salva, 400); });
+  em.addEventListener('blur', salva);
+  w.append(h('div', { class: 'card' }, h('h2', null, 'Cosa è emerso'), em));
+  var kl = kpiDi(v), cZ = h('div', { class: 'card' }, h('h2', null, 'Azioni'));
+  var disegnaAz = function () {
+    cZ.replaceChildren(h('h2', null, 'Azioni'));
+    if (!v.azioni.length) cZ.append(h('p', { class: 'mut small', style: 'margin-top:0' }, 'Nessuna azione. Ogni azione va con la data entro cui farla e, se c’è, il KPI collegato.'));
+    v.azioni.forEach(function (a, i) {
+      var t = h('textarea', { value: a.testo, placeholder: 'Cosa c’è da fare', style: 'min-height:70px' }), d = h('input', { type: 'date', value: a.data || '' });
+      var k = h('select', null, h('option', { value: '' }, 'Nessun KPI'), kl.map(function (x) { return h('option', { value: x.id, selected: x.id === a.kpi }, x.nome); }));
+      t.addEventListener('input', function () { a.testo = t.value; clearTimeout(tE); tE = setTimeout(salva, 400); });
+      d.addEventListener('change', function () { a.data = d.value; salva(); }); k.addEventListener('change', function () { a.kpi = k.value; a.kpiNome = k.value ? k.selectedOptions[0].textContent : ''; salva(); });
+      cZ.append(h('div', { class: 'az' }, h('div', { class: 'row' }, h('b', null, 'Azione ' + (i + 1)), h('span', { class: 'sp' }),
+        h('button', { class: 'lnk rosso', on: { click: function () { if (!confirm('Togliere questa azione?')) return; v.azioni.splice(i, 1); salva(); disegnaAz(); } } }, 'Togli')), t,
+        h('div', { class: 'g2' }, h('label', { class: 'f' }, 'Entro il', d), h('label', { class: 'f' }, 'KPI collegato', k))));
+    });
+    cZ.append(h('button', { on: { click: function () { v.azioni.push({ id: uid('a'), testo: '', data: '', kpi: '' }); salva(); disegnaAz(); } } }, '+ Azione'));
+  };
+  disegnaAz(); w.append(cZ);
+  /* --- comandi --- */
+  w.append(h('div', { class: 'barra' },
+    h('button', { on: { click: function () { annulla(v); } } }, 'Annulla'),
+    h('button', { class: 'pri', on: { click: function () { salva(); concludi(v); } } }, 'Invia a myPlanner')),
+    h('div', { class: 'barra', style: 'position:static;padding-top:0' },
+      h('button', { class: 'finto', disabled: true, 'aria-disabled': 'true', tabindex: -1 }, '✓ Salvata sul Telefono'),
+      h('button', { class: 'pieno-rosso', on: { click: function () { if (!confirm('Eliminare questa visita dal telefono? Quello che non hai inviato a myPlanner si perde.')) return; togliVisita(v.esitoId); elenco(); } } }, 'Elimina dal Telefono')));
+  root.replaceChildren(w);
+}
+
+/* ---------- riepilogo della visita (solo dati oggettivi) ---------- */
+function verbale(v) {
+  var P = v.src || {}, C = v.cfg || {}, args = argomentiDi(v), kl = kpiDi(v), nomeA = function (id) { var g = args.filter(function (x) { return x.id === id; })[0]; return g ? g.nome : id; };
+  var nomeK = function (id) { var k = kl.filter(function (x) { return x.id === id; })[0]; return k ? k.nome : id; };
+  var tipo = v.nuova ? (v.motivazione || '—') : P.mo, ruolo = (v.nuova ? C.ru : P.ru) === 'am' ? 'AM' : 'RdZ';
+  var r = ['Agenzia: ' + titoloVisita(v) + (v.nuova ? '' : ' · zona ' + P.zn), 'Data: ' + dLungo(v.dataEff) + ' ' + v.dataEff.slice(0, 4) + (v.oraEff ? ' alle ' + v.oraEff : ''), 'Tipo di visita: ' + tipo];
+  if (!v.nuova && (P.rg || P.md)) r.push((P.rg ? 'Mandatario reggente: ' + P.rg : 'Mandatario: ' + P.md));
+  r.push('Svolta da: ' + ruolo + (ruolo === 'RdZ' && P.am ? ' · AM presente' : ''));
+  if (!v.nuova && (P.ks || []).length) r.push('KPI da stimolare: ' + P.ks.map(nomeK).join(', '));
+  r.push('', 'ARGOMENTI TRATTATI', v.argomenti.length ? v.argomenti.map(nomeA).join(', ') : '—', '', 'COSA È EMERSO', v.emerso.trim() || '—', '', 'AZIONI');
+  var az = v.azioni.filter(function (a) { return a.testo && a.testo.trim(); });
+  if (!az.length) r.push('Nessuna azione.');
+  az.forEach(function (a, i) { r.push((i + 1) + '. ' + a.testo.trim() + ' · entro il ' + dIt(a.data) + (a.kpi ? ' · KPI ' + nomeK(a.kpi) : '')); });
+  if (!v.nuova && P.c) r.push('', 'Rif. ' + P.c);
+  return r.join('\n');
+}
+/* “Annulla”: cancella quello che è stato scritto e torna all'elenco (la visita nuova, fatta tutta a mano, si toglie) */
+function annulla(v) {
+  if (!confirm(v.nuova ? 'Annullare la visita nuova? Quello che hai inserito si cancella.' : 'Annullare? Quello che hai inserito (data, argomenti, cosa è emerso, azioni) si cancella; la visita resta nell’elenco.')) return;
+  if (v.nuova) togliVisita(v.esitoId);
+  else { v.argomenti = []; v.emerso = ''; v.azioni = []; v.oraEff = ''; v.dataEff = dkey(new Date()); salvaVisita(v); }
+  elenco();
+}
+
+/* ---------- conclusione: il file per myPlanner ---------- */
+function esito(v) {
+  var P = v.src || {}, args = argomentiDi(v), kl = kpiDi(v), C = v.cfg || {};
+  return { k: 'myvisit-esito', v: 1, app: 'myVisit', versione: VER, esitoId: v.esitoId, nuova: !!v.nuova,
+    id: v.nuova ? null : P.id, codice: v.nuova ? null : P.c, areaId: v.nuova ? C.ar : P.ar, zonaId: v.nuova ? v.zonaId : P.z,
+    utId: v.nuova ? (v.utId || null) : P.ut, agenzia: titoloVisita(v), ruolo: v.nuova ? C.ru : P.ru, owner: v.nuova ? C.em : P.em,
+    motivazioneId: v.nuova ? (v.motivazioneId || null) : null, motivazione: v.nuova ? (v.motivazione || '') : P.mo,
+    dataProgrammata: v.nuova ? null : P.d, oraProgrammata: v.nuova ? null : (P.o || ''), dataEff: v.dataEff, oraEff: v.oraEff || '',
+    argomenti: v.argomenti.map(function (id) { var g = args.filter(function (x) { return x.id === id; })[0]; return { id: id, nome: g ? g.nome : '' }; }),
+    emerso: v.emerso.trim(),
+    azioni: v.azioni.filter(function (a) { return a.testo && a.testo.trim(); }).map(function (a) { var k = kl.filter(function (x) { return x.id === a.kpi; })[0]; return { id: a.id, testo: a.testo.trim(), data: a.data || null, kpi: a.kpi || null, kpiNome: k ? k.nome : null }; }),
+    salvatoIl: nowIso() };
+}
+function controlla(v) {
+  if (!v.dataEff) return 'Indica la data della visita';
+  if (v.dataEff > dkey(new Date())) return 'La data della visita è nel futuro';
+  if (v.nuova && !v.zonaId) return 'Scegli la zona';
+  if (v.nuova && !v.utId && !String(v.agenzia || '').trim()) return 'Scegli l’agenzia o scrivi il luogo';
+  if (v.nuova && !v.motivazioneId) return 'Scegli il tipo di visita';
+  if (!v.emerso.trim()) return 'Scrivi cosa è emerso';
+  var az = v.azioni.filter(function (a) { return a.testo && a.testo.trim(); });
+  if (az.some(function (a) { return !a.data; })) return 'Indica entro quando va fatta ogni azione';
+  return null;
+}
+/* oggetto della mail = nome del file che il flusso crea in common/myVisit: il codice dell'uscita, o N-<ZONA>-<data>-<sigla> per le visite nuove */
+function oggettoDi(E) { return E.codice || ('N-' + String(E.zonaId || '').toUpperCase() + '-' + String(E.dataEff || '').replace(/-/g, '') + '-' + String(E.esitoId || '').slice(-4).toUpperCase()); }
+function mailDi(v) { return String((v && (v.nuova ? (cfg() || {}).ml : (v.src || {}).ml)) || leggi(K_MAIL) || '').trim(); }
+function android() { return /Android/i.test(navigator.userAgent); }
+/* piano B: la busta come file .txt da allegare a una mail (Condividi → Outlook); se non si può condividere, si scarica */
+async function inviaFile(testo, nome) {
+  var f = null; try { f = new File([testo], nome, { type: 'text/plain' }); } catch (e) {}
+  if (f && window.isSecureContext && navigator.share && (!navigator.canShare || navigator.canShare({ files: [f] }))) {
+    try { await navigator.share({ files: [f] }); return 'condiviso'; } catch (e) { if (e && e.name === 'AbortError') return null; }
+  }
+  var a = h('a', { href: URL.createObjectURL(new Blob([testo], { type: 'text/plain' })), download: nome });
+  document.body.append(a); a.click(); a.remove(); return 'scaricato';
+}
+/* invio: busta cifrata nel corpo di una mail già pronta (destinatario e oggetto); se è troppo lunga, file da allegare */
+async function invia(E, v) {
+  var ogg = oggettoDi(E), to = mailDi(v), testo;
+  try { testo = await busta(E, ogg); } catch (e) { return { esito: 'errore', motivo: e.message }; }
+  var corpo = 'Rendicontazione myVisit · ' + (E.agenzia || '') + ' · visita del ' + dIt(E.dataEff) + '\nPremi Invia senza modificare il testo qui sotto.\n\n' + testo + '\n';
+  var url = 'mailto:' + to + '?subject=' + encodeURIComponent(ogg) + '&body=' + encodeURIComponent(corpo.replace(/\r?\n/g, '\r\n'));
+  if (to && url.length <= MAX_URL) { location.href = url; return { esito: 'mail', oggetto: ogg }; }
+  return { esito: 'file', oggetto: ogg, to: to, testo: testo, motivo: !to ? 'manca l’indirizzo della mail di myPlanner (aggiorna il QR da myPlanner)' : 'la rendicontazione è troppo lunga per il corpo della mail' };
+}
+/* finestra del piano B: istruzioni, copia dell'indirizzo e dell'oggetto, condivisione del file */
+function pianoB(r, fatto) {
+  var ov = h('div', { class: 'mbg' }), chiudi = function () { ov.remove(); };
+  var copia = function (t, msg) { return function () { try { navigator.clipboard.writeText(t).then(function () { toast(msg); }, function () { toast('Copia non riuscita'); }); } catch (e) { toast('Copia non disponibile'); } }; };
+  ov.append(h('div', { class: 'mbox' }, h('h2', { style: 'margin-top:0' }, 'Invia come allegato'),
+    h('div', { class: 'msg warn' }, 'Non posso metterla nel corpo della mail: ' + r.motivo + '.'),
+    h('p', { class: 'small' }, 'Tocca “Allega il file”, scegli Outlook e manda la mail ' + (r.to ? 'a ' : 'all’indirizzo di myPlanner'), r.to ? h('b', null, r.to) : null, ' con oggetto ', h('b', null, r.oggetto), '.'),
+    h('div', { class: 'row' }, r.to ? h('button', { on: { click: copia(r.to, 'Indirizzo copiato') } }, 'Copia indirizzo') : null, h('button', { on: { click: copia(r.oggetto, 'Oggetto copiato') } }, 'Copia oggetto')),
+    h('div', { class: 'barra', style: 'position:static' }, h('button', { on: { click: chiudi } }, 'Annulla'),
+      h('button', { class: 'pri', on: { click: async function () { var x = await inviaFile(r.testo, r.oggetto + '.txt'); if (!x) return; chiudi(); toast(x === 'condiviso' ? 'File condiviso: invia la mail' : 'File scaricato: allegalo a una mail'); fatto(); } } }, 'Allega il file'))));
+  document.body.append(ov);
+}
+async function esegui(v, E, dopo) {
+  var r = await invia(E, v);
+  if (r.esito === 'errore') { toast('Non riesco a preparare l’invio: ' + r.motivo); return; }
+  if (r.esito === 'mail') { dopo(); setTimeout(function () { toast('Si è aperta la mail: premi Invia in Outlook'); }, 600); return; }
+  pianoB(r, dopo);
+}
+/* “Invia a myPlanner”: si apre la mail già pronta; la visita resta sul telefono come copia finché non la elimini */
+async function concludi(v) {
+  var err = controlla(v); if (err) { toast(err); return; }
+  var E = esito(v);
+  await esegui(v, E, function () { v.stato = 'conclusa'; v.concluso = nowIso(); v.esito = E; salvaVisita(v); riepilogo(v); });
+}
+var AEREO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>';
+function riepilogo(v) {
+  testata(titoloVisita(v), 'Inviata a myPlanner il ' + dIt((v.concluso || '').slice(0, 10)) + ' · oggetto ' + oggettoDi(v.esito || esito(v)), true, ruoloDi(v));
+  var w = h('div', null);
+  w.append(h('div', { class: 'card' }, h('h2', null, 'Riepilogo della Visita'), h('pre', { class: 'mm' }, verbale(v))));
+  var cond = h('button', { class: 'pri ico', style: 'justify-content:center', on: { click: function () { esegui(v, v.esito || esito(v), function () {}); } } });
+  cond.innerHTML = AEREO + '<span>Invia di nuovo</span>';
+  w.append(h('div', { class: 'msg warn' }, 'Controlla in Outlook che la mail sia partita. Se non è partita, tocca “Invia di nuovo”. Elimina la visita dal telefono solo quando l’hai ritrovata in myPlanner.'));
+  w.append(h('div', { class: 'barra' },
+    cond,
+    h('button', { on: { click: function () { elenco(); } } }, 'Annulla')),
+    h('div', { class: 'barra', style: 'position:static;padding-top:0' },
+      h('button', { on: { click: function () { if (!confirm('Riaprire la visita per modificarla? Dopo dovrai inviarla di nuovo a myPlanner.')) return; v.stato = 'bozza'; salvaVisita(v); apri(v.esitoId); } } }, 'Riapri per modificare'),
+      h('button', { class: 'pieno-rosso', on: { click: function () { if (!confirm('Eliminare la visita dal telefono? Fallo solo dopo averla caricata in myPlanner.')) return; togliVisita(v.esitoId); elenco(); } } }, 'Elimina dal Telefono')));
+  root.replaceChildren(w);
+}
+
+/* ---------- avvio ---------- */
+(async function () {
+  var r = await daLink();
+  if (!r) { elenco(); return; }
+  if (r.errore) { elenco({ t: r.errore, bad: true }); return; }
+  if (r.cfg) { elenco({ t: 'Configurazione ricevuta: ora puoi registrare le visite non programmate (' + r.cfg.ag.length + ' agenzie in ' + r.cfg.zo.length + ' zone).' }); return; }
+  apri(r.apri);
+  if (r.gia) toast('Visita già sul telefono: ho aggiornato i dati dell’uscita, il tuo lavoro è rimasto');
+})();
+window.addEventListener('hashchange', function () { location.reload(); });
+})();
+</script>
+</body>
+</html>
