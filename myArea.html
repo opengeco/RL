@@ -86,10 +86,24 @@ select.txt{background:#fff;appearance:auto}
 .photo-chip .chip-x:hover{color:#b91c1c}
 .status{font-size:11.5px;color:var(--m);grid-column:1/-1;margin-top:-4px}
 .status.ok{color:var(--g);font-weight:600}
-.notice{position:fixed;z-index:2100;top:70px;left:50%;transform:translateX(-50%);background:#fff;padding:9px 15px;border-radius:9px;box-shadow:0 3px 16px #0004;font-size:12.5px;font-weight:600;display:none;border-left:4px solid var(--m)}
+.status.warn{color:#b45309;font-weight:600}
+.pos-dot{background:#2563eb;border:3px solid #fff;border-radius:50%;box-shadow:0 1px 6px #0006;cursor:grab}
+.pos-dot.leaflet-drag-target,.leaflet-dragging .pos-dot{cursor:grabbing}
+.addr-wrap{grid-column:1/-1;position:relative}
+.addr-wrap .txt{width:100%}
+.sugg{list-style:none;margin:4px 0 0;padding:0;border:1px solid var(--l);border-radius:9px;max-height:46vh;overflow:auto;background:#fff}
+.sugg:empty{display:none}
+.sugg li{padding:9px 11px;cursor:pointer;border-bottom:1px solid var(--l);font-size:13px;line-height:1.35}
+.sugg li:last-child{border-bottom:0}
+.sugg li:hover,.sugg li.act{background:#e8f1fc}
+.sugg .s-main{font-weight:650;color:var(--t)}
+.sugg .s-sub{font-size:12px;color:var(--m)}
+.sugg .s-kind{float:right;font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.4px;color:var(--m);margin-left:8px}
+.notice{position:fixed;z-index:2100;top:70px;left:50%;transform:translateX(-50%);background:#fff;padding:9px 15px;border-radius:9px;box-shadow:0 3px 16px #0004;font-size:12.5px;font-weight:600;display:none;border-left:4px solid var(--m);width:max-content;max-width:calc(100vw - 28px)}
 .notice.show{display:block}
 .notice.ok{border-color:var(--g);color:#166534}
 .notice.err{border-color:#b91c1c;color:#991b1b}
+.notice.warn{border-color:#d97706;color:#9a3412}
 .stat-row{display:flex;gap:10px;margin-bottom:14px}
 .stat-card{flex:1;background:#f4f7fa;border-radius:12px;padding:12px 14px;text-align:center}
 .stat-num{font-size:24px;font-weight:800;color:var(--b)}
@@ -279,8 +293,11 @@ select.txt{background:#fff;appearance:auto}
     <div class="mc">
       <section class="sec">
         <div class="grid">
-          <input id="addrInput" class="txt wide" placeholder="Toponimo, indirizzo, civico, comune, provincia">
-          <div class="help wide">Es: Via, Roma, 12, Pescara, PE. Se il civico non è noto, ometterlo: verrà usato il centro della via.</div>
+          <div class="addr-wrap">
+            <input id="addrInput" class="txt" type="search" placeholder="Es. Via Roma 12 Pescara" autocomplete="off" enterkeyhint="search" role="combobox" aria-autocomplete="list" aria-controls="addrSugg" aria-expanded="false">
+            <ul id="addrSugg" class="sugg" role="listbox"></ul>
+          </div>
+          <div class="help wide">Scrivi via, civico e comune come preferisci e scegli dall'elenco. Se il civico non è mappato verrà usato il centro della via; dopo la ricerca puoi trascinare il punto sulla mappa per correggerlo.</div>
           <button id="addrCancel" class="ab secbtn">Annulla</button>
           <button id="addrSearch" class="ab pri">Cerca</button>
           <div id="addrStatus" class="status wide"></div>
@@ -340,6 +357,8 @@ const map=L.map('map').setView([42.2,12.7],10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
 
 let data=BUILTIN, layer, marker, selected, pos;
+// punto blu trascinabile (circleMarker non supporta il drag)
+const POS_ICON=L.divIcon({className:'pos-dot',iconSize:[22,22],iconAnchor:[11,11]});
 
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // link Google Maps solo per coordinate numeriche valide (i dati del registro arrivano da file esterno)
@@ -352,7 +371,7 @@ function notice(msg,type='muted'){
   n.textContent=msg;
   n.className='notice show '+type;
   clearTimeout(noticeTimer);
-  noticeTimer=setTimeout(()=>n.classList.remove('show'),3200);
+  noticeTimer=setTimeout(()=>n.classList.remove('show'),type==='warn'?6000:3200);
 }
 
 function contactsHTML(p){
@@ -409,13 +428,14 @@ function has(f,pt){
   if(!g)return false;
   return g.type==='Polygon'?poly(pt,g.coordinates):g.type==='MultiPolygon'&&g.coordinates.some(c=>poly(pt,c));
 }
-function check(ll){
+// move=false: ricalcola la competenza senza spostare la mappa (trascinamento, ricerca indirizzo)
+function check(ll,move=true){
   selected=(data.features||[]).find(f=>has(f,ll));
   pos=ll;
   draw(false);
   if(marker)map.removeLayer(marker);
-  marker=L.circleMarker(ll,{radius:8,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).addTo(map);
-  marker.bringToFront();
+  marker=L.marker(ll,{icon:POS_ICON,draggable:true,autoPan:true,title:'Trascina per correggere la posizione'}).addTo(map);
+  marker.on('dragend',()=>check(marker.getLatLng(),false));
   $('google').disabled=false;
   let c=$('card');
   if(selected){
@@ -425,12 +445,12 @@ function check(ll){
     $('details').innerHTML=infoBlock(p)
       +`<div class="coord" style="margin-top:8px;color:#a3b0c0">${ll.lat.toFixed(6)}, ${ll.lng.toFixed(6)}</div>`;
     let x=layer.getLayers().find(l=>l.feature===selected);
-    if(x){map.fitBounds(x.getBounds(),{padding:[45,45],maxZoom:13});}
+    if(move&&x){map.fitBounds(x.getBounds(),{padding:[45,45],maxZoom:13});}
   }else{
     c.className='card out';
     $('title').textContent='Nessuna competenza trovata';
     $('details').innerHTML=`Il punto non ricade nei territori caricati.<br><span class="coord">${ll.lat.toFixed(6)}, ${ll.lng.toFixed(6)}</span>`;
-    map.setView(ll,13);
+    if(move)map.setView(ll,13);
   }
 }
 function closeModal(){$('back').classList.remove('open')}
@@ -1117,50 +1137,182 @@ $('regSendSel').onclick=async()=>{
   }
 };
 
-// --- Ricerca indirizzo (geocodifica OpenStreetMap/Nominatim) ---
-async function geocode(q){
-  const url=`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=it&q=${encodeURIComponent(q)}`;
-  const res=await fetch(url,{headers:{'Accept':'application/json'}});
-  if(!res.ok)throw Error('Servizio di geocodifica non disponibile');
+// --- Ricerca indirizzo (Photon / OpenStreetMap, suggerimenti durante la digitazione) ---
+const PHOTON_URL='https://photon.komoot.io/api/';
+const ADDR_KIND={house:'civico',street:'via',poi:'luogo',area:'zona'};
+let addrResults=[],addrActive=-1,addrTimer=null,addrCtrl=null,addrSeq=0;
+
+// civico richiesto nel testo (1-4 cifre, es. 12, 12b, 12/A): esclude i CAP a 5 cifre
+function addrCivico(q){
+  const m=q.match(/(?:^|[\s,])(\d{1,4}[a-z]?(?:\/[a-z0-9]+)?)(?=[\s,]|$)/i);
+  return m?m[1]:'';
+}
+// sigla di provincia finale (es. "Pescara PE" o "(PE)"): Photon la interpreta male, meglio ometterla
+function addrClean(q){
+  return q.replace(/[\s,]+\(?[A-Z]{2}\)?\s*$/,'').trim()||q;
+}
+function photonItem(f){
+  const p=f.properties||{},co=f.geometry&&f.geometry.coordinates;
+  if(!co)return null;
+  const city=p.city||p.locality||p.district||'';
+  let kind,main;
+  if(p.housenumber){kind='house';main=[p.street||p.name,p.housenumber].filter(Boolean).join(' ');}
+  else if(p.type==='street'||p.osm_key==='highway'){kind='street';main=p.name||p.street;}
+  else if(p.osm_key==='place'||p.osm_key==='boundary'||['city','district','locality','county','state'].includes(p.type)){kind='area';main=p.name;}
+  else{kind='poi';main=p.name||p.street;}
+  if(!main)return null;
+  const sub=[];
+  if(kind==='poi'&&p.street)sub.push([p.street,p.housenumber].filter(Boolean).join(' '));
+  if(kind==='house'&&p.name&&p.name!==p.street)sub.push(p.name);
+  const loc=[p.postcode,city!==main?city:''].filter(Boolean).join(' ');
+  if(loc)sub.push(loc);
+  if(p.county&&p.county!==city&&p.county!==main)sub.push(p.county);
+  return{main,sub:sub.join(', '),kind,ll:L.latLng(co[1],co[0]),extent:p.extent};
+}
+async function photonSearch(q,signal){
+  // priorità ai risultati vicini ai territori caricati (o alla vista corrente)
+  const b=layer&&layer.getBounds();
+  const c=b&&b.isValid()?b.getCenter():map.getCenter();
+  const url=`${PHOTON_URL}?q=${encodeURIComponent(q)}&limit=15&lat=${c.lat.toFixed(4)}&lon=${c.lng.toFixed(4)}`;
+  const res=await fetch(url,{signal});
+  if(!res.ok)throw Error('Servizio di ricerca indirizzi non disponibile');
   const j=await res.json();
-  return j&&j.length?j[0]:null;
+  const out=[],seen=new Set();
+  for(const f of j.features||[]){
+    const cc=(f.properties&&f.properties.countrycode||'').toUpperCase();
+    if(cc&&cc!=='IT')continue;
+    const r=photonItem(f);
+    if(!r)continue;
+    const key=r.kind+'|'+r.main+'|'+r.sub;
+    if(seen.has(key))continue;
+    seen.add(key);
+    out.push(r);
+    if(out.length>=8)break;
+  }
+  return out;
+}
+// ripiego progressivo: testo completo → senza civico → solo ultima parte dopo la virgola (comune)
+async function addrLookup(raw,signal){
+  const q=addrClean(raw);
+  let r=await photonSearch(q,signal);
+  if(r.length)return r;
+  const civ=addrCivico(q);
+  if(civ){
+    const q2=q.replace(civ,' ').replace(/\s+/g,' ').replace(/\s+,/g,',').replace(/,\s*,/g,',').replace(/^[\s,]+|[\s,]+$/g,'');
+    r=await photonSearch(q2,signal);
+    if(r.length)return r;
+  }
+  const parts=q.split(',').map(s=>s.trim()).filter(Boolean);
+  if(parts.length>1)r=await photonSearch(parts[parts.length-1],signal);
+  return r;
+}
+function renderAddrSugg(){
+  const ul=$('addrSugg');
+  ul.innerHTML=addrResults.map((r,i)=>`<li role="option" data-i="${i}" class="${i===addrActive?'act':''}" aria-selected="${i===addrActive}"><span class="s-kind">${ADDR_KIND[r.kind]}</span><div class="s-main">${esc(r.main)}</div>${r.sub?`<div class="s-sub">${esc(r.sub)}</div>`:''}</li>`).join('');
+  $('addrInput').setAttribute('aria-expanded',addrResults.length?'true':'false');
+  ul.querySelectorAll('li').forEach(li=>li.onclick=()=>chooseAddr(addrResults[+li.dataset.i]));
+  const act=ul.querySelector('li.act');
+  if(act)act.scrollIntoView({block:'nearest'});
+}
+function resetAddr(){
+  clearTimeout(addrTimer);
+  if(addrCtrl)addrCtrl.abort();
+  addrCtrl=null;addrSeq++;
+  addrResults=[];addrActive=-1;
+  renderAddrSugg();
+}
+function closeAddr(){
+  resetAddr();
+  $('addrBack').classList.remove('open');
+}
+// esegue la ricerca; ignora le risposte superate da una digitazione successiva
+async function addrFetch(raw){
+  clearTimeout(addrTimer);
+  if(addrCtrl)addrCtrl.abort();
+  addrCtrl=new AbortController();
+  const seq=++addrSeq;
+  const r=await addrLookup(raw,addrCtrl.signal);
+  if(seq!==addrSeq)throw Object.assign(Error('superata'),{name:'AbortError'});
+  return r;
+}
+function chooseAddr(r){
+  const civ=addrCivico(addrClean($('addrInput').value));
+  closeAddr();
+  check(r.ll,false);
+  const e=r.extent;
+  if(r.kind==='area'&&e&&e.length===4)map.fitBounds([[e[3],e[0]],[e[1],e[2]]],{padding:[25,25]});
+  else map.setView(r.ll,r.kind==='area'?13:18);
+  const hint=' Trascina il punto per correggerlo.';
+  // il numero fa parte del nome (es. "Via 25 Aprile"): non è un civico mancante
+  const inName=civ&&r.main.toLowerCase().split(/\s+/).includes(civ.toLowerCase());
+  if(civ&&!inName&&r.kind!=='house'){
+    notice(r.kind==='street'?`Civico ${civ} non trovato: posizionato sulla via.`+hint:`Indirizzo non trovato: posizionato su ${r.main}.`+hint,'warn');
+  }else{
+    notice(`Posizione impostata: ${r.main}`,'ok');
+  }
 }
 $('addressBtn').onclick=()=>{
+  resetAddr();
   $('addrInput').value='';
   $('addrStatus').textContent='';
+  $('addrStatus').className='status wide';
   $('addrBack').classList.add('open');
   setTimeout(()=>$('addrInput').focus(),50);
 };
-$('addrClose').onclick=$('addrCancel').onclick=()=>$('addrBack').classList.remove('open');
-$('addrBack').onclick=e=>{if(e.target===$('addrBack'))$('addrBack').classList.remove('open');};
+$('addrClose').onclick=$('addrCancel').onclick=closeAddr;
+$('addrBack').onclick=e=>{if(e.target===$('addrBack'))closeAddr();};
+$('addrInput').addEventListener('input',()=>{
+  const raw=$('addrInput').value.trim();
+  $('addrStatus').textContent='';
+  clearTimeout(addrTimer);
+  if(raw.length<3){resetAddr();return;}
+  addrTimer=setTimeout(async()=>{
+    try{
+      addrResults=await addrFetch(raw);
+      addrActive=-1;
+      renderAddrSugg();
+    }catch(x){
+      if(x.name!=='AbortError')$('addrStatus').textContent=x.message;
+    }
+  },350);
+});
+$('addrInput').addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    if(!addrResults.length)return;
+    e.preventDefault();
+    const n=addrResults.length;
+    addrActive=e.key==='ArrowDown'?(addrActive+1)%n:(addrActive-1+n)%n;
+    renderAddrSugg();
+  }else if(e.key==='Enter'){
+    e.preventDefault();
+    if(addrActive>=0&&addrResults[addrActive])chooseAddr(addrResults[addrActive]);
+    else $('addrSearch').click();
+  }else if(e.key==='Escape'&&addrResults.length){
+    // prima chiude l'elenco, al secondo Esc il modale
+    e.stopPropagation();
+    resetAddr();
+  }
+});
 $('addrSearch').onclick=async()=>{
   const raw=$('addrInput').value.trim();
-  if(!raw){$('addrStatus').textContent='Inserisci un indirizzo';return;}
-  const parts=raw.split(',').map(s=>s.trim()).filter(Boolean);
-  let toponimo='',indirizzo='',civico='',comune='',provincia='';
-  if(parts.length>=5){[toponimo,indirizzo,civico,comune,provincia]=parts;}
-  else if(parts.length===4){[toponimo,indirizzo,comune,provincia]=parts;}
-  else{comune=parts[parts.length-1]||'';}
+  const st=$('addrStatus');
+  st.className='status wide';
+  if(!raw){st.textContent='Inserisci un indirizzo';return;}
   const btn=$('addrSearch');
   const orig=btn.textContent;
   btn.disabled=true;btn.textContent='Ricerca…';
-  $('addrStatus').textContent='';
+  st.textContent='';
   try{
-    const street=[toponimo,indirizzo,civico].filter(Boolean).join(' ').trim();
-    let q=[street,comune,provincia,'Italia'].filter(Boolean).join(', ')||raw;
-    let r=await geocode(q);
-    if(!r&&civico){
-      q=[[toponimo,indirizzo].filter(Boolean).join(' '),comune,provincia,'Italia'].filter(Boolean).join(', ');
-      r=await geocode(q);
-    }
-    if(!r){$('addrStatus').textContent='Indirizzo non trovato';return;}
-    const ll=L.latLng(parseFloat(r.lat),parseFloat(r.lon));
-    check(ll);
-    map.setView(ll,17);
-    $('addrBack').classList.remove('open');
-    notice('Posizione impostata sull\'indirizzo indicato','ok');
+    const r=await addrFetch(raw);
+    if(!r.length){addrResults=[];renderAddrSugg();st.textContent='Indirizzo non trovato';return;}
+    if(r.length===1){chooseAddr(r[0]);return;}
+    // più risultati: l'operatore sceglie quello giusto invece di prenderne uno a caso
+    addrResults=r;addrActive=0;
+    renderAddrSugg();
+    st.className='status wide warn';
+    st.textContent='Più risultati: scegli quello corretto';
   }catch(x){
-    $('addrStatus').textContent=x.message;
+    if(x.name!=='AbortError')st.textContent=x.message;
   }finally{
     btn.disabled=false;btn.textContent=orig;
   }
