@@ -26,7 +26,6 @@ html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;color:var(-
 .cap{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--m);font-weight:700;margin-bottom:6px}
 .ttl{font-size:17px;font-weight:750;margin-bottom:5px}
 .det{font-size:13px;line-height:1.5}
-.det b{color:var(--b)}
 .ag-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ag{font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--t)}
 .stato{font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.4px;color:#166534;background:#dcfce7;border-radius:20px;padding:3px 9px;white-space:nowrap}
@@ -204,13 +203,15 @@ select.txt{background:#fff;appearance:auto}
         <div class="grid">
           <input id="reportNomeLuogo" class="txt" placeholder="Nome del posto segnalato">
           <select id="reportTipo" class="txt">
-            <option value="">Genere...</option>
+            <option value="">Genere Locale...</option>
             <option>Agriturismo</option>
             <option>Albergo &lt;3</option>
             <option>All'aperto</option>
             <option>B&amp;B</option>
             <option>Bar</option>
+            <option>Centro Sportivo</option>
             <option>Circo</option>
+            <option>Circolo</option>
             <option>Hotel 3</option>
             <option>Hotel 4</option>
             <option>Hotel 5</option>
@@ -235,16 +236,19 @@ select.txt{background:#fff;appearance:auto}
       </section>
       <section class="sec">
         <h2>Note</h2>
-        <textarea id="reportNote" class="txt wide" rows="3" placeholder="Facoltative..."></textarea>
+        <div class="grid">
+          <textarea id="reportNote" class="txt wide" rows="3" placeholder="Facoltative..."></textarea>
+        </div>
       </section>
       <section class="sec">
         <div id="reportPhotoPreview"></div>
         <input type="file" id="reportPhoto" accept="image/*" capture="environment" style="display:none">
+        <input type="file" id="reportGalleryInput" accept="image/*" style="display:none">
         <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
           <button id="reportCancel" class="ab secbtn" title="Annulla" aria-label="Annulla"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <button id="reportPhotoBtn" class="ab secbtn" title="Scatta foto" aria-label="Scatta foto"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+          <button id="reportGallery" class="ab secbtn" title="Recupera immagine dalla galleria" aria-label="Recupera immagine dalla galleria"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
           <button id="reportRegistra" class="ab secbtn" title="Registra" aria-label="Registra"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
-          <button id="reportMail" class="ab secbtn" title="Invia via email (agenzia + RdZ in cc)" aria-label="Invia via email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></button>
           <button id="reportSend" class="ab pri" title="Invia segnalazione" aria-label="Invia segnalazione"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
         </div>
       </section>
@@ -260,9 +264,8 @@ select.txt{background:#fff;appearance:auto}
         <div id="agencyInfoBody"></div>
       </section>
       <section class="sec">
-        <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="grid" style="grid-template-columns:1fr 1fr">
           <button id="agencyInfoCancel" class="ab secbtn" title="Annulla" aria-label="Annulla"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-          <button id="agencyInfoMail" class="ab secbtn" title="Invia per email" aria-label="Invia per email"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></button>
           <button id="agencyInfoShare" class="ab pri" title="Condividi" aria-label="Condividi"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
         </div>
       </section>
@@ -339,8 +342,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,att
 let data=BUILTIN, layer, marker, selected, pos;
 
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// link Google Maps solo per coordinate numeriche valide (i dati del registro arrivano da file esterno)
+const mapsUrl=(lat,lng)=>Number.isFinite(lat)&&Number.isFinite(lng)?`https://www.google.com/maps?q=${lat},${lng}`:'';
 
-// --- toast di notifica (prima inutilizzato) ---
+// --- toast di notifica ---
 let noticeTimer;
 function notice(msg,type='muted'){
   const n=$('notice');
@@ -356,7 +361,7 @@ function contactsHTML(p){
     let tel=String(p.TELEFONOMANDATARIO).replace(/[^\d+]/g,'');
     out+=`<a class="clink" href="tel:${tel}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(p.TELEFONOMANDATARIO)}</a>`;
   }
-  if(p.EMAILAGENZIA&&!p.MANDATARIO){
+  if(p.EMAILAGENZIA){
     out+=`<a class="clink" href="mailto:${esc(p.EMAILAGENZIA)}"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${esc(p.EMAILAGENZIA)}</a>`;
   }
   return out?`<div class="contacts">${out}</div>`:'';
@@ -372,7 +377,7 @@ function infoBlock(p){
   return `<div class="info-wrap">`
     +`<div class="info-actions">`
     +`<button class="ibi" onclick="showAgencyInfo()" title="Dati agenzia" aria-label="Dati agenzia"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>`
-    +`<button class="rb" onclick="reportIssue('${esc(p.AGENZIA||'')}')" title="Segnala anomalia" aria-label="Segnala anomalia"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>`
+    +`<button class="rb" onclick="openReportModal()" title="Segnala anomalia" aria-label="Segnala anomalia"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></button>`
     +`</div>`
     +`<div class="ag-row"><div class="ag">${esc(p.AGENZIA||'Territorio')}</div>${p.STATO?`<span class="${statoClass}">${esc(p.STATO)}</span>`:''}</div>`
     +(p.MANDATARIO?`<div class="mand">${esc(p.MANDATARIO)}${tel?`<a class="mand-tel" href="tel:${tel}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(p.TELEFONOMANDATARIO)}</a>`:''}</div>`:'')
@@ -382,7 +387,8 @@ function infoBlock(p){
 }
 function draw(fit=true){
   if(layer)map.removeLayer(layer);
-  layer=L.geoJSON(data,{style,onEachFeature:(f,l)=>{l.on('click',e=>check(e.latlng));}}).addTo(map);
+  // i click sui poligoni risalgono a map.on('click'): nessun handler per feature
+  layer=L.geoJSON(data,{style}).addTo(map);
   if(fit&&layer.getBounds().isValid())map.fitBounds(layer.getBounds(),{padding:[25,25]});
 }
 function ring(pt,r){
@@ -430,12 +436,17 @@ function check(ll){
 function closeModal(){$('back').classList.remove('open')}
 function gps(){
   closeModal();
+  if(!navigator.geolocation){notice('Geolocalizzazione non supportata dal browser','err');return;}
   $('title').textContent='Ricerca della posizione…';
-  navigator.geolocation?navigator.geolocation.getCurrentPosition(
+  navigator.geolocation.getCurrentPosition(
     p=>check(L.latLng(p.coords.latitude,p.coords.longitude)),
     e=>{$('card').className='card err';$('title').textContent='Posizione non disponibile';$('details').textContent=e.message;},
     {enableHighAccuracy:true,timeout:12000}
-  ):notice('Geolocalizzazione non supportata dal browser','err');
+  );
+}
+// dopo un cambio di dati: ricalcola la competenza del punto corrente
+function recheck(){
+  if(pos)check(pos);
 }
 function reset(){
   selected=pos=null;
@@ -452,25 +463,41 @@ function reset(){
 $('gear').onclick=()=>$('back').classList.add('open');
 $('close').onclick=closeModal;
 $('back').onclick=e=>{if(e.target===$('back'))closeModal();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeReportModal();closeAgencyInfoModal();$('regBack').classList.remove('open');$('viewBack').classList.remove('open');$('addrBack').classList.remove('open');}});
+// Esc chiude solo il modale in primo piano (l'ultimo aperto nel DOM, es. dettaglio sopra registro)
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const open=document.querySelectorAll('.back.open');
+  if(open.length)open[open.length-1].classList.remove('open');
+});
 $('gps').onclick=$('gpsTop').onclick=gps;
-$('fit').onclick=()=>{closeModal();map.fitBounds(layer.getBounds(),{padding:[25,25]});};
+$('fit').onclick=()=>{
+  closeModal();
+  const b=layer.getBounds();
+  if(b.isValid())map.fitBounds(b,{padding:[25,25]});else notice('Nessun territorio da mostrare','err');
+};
 $('reset').onclick=reset;
 $('google').onclick=()=>pos&&window.open(`https://www.google.com/maps?q=${pos.lat},${pos.lng}`,'_blank','noopener');
 let reportCtx={nome:'',lat:null,lng:null};
-let reportPhotoFile=null;
+let reportPhotoFile=null,reportPhotoUrl=null;
 
+// posizione e agenzia della segnalazione seguono sempre il punto corrente
 function renderReportCoord(){
   reportCtx.lat=pos?pos.lat:null;
   reportCtx.lng=pos?pos.lng:null;
-  reportCtx.nome=selected?.properties?.AGENZIA||reportCtx.nome;
+  reportCtx.nome=selected?.properties?.AGENZIA||'';
   const hasPos=reportCtx.lat!=null&&reportCtx.lng!=null;
   $('reportCoord').innerHTML=hasPos
-    ? `<a class="clink" href="https://www.google.com/maps?q=${reportCtx.lat},${reportCtx.lng}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${reportCtx.lat.toFixed(6)}, ${reportCtx.lng.toFixed(6)}</a>${reportCtx.nome?`<div class="mand" style="margin-top:6px">${esc(reportCtx.nome)}</div>`:''}`
+    ? `<a class="clink" href="${mapsUrl(reportCtx.lat,reportCtx.lng)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${reportCtx.lat.toFixed(6)}, ${reportCtx.lng.toFixed(6)}</a>${reportCtx.nome?`<div class="mand" style="margin-top:6px">${esc(reportCtx.nome)}</div>`:''}`
     : `<div class="muted">Nessuna posizione rilevata — usa GPS o tocca un punto della mappa</div>`;
 }
-function openReportModal(nome){
-  reportCtx={nome:nome||'',lat:pos?pos.lat:null,lng:pos?pos.lng:null};
+function clearReportPhoto(){
+  if(reportPhotoUrl)URL.revokeObjectURL(reportPhotoUrl);
+  reportPhotoFile=reportPhotoUrl=null;
+  $('reportPhoto').value='';
+  $('reportGalleryInput').value='';
+  $('reportPhotoPreview').innerHTML='';
+}
+function openReportModal(){
   renderReportCoord();
   $('reportNomeLuogo').value='';
   $('chkMda').checked=false;
@@ -479,9 +506,7 @@ function openReportModal(nome){
   $('chkBis').checked=false;
   $('reportTipo').value='';
   $('reportNote').value='';
-  reportPhotoFile=null;
-  $('reportPhoto').value='';
-  $('reportPhotoPreview').innerHTML='';
+  clearReportPhoto();
   $('reportBack').classList.add('open');
 }
 function closeReportModal(){$('reportBack').classList.remove('open')}
@@ -490,10 +515,13 @@ $('reportBack').onclick=e=>{if(e.target===$('reportBack'))closeReportModal();};
 
 $('reportGps').onclick=()=>{
   if(!navigator.geolocation){notice('Geolocalizzazione non supportata','err');return;}
-  $('reportGps').textContent='Ricerca della posizione…';
+  const btn=$('reportGps'),orig=btn.innerHTML;
+  const done=()=>{btn.disabled=false;btn.innerHTML=orig;};
+  btn.disabled=true;
+  btn.textContent='Ricerca della posizione…';
   navigator.geolocation.getCurrentPosition(
-    p=>{check(L.latLng(p.coords.latitude,p.coords.longitude));renderReportCoord();$('reportGps').innerHTML='<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Recupera posizione GPS';},
-    e=>{notice('Posizione non disponibile: '+e.message,'err');$('reportGps').innerHTML='<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Recupera posizione GPS';},
+    p=>{check(L.latLng(p.coords.latitude,p.coords.longitude));renderReportCoord();done();},
+    e=>{notice('Posizione non disponibile: '+e.message,'err');done();},
     {enableHighAccuracy:true,timeout:12000}
   );
 };
@@ -521,35 +549,48 @@ function compressImage(file,maxDim=1600,quality=0.75){
     img.src=url;
   });
 }
-$('reportPhotoBtn').onclick=()=>$('reportPhoto').click();
-$('reportPhoto').onchange=async e=>{
-  const f=e.target.files[0];
+async function handleReportPhotoFile(f){
   if(!f)return;
   try{
     // ridimensiona/comprime: l'anteprima GitHub mostra solo file sotto 1MB, le foto della fotocamera li superano facilmente
-    reportPhotoFile=await compressImage(f);
-    const url=URL.createObjectURL(reportPhotoFile);
-    $('reportPhotoPreview').innerHTML=`<div class="photo-chip"><img src="${url}" alt=""><span>Foto allegata</span><button type="button" class="chip-x" id="reportPhotoClear" aria-label="Rimuovi foto">×</button></div>`;
-    $('reportPhotoClear').onclick=()=>{reportPhotoFile=null;$('reportPhoto').value='';$('reportPhotoPreview').innerHTML='';};
+    const file=await compressImage(f);
+    clearReportPhoto();
+    reportPhotoFile=file;
+    reportPhotoUrl=URL.createObjectURL(file);
+    $('reportPhotoPreview').innerHTML=`<div class="photo-chip"><img src="${reportPhotoUrl}" alt=""><span>Foto allegata</span><button type="button" class="chip-x" id="reportPhotoClear" aria-label="Rimuovi foto">×</button></div>`;
+    $('reportPhotoClear').onclick=clearReportPhoto;
   }catch(x){
     notice('Errore nella foto: '+x.message,'err');
   }
+}
+$('reportPhotoBtn').onclick=()=>$('reportPhoto').click();
+$('reportPhoto').onchange=async e=>{
+  await handleReportPhotoFile(e.target.files[0]);
+  e.target.value='';
+};
+$('reportGallery').onclick=()=>$('reportGalleryInput').click();
+$('reportGalleryInput').onchange=async e=>{
+  await handleReportPhotoFile(e.target.files[0]);
   e.target.value='';
 };
 $('reportCancel').onclick=closeReportModal;
 
-function reportLines(){
+function reportCats(){
   const cats=[];
   if($('chkMda').checked)cats.push('MdA');
   if($('chkBis').checked)cats.push('Bis');
   if($('chkAde').checked)cats.push('AdE');
   if($('chkSky').checked)cats.push('Sky');
+  return cats;
+}
+function reportLines(){
+  const cats=reportCats();
   const tipo=$('reportTipo').value;
   const note=$('reportNote').value.trim();
   const nomeLuogo=$('reportNomeLuogo').value.trim();
   let lines=['Segnalazione'];
   if(reportCtx.nome)lines.push(`Agenzia: ${reportCtx.nome}`);
-  if(reportCtx.lat!=null)lines.push(`Coordinate: https://www.google.com/maps?q=${reportCtx.lat},${reportCtx.lng}`);
+  if(reportCtx.lat!=null)lines.push(`Coordinate: ${mapsUrl(reportCtx.lat,reportCtx.lng)}`);
   const nomeTipo=[nomeLuogo,tipo].filter(Boolean).join(' - ');
   if(nomeTipo)lines.push(nomeTipo);
   if(cats.length)lines.push(cats.join(', '));
@@ -576,32 +617,6 @@ $('reportSend').onclick=async()=>{
   }
   closeReportModal();
 };
-
-$('reportMail').onclick=()=>{
-  const p=selected?.properties||{};
-  const to=encodeURIComponent(p.EMAILAGENZIA||'');
-  const cc=encodeURIComponent(p.EMAILRDZ||'');
-  const oggi=new Date().toLocaleDateString('it-IT');
-  const subject=encodeURIComponent(`Segnalazione - ${reportCtx.nome||p.AGENZIA||''} - ${oggi}`);
-  const body=encodeURIComponent(reportLines().join('\n')+'\n\nmyArea');
-  if(!p.EMAILAGENZIA)notice('Email agenzia non presente nei dati: compila il destinatario a mano','muted');
-  if(reportPhotoFile)notice('La foto viene scaricata: allegala manualmente alla mail (i link email non supportano allegati automatici)','muted');
-  if(reportPhotoFile){
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(reportPhotoFile);
-    a.download='segnalazione-foto.jpg';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-  window.location.href=`mailto:${to}?cc=${cc}&subject=${subject}&body=${body}`;
-  closeReportModal();
-};
-
-function reportIssue(nome){
-  const n=nome||selected?.properties?.AGENZIA||'';
-  openReportModal(n);
-}
 
 // --- Dati agenzia ---
 function agencyInfoLines(){
@@ -630,16 +645,9 @@ function closeAgencyInfoModal(){$('agencyInfoBack').classList.remove('open')}
 $('agencyInfoClose').onclick=closeAgencyInfoModal;
 $('agencyInfoCancel').onclick=closeAgencyInfoModal;
 $('agencyInfoBack').onclick=e=>{if(e.target===$('agencyInfoBack'))closeAgencyInfoModal();};
-$('agencyInfoMail').onclick=()=>{
-  const p=selected?.properties||{};
-  const subject=encodeURIComponent(`Info Agenzia ${p.AGENZIA||''}`);
-  const body=encodeURIComponent(agencyInfoLines().join('\n')+'\n\nmyArea2');
-  window.location.href=`mailto:?subject=${subject}&body=${body}`;
-  closeAgencyInfoModal();
-};
 $('agencyInfoShare').onclick=async()=>{
   const p=selected?.properties||{};
-  const msg=agencyInfoLines().join('\n')+'\n\nmyArea2';
+  const msg=agencyInfoLines().join('\n');
   const shareData={title:`Info Agenzia ${p.AGENZIA||''}`,text:msg};
   if(navigator.share){
     try{await navigator.share(shareData);}
@@ -669,7 +677,7 @@ $('file').onchange=async e=>{
     draw(true);
     closeModal();
     notice('File caricato correttamente','ok');
-    if(pos)check(pos);
+    recheck();
   }catch(x){
     notice('Errore nel file: '+x.message,'err');
   }
@@ -713,6 +721,7 @@ async function loadRemote(silent=false){
     data=parsed;
     selected=null;
     draw(true);
+    recheck();
     notice('Dati caricati da GitHub','ok');
   }catch(x){
     notice('Sorgente remota: '+x.message,'err');
@@ -733,6 +742,7 @@ $('ghClear').onclick=()=>{
   data=BUILTIN;
   selected=null;
   draw(true);
+  recheck();
   notice('Configurazione rimossa, ripristinato il file demo');
 };
 
@@ -765,6 +775,12 @@ async function ghGetFile(path){
   if(res.status===404)return null;
   if(!res.ok)throw Error(`Errore GitHub (${res.status})`);
   const j=await res.json();
+  // oltre 1MB la Contents API non include il contenuto: va richiesto in formato raw
+  if(!j.content&&j.size>0){
+    const raw=await ghApi(path,{headers:{'Accept':'application/vnd.github.v3.raw'}},`ref=${encodeURIComponent(c.branch||'main')}`);
+    if(!raw.ok)throw Error(`Errore GitHub (${raw.status})`);
+    return{sha:j.sha,content:await raw.text()};
+  }
   return{sha:j.sha,content:j.content?b64DecodeUtf8(j.content.replace(/\n/g,'')):''};
 }
 async function ghGetFileRaw(path){
@@ -777,7 +793,12 @@ async function ghGetFileRaw(path){
 async function ghPutFile(path,contentBase64,sha,message){
   const c=ghConfig();
   const res=await ghApi(path,{method:'PUT',body:JSON.stringify({message,content:contentBase64,branch:c.branch||'main',...(sha?{sha}:{})})});
-  if(!res.ok){const j=await res.json().catch(()=>({}));throw Error(j.message||`Errore GitHub (${res.status})`);}
+  if(!res.ok){
+    const j=await res.json().catch(()=>({}));
+    const err=Error(j.message||`Errore GitHub (${res.status})`);
+    err.status=res.status;
+    throw err;
+  }
   return res.json();
 }
 async function ghDeleteFile(path,sha,message){
@@ -789,19 +810,18 @@ async function ghDeleteFile(path,sha,message){
 // --- Registro segnalazioni ---
 const REG_PATH='segnalazioni/index.json';
 const REG_PAGE_SIZE=20;
-let regEntries=[],regSha=null;
+let regEntries=[];
 let regStats={registrate:0,inviate:0};
 let regSortField='ts',regSortDir='desc',regPage=1;
 
 function parseRegistryPayload(text){
   if(!text)return{entries:[],stats:{registrate:0,inviate:0}};
-  let data;
-  try{data=JSON.parse(text);}catch(e){return{entries:[],stats:{registrate:0,inviate:0}};}
-  if(Array.isArray(data)){
-    return{entries:data,stats:{registrate:data.length,inviate:data.filter(r=>r.inviata).length}};
-  }
-  const entries=data.entries||[];
-  const stats=data.stats||{registrate:entries.length,inviate:entries.filter(r=>r.inviata).length};
+  // formato non riconosciuto: errore invece di registro vuoto, così nessun salvataggio lo sovrascrive
+  let obj;
+  try{obj=JSON.parse(text);}catch(e){throw Error('registro segnalazioni non leggibile (JSON non valido)');}
+  if(!obj||typeof obj!=='object'||!Array.isArray(obj.entries))throw Error('formato del registro segnalazioni non riconosciuto');
+  const entries=obj.entries;
+  const stats=obj.stats||{registrate:entries.length,inviate:entries.filter(r=>r.inviata).length};
   return{entries,stats};
 }
 function updateStatCards(){
@@ -850,13 +870,13 @@ function renderRegistry(){
   const startIdx=(regPage-1)*REG_PAGE_SIZE;
   const pageItems=list.slice(startIdx,startIdx+REG_PAGE_SIZE);
   body.innerHTML=pageItems.map(r=>{
-    const mapsUrl=(r.lat!=null)?`https://www.google.com/maps?q=${r.lat},${r.lng}`:'';
+    const url=mapsUrl(r.lat,r.lng);
     return `<tr class="${r.inviata?'sent':''}" data-id="${esc(r.id)}">
       <td><input type="checkbox" class="regChk" ${r.inviata?'disabled':''}></td>
       <td>${esc(r.data||'')}</td>
       <td>${esc(r.zona||'')}</td>
       <td>${esc(r.agenzia||'')}</td>
-      <td>${mapsUrl?`<a class="reg-locale" href="${mapsUrl}" target="_blank" rel="noopener">${esc(r.locale||'—')}</a>`:esc(r.locale||'—')}</td>
+      <td>${url?`<a class="reg-locale" href="${url}" target="_blank" rel="noopener">${esc(r.locale||'—')}</a>`:esc(r.locale||'—')}</td>
       <td>${esc((r.categoria||[]).join(', '))}${r.inviata?'<span class="badge-sent">Inviata</span>':''}</td>
       <td><button class="tbtn viewBtn" title="Dettagli" aria-label="Dettagli"><svg viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg></button></td>
       <td><button class="tbtn del delBtn" title="Elimina" aria-label="Elimina"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></td>
@@ -878,7 +898,7 @@ document.querySelector('#regTableWrap thead').addEventListener('click',e=>{
 async function loadRegistry(silent){
   const c=ghConfig();
   if(!c.repo){
-    regEntries=[];regSha=null;regStats={registrate:0,inviate:0};
+    regEntries=[];regStats={registrate:0,inviate:0};
     $('regBody').innerHTML='';
     $('regEmpty').textContent='Configura repository e token (icona Impostazioni) per usare le segnalazioni.';
     $('regEmpty').style.display='block';
@@ -888,39 +908,45 @@ async function loadRegistry(silent){
   }
   try{
     const f=await ghGetFile(REG_PATH);
-    regSha=f?f.sha:null;
     const parsed=parseRegistryPayload(f?f.content:'');
     regEntries=parsed.entries;
     regStats=parsed.stats;
   }catch(x){
     if(!silent)notice('Errore caricamento segnalazioni: '+x.message,'err');
-    regEntries=[];regSha=null;regStats={registrate:0,inviate:0};
+    regEntries=[];regStats={registrate:0,inviate:0};
   }
   $('regEmpty').textContent='Nessuna segnalazione registrata.';
   renderRegistry();
 }
-async function saveIndex(message){
-  const payload={stats:regStats,entries:regEntries};
-  const content=b64EncodeUtf8(JSON.stringify(payload,null,2));
-  try{
-    const res=await ghPutFile(REG_PATH,content,regSha,message);
-    regSha=res.content?res.content.sha:regSha;
-  }catch(x){
-    // sha mancante o non aggiornato (es. modifica concorrente): ricarica e ritenta una volta
-    if(/sha/i.test(x.message)){
-      const f=await ghGetFile(REG_PATH).catch(()=>null);
-      regSha=f?f.sha:null;
-      const res2=await ghPutFile(REG_PATH,content,regSha,message);
-      regSha=res2.content?res2.content.sha:regSha;
-    }else{
-      throw x;
+// Modifica atomica del registro: rilegge sempre la versione corrente da GitHub, applica mutate(reg)
+// e salva. Se nel frattempo un altro dispositivo ha scritto (sha non più valido), rilegge e
+// riapplica la modifica invece di sovrascrivere con dati vecchi. Lo stato locale si aggiorna solo a salvataggio riuscito.
+async function updateRegistry(message,mutate){
+  for(let attempt=1;;attempt++){
+    const f=await ghGetFile(REG_PATH);
+    const reg=parseRegistryPayload(f?f.content:'');
+    const result=mutate(reg);
+    const content=b64EncodeUtf8(JSON.stringify({stats:reg.stats,entries:reg.entries},null,2));
+    try{
+      await ghPutFile(REG_PATH,content,f?f.sha:null,message);
+      regEntries=reg.entries;
+      regStats=reg.stats;
+      return result;
+    }catch(x){
+      const conflict=x.status===409||(x.status===422&&/sha/i.test(x.message));
+      if(!conflict||attempt>=3)throw x;
     }
+  }
+}
+async function deletePhotos(foto,message){
+  for(const ph of foto||[]){
+    if(ph.sha){try{await ghDeleteFile(ph.path,ph.sha,message);}catch(e){/* allegato già assente */}}
   }
 }
 async function openView(id){
   const r=regEntries.find(x=>x.id===id);
   if(!r)return;
-  const mapsUrl=(r.lat!=null)?`https://www.google.com/maps?q=${r.lat},${r.lng}`:'';
+  const url=mapsUrl(r.lat,r.lng);
   $('viewBody').innerHTML=
      `<div class="view-row"><b>Data</b>${esc(r.data||'—')}</div>`
     +`<div class="view-row"><b>Zona</b>${esc(r.zona||'—')}</div>`
@@ -929,7 +955,7 @@ async function openView(id){
     +`<div class="view-row"><b>Tipo</b>${esc((r.categoria||[]).join(', ')||'—')}</div>`
     +`<div class="view-row"><b>Genere</b>${esc(r.tipo||'—')}</div>`
     +`<div class="view-row"><b>Note</b>${esc(r.note||'—')}</div>`
-    +`<div class="view-row"><b>Coordinate</b>${mapsUrl?`<a class="clink" href="${mapsUrl}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${r.lat.toFixed(6)}, ${r.lng.toFixed(6)}</a>`:'—'}</div>`
+    +`<div class="view-row"><b>Coordinate</b>${url?`<a class="clink" href="${url}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${r.lat.toFixed(6)}, ${r.lng.toFixed(6)}</a>`:'—'}</div>`
     +`<div class="view-row"><b>Allegati</b><div class="view-photos" id="viewPhotos">${r.foto&&r.foto.length?'Caricamento…':'Nessuna foto'}</div></div>`;
   $('viewBack').classList.add('open');
   if(r.foto&&r.foto.length){
@@ -952,45 +978,38 @@ async function deleteEntry(id){
   const r=regEntries.find(x=>x.id===id);
   if(!r)return;
   if(!confirm(`Eliminare la segnalazione "${r.locale||r.agenzia||'senza nome'}"?`))return;
-  const prevEntries=regEntries,prevStats={...regStats};
   try{
-    regEntries=regEntries.filter(x=>x.id!==id);
-    regStats.registrate=Math.max(0,(regStats.registrate||0)-1);
-    if(r.inviata)regStats.inviate=Math.max(0,(regStats.inviate||0)-1);
-    await saveIndex('Elimina segnalazione '+id);
-    if(r.foto&&r.foto.length){
-      for(const ph of r.foto){
-        if(ph.sha){try{await ghDeleteFile(ph.path,ph.sha,'Elimina allegato segnalazione '+id);}catch(e){/* allegato già assente */}}
-      }
-    }
+    const removed=await updateRegistry('Elimina segnalazione '+id,reg=>{
+      const cur=reg.entries.find(x=>x.id===id);
+      if(!cur)return null;
+      reg.entries=reg.entries.filter(x=>x.id!==id);
+      reg.stats.registrate=Math.max(0,(reg.stats.registrate||0)-1);
+      if(cur.inviata)reg.stats.inviate=Math.max(0,(reg.stats.inviate||0)-1);
+      return cur;
+    });
+    if(removed)await deletePhotos(removed.foto,'Elimina allegato segnalazione '+id);
     renderRegistry();
-    notice('Segnalazione eliminata','ok');
+    notice(removed?'Segnalazione eliminata':'Segnalazione già eliminata altrove','ok');
   }catch(x){
-    regEntries=prevEntries;regStats=prevStats;
     notice('Errore eliminazione: '+x.message,'err');
     loadRegistry(true);
   }
 }
 $('regClean').onclick=async()=>{
-  const toRemove=regEntries.filter(r=>r.inviata);
-  if(!toRemove.length){notice('Nessuna segnalazione inviata da rimuovere','muted');return;}
-  if(!confirm(`Rimuovere dall'elenco ${toRemove.length} segnalazioni già inviate? I contatori non diminuiscono.`))return;
-  const prevEntries=regEntries;
+  const n=regEntries.filter(r=>r.inviata).length;
+  if(!n){notice('Nessuna segnalazione inviata da rimuovere','muted');return;}
+  if(!confirm(`Rimuovere dall'elenco ${n} segnalazioni già inviate? I contatori non diminuiscono.`))return;
   try{
-    regEntries=regEntries.filter(r=>!r.inviata);
-    await saveIndex('Pulisci segnalazioni inviate');
-    for(const r of toRemove){
-      if(r.foto&&r.foto.length){
-        for(const ph of r.foto){
-          if(ph.sha){try{await ghDeleteFile(ph.path,ph.sha,'Elimina allegato (pulizia) '+r.id);}catch(e){/* allegato già assente */}}
-        }
-      }
-    }
+    const removed=await updateRegistry('Pulisci segnalazioni inviate',reg=>{
+      const out=reg.entries.filter(r=>r.inviata);
+      reg.entries=reg.entries.filter(r=>!r.inviata);
+      return out;
+    });
+    for(const r of removed)await deletePhotos(r.foto,'Elimina allegato (pulizia) '+r.id);
     regPage=1;
     renderRegistry();
-    notice(`${toRemove.length} segnalazioni inviate rimosse dall'elenco`,'ok');
+    notice(`${removed.length} segnalazioni inviate rimosse dall'elenco`,'ok');
   }catch(x){
-    regEntries=prevEntries;
     notice('Errore pulizia: '+x.message,'err');
     loadRegistry(true);
   }
@@ -1006,51 +1025,42 @@ $('reportRegistra').onclick=async()=>{
   const c=ghConfig();
   if(!c.repo||!c.token){notice('Configura repository e token (con permessi di scrittura) nelle Impostazioni per registrare le segnalazioni','err');return;}
   if(reportCtx.lat==null){notice('Nessuna posizione rilevata: usa GPS o tocca un punto della mappa','err');return;}
-  const cats=[];
-  if($('chkMda').checked)cats.push('MdA');
-  if($('chkBis').checked)cats.push('Bis');
-  if($('chkAde').checked)cats.push('AdE');
-  if($('chkSky').checked)cats.push('Sky');
-  const tipo=$('reportTipo').value;
-  const note=$('reportNote').value.trim();
-  const nomeLuogo=$('reportNomeLuogo').value.trim();
   const p=selected?.properties||{};
   const id='seg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+  const entry={
+    id,ts:Date.now(),
+    data:new Date().toLocaleDateString('it-IT'),
+    zona:p.ZONA||'',
+    agenzia:reportCtx.nome,
+    locale:$('reportNomeLuogo').value.trim(),
+    categoria:reportCats(),
+    tipo:$('reportTipo').value,
+    note:$('reportNote').value.trim(),
+    lat:reportCtx.lat,lng:reportCtx.lng,
+    foto:[],inviata:false
+  };
   const btn=$('reportRegistra');
   const orig=btn.innerHTML;
   btn.disabled=true;
   btn.innerHTML='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>';
   try{
-    let foto=[];
     if(reportPhotoFile){
       const b64=await fileToBase64(reportPhotoFile);
       const ext=(reportPhotoFile.type&&reportPhotoFile.type.split('/')[1])||'jpg';
       const path=`segnalazioni/foto/${id}.${ext}`;
       const res=await ghPutFile(path,b64,null,'Allegato segnalazione '+id);
-      foto.push({path,type:reportPhotoFile.type||'image/jpeg',sha:res.content?res.content.sha:null});
+      entry.foto.push({path,type:reportPhotoFile.type||'image/jpeg',sha:res.content?res.content.sha:null});
     }
-    let f;
     try{
-      f=await ghGetFile(REG_PATH);
+      await updateRegistry('Registra segnalazione '+id,reg=>{
+        reg.entries.push(entry);
+        reg.stats.registrate=(reg.stats.registrate||0)+1;
+      });
     }catch(x){
-      throw Error('Impossibile leggere il registro segnalazioni: '+x.message);
+      // registro non aggiornato: rimuove la foto appena caricata per non lasciare allegati orfani
+      await deletePhotos(entry.foto,'Rimuovi allegato orfano '+id);
+      throw x;
     }
-    regSha=f?f.sha:null;
-    const parsed=parseRegistryPayload(f?f.content:'');
-    regEntries=parsed.entries;
-    regStats=parsed.stats;
-    regEntries.push({
-      id,ts:Date.now(),
-      data:new Date().toLocaleDateString('it-IT'),
-      zona:p.ZONA||'',
-      agenzia:reportCtx.nome||p.AGENZIA||'',
-      locale:nomeLuogo,
-      categoria:cats,tipo,note,
-      lat:reportCtx.lat,lng:reportCtx.lng,
-      foto,inviata:false
-    });
-    regStats.registrate=(regStats.registrate||0)+1;
-    await saveIndex('Registra segnalazione '+id);
     notice('Segnalazione registrata','ok');
     closeReportModal();
     renderRegistry();
@@ -1071,7 +1081,8 @@ $('regSendSel').onclick=async()=>{
     lines.push(`${i+1}. ${r.locale||r.agenzia||'Senza nome'}`);
     if(r.zona)lines.push(`   Zona: ${r.zona}`);
     if(r.agenzia)lines.push(`   Agenzia: ${r.agenzia}`);
-    if(r.lat!=null)lines.push(`   Coordinate: https://www.google.com/maps?q=${r.lat},${r.lng}`);
+    const url=mapsUrl(r.lat,r.lng);
+    if(url)lines.push(`   Coordinate: ${url}`);
     if(r.categoria&&r.categoria.length)lines.push(`   Tipo: ${r.categoria.join(', ')}`);
     if(r.tipo)lines.push(`   Genere: ${r.tipo}`);
     if(r.note)lines.push(`   Note: ${r.note}`);
@@ -1079,18 +1090,30 @@ $('regSendSel').onclick=async()=>{
   });
   const msg=lines.join('\n');
   const shareData={title:'Segnalazione multipla myArea',text:msg};
+  if(navigator.share){
+    try{await navigator.share(shareData);}
+    catch(e){return;/* condivisione annullata dall'operatore */}
+  }else{
+    try{
+      await navigator.clipboard.writeText(msg);
+      notice('Condivisione non supportata: testo copiato negli appunti','ok');
+    }catch(e){
+      notice('Condivisione non supportata su questo browser','err');
+      return;
+    }
+  }
   try{
-    if(navigator.share){await navigator.share(shareData);}
-    else{await navigator.clipboard.writeText(msg);notice('Condivisione non supportata: testo copiato negli appunti','ok');}
-  }catch(e){return;}
-  items.forEach(r=>r.inviata=true);
-  regStats.inviate=(regStats.inviate||0)+items.length;
-  try{
-    await saveIndex('Invia segnalazioni multiple');
+    const n=await updateRegistry('Invia segnalazioni multiple',reg=>{
+      let count=0;
+      reg.entries.forEach(r=>{if(ids.includes(r.id)&&!r.inviata){r.inviata=true;count++;}});
+      reg.stats.inviate=(reg.stats.inviate||0)+count;
+      return count;
+    });
     renderRegistry();
-    notice(`${items.length} segnalazioni inviate`,'ok');
+    notice(`${n} segnalazioni inviate`,'ok');
   }catch(x){
     notice('Errore aggiornamento stato: '+x.message,'err');
+    loadRegistry(true);
   }
 };
 
