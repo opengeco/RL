@@ -1,0 +1,14 @@
+{
+  "instagram": [
+    "nome_account_1",
+    "nome_account_2"
+  ],
+  "keywords": [
+    "musica", "music", "dj", "dj set", "djset", "live", "concerto", "concert",
+    "serata", "party", "festival", "line up", "lineup", "consolle", "console",
+    "ingresso", "prevendita", "prevendite", "biglietti", "tickets", "tavoli",
+    "aperitivo", "evento", "stasera", "tonight", "venerdì", "sabato", "domenica"
+  ],
+  "post_per_account": 15,
+  "giorni_indietro": 21
+}
