@@ -1,16 +1,19 @@
 """Agente eventi: legge i post recenti degli account Instagram in fonti.json,
-filtra quelli che parlano di eventi (keyword) e ne estrae i dati con Claude.
+filtra quelli che parlano di eventi (keyword) e ne estrae i dati.
+
+L'estrazione è gratuita, a regole (date, orari, prezzi, @menzioni).
+Se è impostata ANTHROPIC_API_KEY usa invece Claude, più preciso ma a pagamento.
 
 Variabili d'ambiente:
   IG_USER_ID         id dell'account Instagram Business/Creator che fa le richieste
   META_TOKEN         token di accesso (long-lived) con instagram_basic + pages_show_list
-  ANTHROPIC_API_KEY  chiave API Anthropic
+  ANTHROPIC_API_KEY  opzionale, chiave API Anthropic (se assente: estrazione a regole)
   CLAUDE_MODEL       opzionale, default claude-opus-5-5
   GRAPH_VERSION      opzionale, default v23.0
 
 Uso:
   python eventi/agente.py              esecuzione normale
-  python eventi/agente.py --prova      non chiama Claude, stampa solo i post candidati
+  python eventi/agente.py --prova      non salva nulla, stampa i post candidati e gli eventi estratti a regole
 """
 
 import json
@@ -21,7 +24,6 @@ import unicodedata
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-import anthropic
 import requests
 
 CARTELLA = Path(__file__).parent
@@ -138,6 +140,121 @@ def estrai_eventi(client, username, nome, posts):
     return json.loads(testo)["eventi"]
 
 
+MESI = {
+    "gennaio": 1, "gen": 1, "febbraio": 2, "feb": 2, "marzo": 3, "mar": 3, "aprile": 4, "apr": 4,
+    "maggio": 5, "mag": 5, "giugno": 6, "giu": 6, "luglio": 7, "lug": 7, "agosto": 8, "ago": 8,
+    "settembre": 9, "set": 9, "sett": 9, "ottobre": 10, "ott": 10, "novembre": 11, "nov": 11,
+    "dicembre": 12, "dic": 12,
+}
+GIORNI = {
+    "lunedi": 0, "martedi": 1, "mercoledi": 2, "giovedi": 3, "venerdi": 4, "sabato": 5, "domenica": 6,
+    "lun": 0, "mar": 1, "mer": 2, "gio": 3, "ven": 4, "sab": 5, "dom": 6,
+}
+RE_DATA_MESE = re.compile(r"\b(\d{1,2})\s*(?:°|º)?\s+(" + "|".join(sorted(MESI, key=len, reverse=True)) + r")\b\.?(?:\s+(\d{4}))?")
+RE_DATA_NUM = re.compile(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b")
+RE_GIORNO = re.compile(r"\b(lunedi|martedi|mercoledi|giovedi|venerdi|sabato|domenica)\b")
+RE_ORA = re.compile(r"\b(?:ore|h|dalle|from|start|inizio|apertura|opening)\s*:?\s*(\d{1,2})(?:[:.](\d{2}))?\b")
+RE_ORA_NUDA = re.compile(r"\b(\d{1,2}):(\d{2})\b")
+RE_PREZZO = re.compile(r"(?:€\s*\d+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?\s*(?:€|euro\b))|ingresso\s+(?:libero|gratuito|gratis|free)|free\s+entry", re.IGNORECASE)
+RE_MENZIONE = re.compile(r"@([A-Za-z0-9_.]{2,30})")
+CATEGORIE = [
+    ("festival", ("festival", "fest ")),
+    ("concerto", ("concerto", "concert", "in concerto", "tour")),
+    ("live", ("live", "dal vivo", "band", "acustico", "unplugged")),
+    ("dj set", ("dj", "djset", "consolle", "console", "b2b", "techno", "house")),
+    ("party", ("party", "serata", "night", "notte")),
+    ("aperitivo", ("aperitivo", "aperi", "happy hour", "sunset")),
+]
+
+
+def ascii_minuscolo(s):
+    return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode().lower()
+
+
+def data_valida(anno, mese, giorno):
+    try:
+        return date(anno, mese, giorno)
+    except ValueError:
+        return None
+
+
+def anno_vicino(mese, giorno, rif):
+    for anno in (rif.year, rif.year + 1):
+        d = data_valida(anno, mese, giorno)
+        if d and d >= rif - timedelta(days=1):
+            return d
+    return None
+
+
+def trova_date(testo, pubblicato):
+    t = ascii_minuscolo(testo)
+    date_trovate = []
+    for g, m, a in RE_DATA_MESE.findall(t):
+        d = data_valida(int(a), MESI[m], int(g)) if a else anno_vicino(MESI[m], int(g), pubblicato)
+        if d:
+            date_trovate.append(d)
+    for g, m, a in RE_DATA_NUM.findall(t):
+        if not (1 <= int(m) <= 12):
+            continue
+        anno = int(a) + 2000 if a and len(a) == 2 else int(a) if a else None
+        d = data_valida(anno, int(m), int(g)) if anno else anno_vicino(int(m), int(g), pubblicato)
+        if d:
+            date_trovate.append(d)
+    if not date_trovate:
+        if re.search(r"\b(stasera|stanotte|oggi|tonight|today)\b", t):
+            date_trovate.append(pubblicato)
+        elif re.search(r"\b(domani|tomorrow)\b", t):
+            date_trovate.append(pubblicato + timedelta(days=1))
+        else:
+            for nome in RE_GIORNO.findall(t):
+                date_trovate.append(pubblicato + timedelta(days=(GIORNI[nome] - pubblicato.weekday()) % 7))
+    return sorted(set(date_trovate))[:6]
+
+
+def trova_ora(testo):
+    t = ascii_minuscolo(testo)
+    for regex in (RE_ORA, RE_ORA_NUDA):
+        for h, m in regex.findall(t):
+            if int(h) <= 23 and int(m or 0) <= 59:
+                return f"{int(h):02d}:{int(m or 0):02d}"
+    return ""
+
+
+def titolo_da(testo, nome):
+    for riga in testo.splitlines():
+        pulita = re.sub(r"#\w+", "", riga)
+        pulita = re.sub(r"[^\w\s@&'’.,:!?()/+€-]", " ", pulita)
+        pulita = re.sub(r"\s+", " ", pulita).strip(" .,:-")
+        if len(pulita) >= 4:
+            return pulita[:80]
+    return nome
+
+
+def estrai_eventi_regole(username, nome, posts):
+    """Estrazione gratuita: una riga per ogni data trovata nel testo del post."""
+    eventi = []
+    for p in posts:
+        testo = p.get("caption") or ""
+        pubblicato = date.fromisoformat(p["timestamp"][:10])
+        t = ascii_minuscolo(testo)
+        categoria = next((c for c, parole in CATEGORIE if any(x in t for x in parole)), "altro")
+        prezzo = RE_PREZZO.search(testo)
+        artisti = [m for m in dict.fromkeys(RE_MENZIONE.findall(testo)) if m.lower() != username.lower()]
+        for d in trova_date(testo, pubblicato):
+            eventi.append({
+                "post_id": p["id"],
+                "titolo": titolo_da(testo, nome),
+                "data": d.isoformat(),
+                "ora": trova_ora(testo),
+                "luogo": nome,
+                "citta": "",
+                "artisti": artisti[:8],
+                "categoria": categoria,
+                "prezzo": prezzo.group(0) if prezzo else "",
+            })
+    return eventi
+
+
 def chiave(e):
     return f"{e['data']}|{norm(e['luogo'] or e['account'])}|{norm(e['titolo'])[:24]}"
 
@@ -151,7 +268,12 @@ def main():
         r"\b(" + "|".join(re.escape(k) for k in fonti.get("keywords", [])) + r")\b", re.IGNORECASE
     )
     limite = datetime.now(timezone.utc) - timedelta(days=fonti.get("giorni_indietro", 21))
-    client = None if prova else anthropic.Anthropic()
+    client = None
+    if not prova and os.environ.get("ANTHROPIC_API_KEY"):
+        import anthropic
+
+        client = anthropic.Anthropic()
+    print("Estrazione:", "Claude" if client else "a regole (gratuita)")
     oggi = date.today().isoformat()
 
     nuovi = []
@@ -164,17 +286,20 @@ def main():
             continue
         scelti = candidati(posts, regex, limite, visti)
         print(f"@{username}: {len(posts)} post, {len(scelti)} candidati")
-        if prova:
-            for p in scelti:
-                print("   -", (p.get("caption") or "").replace("\n", " ")[:120])
-            continue
         if not scelti:
             continue
         per_id = {p["id"]: p for p in scelti}
-        try:
-            trovati = estrai_eventi(client, username, nome, scelti)
-        except anthropic.APIError as err:
-            print(f"  @{username}: errore Claude: {err}")
+        if client:
+            try:
+                trovati = estrai_eventi(client, username, nome, scelti)
+            except Exception as err:
+                print(f"  @{username}: errore Claude: {err}")
+                continue
+        else:
+            trovati = estrai_eventi_regole(username, nome, scelti)
+        if prova:
+            for e in trovati:
+                print(f"   - {e['data']} {e['ora'] or '--:--'} | {e['titolo']} | {e['categoria']} | {e['prezzo']}")
             continue
         for e in trovati:
             p = per_id.get(e["post_id"])
@@ -185,6 +310,7 @@ def main():
                 nome_account=nome,
                 link=p.get("permalink", ""),
                 immagine=p.get("thumbnail_url") or p.get("media_url", ""),
+                descrizione=(p.get("caption") or "")[:400],
             )
             nuovi.append(e)
         visti.update(per_id)
