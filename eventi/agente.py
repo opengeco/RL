@@ -5,8 +5,9 @@ L'estrazione è gratuita, a regole (date, orari, prezzi, @menzioni).
 Se è impostata ANTHROPIC_API_KEY usa invece Claude, più preciso ma a pagamento.
 
 Variabili d'ambiente:
-  IG_USER_ID         id dell'account Instagram Business/Creator che fa le richieste
-  META_TOKEN         token di accesso (long-lived) con instagram_basic + pages_show_list
+  META_TOKEN         token di accesso Meta (si ottiene con eventi/configura.html)
+  IG_USER_ID         opzionale, id dell'account Instagram Creator/Business;
+                     se assente viene ricavato dal token
   ANTHROPIC_API_KEY  opzionale, chiave API Anthropic (se assente: estrazione a regole)
   CLAUDE_MODEL       opzionale, default claude-opus-5-5
   GRAPH_VERSION      opzionale, default v23.0
@@ -86,20 +87,39 @@ def leggi_json(percorso, default):
         return default
 
 
-def post_account(username, quanti):
-    campi = (
-        f"business_discovery.username({username})"
-        f"{{username,name,media.limit({quanti}){{id,caption,timestamp,permalink,media_type,media_url,thumbnail_url}}}}"
-    )
+def graph(percorso, **params):
     r = requests.get(
-        f"{GRAPH}/{os.environ['IG_USER_ID']}",
-        params={"fields": campi, "access_token": os.environ["META_TOKEN"]},
-        timeout=30,
+        f"{GRAPH}/{percorso}", params={**params, "access_token": os.environ["META_TOKEN"]}, timeout=30
     )
     dati = r.json()
     if "error" in dati:
         raise RuntimeError(dati["error"].get("message", str(dati["error"])))
-    bd = dati.get("business_discovery", {})
+    return dati
+
+
+def trova_ig_user_id():
+    if os.environ.get("IG_USER_ID"):
+        return os.environ["IG_USER_ID"]
+    # Token di Pagina: l'account Instagram è collegato direttamente a "me"
+    try:
+        ig = graph("me", fields="instagram_business_account").get("instagram_business_account")
+        if ig:
+            return ig["id"]
+    except RuntimeError:
+        pass
+    # Token utente: cerca tra le Pagine gestite
+    for pagina in graph("me/accounts", fields="instagram_business_account").get("data", []):
+        if pagina.get("instagram_business_account"):
+            return pagina["instagram_business_account"]["id"]
+    raise RuntimeError("nessun account Instagram Creator/Business collegato al token")
+
+
+def post_account(ig_user_id, username, quanti):
+    campi = (
+        f"business_discovery.username({username})"
+        f"{{username,name,media.limit({quanti}){{id,caption,timestamp,permalink,media_type,media_url,thumbnail_url}}}}"
+    )
+    bd = graph(ig_user_id, fields=campi).get("business_discovery", {})
     return bd.get("name") or username, bd.get("media", {}).get("data", [])
 
 
@@ -276,13 +296,21 @@ def main():
     print("Estrazione:", "Claude" if client else "a regole (gratuita)")
     oggi = date.today().isoformat()
 
+    try:
+        ig_user_id = trova_ig_user_id()
+    except Exception as err:
+        sys.exit(f"Token Meta non valido o scaduto ({err}). Rigeneralo con eventi/configura.html")
+
     nuovi = []
-    for username in fonti.get("instagram", []):
+    account = fonti.get("instagram", [])
+    errori = 0
+    for username in account:
         username = username.strip().lstrip("@")
         try:
-            nome, posts = post_account(username, fonti.get("post_per_account", 15))
+            nome, posts = post_account(ig_user_id, username, fonti.get("post_per_account", 15))
         except Exception as err:
             print(f"@{username}: errore Instagram: {err}")
+            errori += 1
             continue
         scelti = candidati(posts, regex, limite, visti)
         print(f"@{username}: {len(posts)} post, {len(scelti)} candidati")
@@ -315,6 +343,8 @@ def main():
             nuovi.append(e)
         visti.update(per_id)
 
+    if account and errori == len(account):
+        sys.exit("Nessun account letto: controlla il token Meta (eventi/configura.html) e la lista in fonti.json")
     if prova:
         return
 

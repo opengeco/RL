@@ -27,7 +27,6 @@ jobs:
 
       - name: Esegui agente
         env:
-          IG_USER_ID: ${{ secrets.IG_USER_ID }}
           META_TOKEN: ${{ secrets.META_TOKEN }}
           # Facoltativo: se il secret non esiste l'agente usa l'estrazione gratuita a regole
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

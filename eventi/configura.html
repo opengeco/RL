@@ -1,0 +1,42 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d0b1a"><title>Configura agente eventi</title><style>
+:root{--bg:#0d0b1a;--panel:#1a1631;--line:#2e2850;--text:#f7f6fc;--muted:#b3adc9;--accent:#c39bff;--ok:#2fbf71;--err:#ff6b6b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}.wrap{width:min(760px,calc(100% - 32px));margin:auto;padding:28px 0 48px}h1{margin:0 0 4px;font-size:clamp(1.7rem,5vw,2.4rem)}.sub{color:var(--muted);margin:0 0 22px}.step{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:16px 18px;margin-bottom:14px}.step h2{margin:0 0 8px;font-size:1.05rem}.step ol{margin:0;padding-left:20px}.step li{margin:4px 0}a{color:var(--accent)}code{background:#100d20;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em}label{display:block;margin:12px 0 4px;font-weight:800;font-size:.85rem;color:var(--muted)}input,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#100d20;color:var(--text);font:inherit;font-size:.92rem}textarea{min-height:70px;word-break:break-all}.btn{margin-top:14px;border:0;border-radius:11px;background:var(--accent);color:#1a0d33;padding:12px 18px;font-weight:900;font-size:1rem;cursor:pointer}.btn:disabled{opacity:.6}.log{margin-top:14px;padding:0;list-style:none}.log li{padding:6px 0;border-bottom:1px solid var(--line);font-size:.9rem}.log .ok::before{content:"✅ "}.log .err::before{content:"❌ "}.log .info::before{content:"⏳ "}.result{display:none;border-color:var(--ok)}.copyrow{display:flex;gap:8px;align-items:flex-start}.copyrow textarea{flex:1}.note{color:var(--muted);font-size:.85rem}
+</style></head><body><div class="wrap">
+<h1>Configura l'agente eventi</h1>
+<p class="sub">Tre passaggi. I dati inseriti qui restano nel tuo browser e vengono inviati solo a Facebook.</p>
+
+<section class="step"><h2>1 · Crea l'app su Meta (una volta sola)</h2><ol>
+<li>Apri <a href="https://developers.facebook.com/apps/creation/" target="_blank" rel="noopener">developers.facebook.com → Crea app</a>, caso d'uso <b>Altro</b>, tipo <b>Business</b>.</li>
+<li>Nella dashboard aggiungi il prodotto <b>Instagram</b> → <b>API con accesso tramite Facebook</b>.</li>
+<li>In <b>Impostazioni app → Di base</b> copia <b>ID app</b> e <b>Chiave segreta</b> e incollali qui sotto.</li></ol></section>
+
+<section class="step"><h2>2 · Genera un token</h2><ol>
+<li>Apri il <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener">Graph API Explorer</a> e a destra scegli la tua app.</li>
+<li>In <b>Permissions</b> aggiungi: <code>instagram_basic</code> <code>pages_show_list</code> <code>pages_read_engagement</code> <code>business_management</code></li>
+<li>Clicca <b>Generate Access Token</b>, seleziona la tua Pagina e il tuo Instagram, poi copia il token (inizia con <code>EAA</code>).</li></ol></section>
+
+<section class="step"><h2>3 · Incolla e premi Configura</h2>
+<label for="appId">ID app</label><input id="appId" inputmode="numeric" autocomplete="off">
+<label for="appSecret">Chiave segreta dell'app</label><input id="appSecret" type="password" autocomplete="off">
+<label for="token">Token dal Graph API Explorer</label><textarea id="token" autocomplete="off"></textarea>
+<button class="btn" id="go">Configura</button>
+<ul class="log" id="log"></ul></section>
+
+<section class="step result" id="result"><h2>Fatto! Ultimo passo</h2>
+<ol><li>Copia il token qui sotto.</li>
+<li>Apri <a href="https://github.com/opengeco/RL/settings/secrets/actions/new" target="_blank" rel="noopener">GitHub → nuovo secret</a>, come <b>Name</b> scrivi <code>META_TOKEN</code> e come <b>Secret</b> incolla il token. Se il secret esiste già, aprilo e clicca <b>Update</b>.</li></ol>
+<div class="copyrow"><textarea id="out" readonly></textarea><button class="btn" id="copy" style="margin-top:0">Copia</button></div>
+<p class="note" id="scad"></p></section>
+
+<script>
+const API='https://graph.facebook.com/v23.0/',$=s=>document.querySelector(s);
+async function g(path,params){const u=new URL(API+path);for(const[k,v]of Object.entries(params))u.searchParams.set(k,v);const r=await fetch(u);const j=await r.json();if(j.error)throw Error(j.error.message);return j}
+function log(t,c){const li=document.createElement('li');li.className=c;li.textContent=t;$('#log').append(li);return li}
+async function prova(ig,tok){try{await g(ig,{fields:'business_discovery.username(instagram){name}',access_token:tok});return true}catch(e){return false}}
+$('#go').onclick=async()=>{const id=$('#appId').value.trim(),sec=$('#appSecret').value.trim(),tok=$('#token').value.trim();$('#log').innerHTML='';$('#result').style.display='none';if(!id||!sec||!tok){log('Compila tutti e tre i campi','err');return}$('#go').disabled=true;
+try{let s=log('Rendo il token di lunga durata…','info');const lungo=(await g('oauth/access_token',{grant_type:'fb_exchange_token',client_id:id,client_secret:sec,fb_exchange_token:tok})).access_token;s.className='ok';s.textContent='Token di lunga durata ottenuto';
+s=log('Cerco la Pagina collegata a Instagram…','info');const pag=(await g('me/accounts',{fields:'name,access_token,instagram_business_account{id,username}',access_token:lungo})).data||[];const p=pag.find(x=>x.instagram_business_account);if(!p)throw Error(pag.length?'Nessuna delle tue Pagine ha un account Instagram Creator/Business collegato':'Nessuna Pagina trovata: nel passo 2 hai selezionato la Pagina?');const ig=p.instagram_business_account;s.className='ok';s.textContent=`Pagina "${p.name}" collegata a @${ig.username}`;
+s=log('Provo la lettura di altri account Instagram…','info');let finale=null;if(p.access_token&&await prova(ig.id,p.access_token))finale=p.access_token;else if(await prova(ig.id,lungo))finale=lungo;if(!finale)throw Error('La lettura non funziona: controlla di aver aggiunto i 4 permessi nel passo 2 e il prodotto Instagram nel passo 1');s.className='ok';s.textContent='Lettura account Instagram funzionante';
+const dbg=(await g('debug_token',{input_token:finale,access_token:id+'|'+sec})).data||{};const exp=dbg.expires_at;$('#scad').textContent=!exp?'Questo token non scade: non dovrai ripetere la configurazione (a meno che non cambi la password di Facebook o rimuova l\'app).':`Questo token scade il ${new Date(exp*1000).toLocaleDateString('it-IT')}: prima di quella data ripeti i passi 2 e 3.`;
+$('#out').value=finale;$('#result').style.display='block';$('#result').scrollIntoView({behavior:'smooth'})}catch(e){log(e.message,'err')}finally{$('#go').disabled=false}};
+$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText($('#out').value);$('#copy').textContent='Copiato ✓'}catch(e){$('#out').select()}};
+</script></div></body></html>
