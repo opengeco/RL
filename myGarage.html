@@ -967,7 +967,7 @@ function mergeRemoteData(payload){
     const month = s.data.slice(0,7);
     const key = s.ruleId+'|'+month;
     const rule = ruleById.get(s.ruleId);
-    if(seen.has(key) || eliminati[s.ruleId] || (rule && rule.escluse.includes(month))) return false;
+    if(seen.has(key) || (!rule && eliminati[s.ruleId]) || (rule && rule.escluse.includes(month))) return false;
     seen.add(key);
     return true;
   });
@@ -1421,7 +1421,7 @@ function generateRecurringOccurrences(){
       const occDate = `${monthKey}-${String(day).padStart(2,'0')}`;
       if(occDate <= todayISO){
         const id = `${rule.id}_${monthKey}`;
-        const excluded = (rule.escluse||[]).includes(monthKey) || eliminati[id];
+        const excluded = (rule.escluse||[]).includes(monthKey);
         const exists = spese.some(s=> s.ruleId===rule.id && s.data.slice(0,7)===monthKey);
         if(!excluded && !exists){
           spese.push({ id, data: occDate, importo: rule.importo, note: rule.note, tipologia: rule.tipologia||'assicurazione', targa: rule.targa||'', ruleId: rule.id });
@@ -1747,6 +1747,7 @@ function importPayload(payload){
   Object.values(d.veicoli).forEach(v=>{ v.updatedAt = now; });
   const tombs = { ...d.eliminati };
   Object.entries(eliminati).forEach(([id,ts])=>{ if(!tombs[id] || ts > tombs[id]) tombs[id] = ts; });
+  keepIds.forEach(id=>{ delete tombs[id]; });
   [...entries, ...spese, ...ricorrenti].forEach(x=>{ if(!keepIds.has(x.id)) tombs[x.id] = now; });
   Object.keys(veicoli).forEach(t=>{ if(!d.veicoli[t]) tombs['veicolo:'+t] = now; });
 
