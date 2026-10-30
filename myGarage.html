@@ -2,6 +2,9 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- Content Security Policy: la pagina può contattare solo GitHub (sync) e le CDN di Chart.js/OCR.
+     Se aggiungi una libreria o un servizio esterno, aggiungi qui il suo dominio. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://api.github.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; worker-src blob: https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>myGarage</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -804,7 +807,7 @@
       </div>
       <div class="field" style="margin-bottom:12px;">
         <label for="ghToken">Personal Access Token</label>
-        <input type="password" id="ghToken" placeholder="github_pat_...">
+        <input type="password" id="ghToken" placeholder="github_pat_..." autocomplete="off">
       </div>
       <div class="control-bar" style="margin-bottom:8px;">
         <div class="group">
@@ -814,7 +817,7 @@
         </div>
       </div>
       <div class="helper-note">Ogni modifica viene salvata subito su questo dispositivo e inviata a GitHub. Se l'invio non riesce (es. senza rete), le modifiche restano in attesa e vengono unite ai dati su GitHub alla successiva apertura o con "Sincronizza ora".</div>
-      <div class="helper-note">Il token viene salvato solo nel localStorage di questo browser/dispositivo. Il file JSON su GitHub deve stare su una repository privata; l'app HTML può invece stare su una repository pubblica.</div>
+      <div class="helper-note">Il token viene salvato solo nel localStorage di questo browser/dispositivo e non viene più mostrato nel campo: per sostituirlo incollane uno nuovo, per mantenerlo lascia il campo vuoto. Il file JSON su GitHub deve stare su una repository privata; l'app HTML può invece stare su una repository pubblica.</div>
     </div>
   </div>
 
@@ -1948,7 +1951,9 @@ function renderGithubConfigForm(){
   document.getElementById('ghRepo').value = cfg.repo || '';
   document.getElementById('ghPath').value = cfg.path || 'dati.json';
   document.getElementById('ghBranch').value = cfg.branch || 'main';
-  document.getElementById('ghToken').value = cfg.token || '';
+  const tokenEl = document.getElementById('ghToken');
+  tokenEl.value = '';
+  tokenEl.placeholder = cfg.token ? 'Token salvato ✓ (lascia vuoto per mantenerlo)' : 'github_pat_...';
   let msg = cfg.token ? (lastGithubStatus || `Configurato: ${cfg.owner}/${cfg.repo} (${cfg.branch})`) : 'Non configurato.';
   if(cfg.token && isDirty() && !githubSyncing && !msg.startsWith('⚠')) msg += ' — ci sono modifiche non ancora sincronizzate.';
   document.getElementById('githubStatusText').textContent = msg;
@@ -1960,10 +1965,12 @@ function saveGithubConfigFromForm(){
     repo: document.getElementById('ghRepo').value.trim(),
     path: document.getElementById('ghPath').value.trim().replace(/^\/+/, '') || 'dati.json',
     branch: document.getElementById('ghBranch').value.trim() || 'main',
-    token: document.getElementById('ghToken').value.trim()
+    // Campo vuoto = mantieni il token già salvato
+    token: document.getElementById('ghToken').value.trim() || (getGithubConfig() || {}).token || ''
   };
   if(!cfg.owner || !cfg.repo || !cfg.token){ alert('Compila almeno Utente, Repository e Token.'); return; }
   saveGithubConfig(cfg);
+  renderGithubConfigForm();
   githubFileSha = null;
   updateGithubStatus('Configurazione salvata.');
   syncNow();
