@@ -2,6 +2,9 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- Content Security Policy: la pagina può contattare solo GitHub (sync) e le CDN di Chart.js/OCR.
+     Se aggiungi una libreria o un servizio esterno, aggiungi qui il suo dominio. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://api.github.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; worker-src blob: https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>myGarage</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +18,6 @@
     --text:#1c2733;
     --muted:#6b7684;
     --amber:#2952a3;
-    --amber-dim:#1c3766;
     --teal:#1f8a70;
     --red:#c0392b;
     --orange:#e07b1a;
@@ -181,7 +183,6 @@
     margin-left:4px;
   }
   .gauge-card.accent .value{color:var(--amber);}
-  .gauge-card.accent2 .value{color:var(--teal);}
   .vehicle-card-full{
     display:flex;
     align-items:center;
@@ -191,7 +192,6 @@
   .vehicle-card-full .value{font-size:22px;}
   .vehicle-card-full .hint{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;}
 
-  /* Dashboard needle gauge for avg consumption */
   #statSpesaCarburanteMese{color:#3b82f6;}
 
   /* FORM */
@@ -245,7 +245,6 @@
     margin-bottom:22px;
   }
   .control-bar .group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .control-bar label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
   .file-btn{position:relative;overflow:hidden;display:inline-block;}
   .file-btn input[type=file]{
     position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
@@ -264,8 +263,6 @@
     font-weight:600;
   }
   .badge-dot{width:8px;height:8px;border-radius:50%;flex:none;}
-  .badge-altro .badge-dot{background:var(--muted);}
-  .badge-altro{color:var(--muted);}
   .btn{
     background:var(--amber);
     color:#ffffff;
@@ -284,7 +281,7 @@
     border:1px solid var(--line);
     color:var(--muted);
   }
-  .btn-ghost:hover{color:var(--red);border-color:var(--red);}
+  .btn-ghost:hover{background:transparent;color:var(--red);border-color:var(--red);}
   .helper-note{font-size:12px;color:var(--muted);margin-top:12px;}
 
   /* TABLE */
@@ -303,14 +300,16 @@
     padding:9px 10px;
     text-align:right;
     font-family:'IBM Plex Mono',monospace;
-    border-bottom:1px solid #262c35;
+    border-bottom:1px solid var(--line);
   }
-  tr:hover td{background:#20262f;}
-  td.del{text-align:center;font-family:'IBM Plex Sans',sans-serif;}
+  tr:hover td{background:var(--panel-2);}
+  td.del{text-align:center;font-family:'IBM Plex Sans',sans-serif;white-space:nowrap;}
   td.del button{
-    background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;
+    background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 5px;
   }
   td.del button:hover{color:var(--red);}
+  td.del button[data-edit]:hover{color:var(--amber);}
+  .tag-parz{color:var(--muted);font-size:11px;font-family:'IBM Plex Sans',sans-serif;}
   td.note{
     text-align:left;
     font-family:'IBM Plex Sans',sans-serif;
@@ -467,7 +466,7 @@
 
   <!-- GAUGES -->
   <div class="gauges">
-    <div class="gauge-card" id="needleGaugeCard">
+    <div class="gauge-card">
       <div class="label">Km/L Medio</div>
       <div class="value" id="gaugeAvgConsumo">–<span class="unit">km/l</span></div>
     </div>
@@ -475,7 +474,7 @@
       <div class="label">€/L Medio</div>
       <div class="value" id="statPrezzoMedio">€ 0</div>
     </div>
-    <div class="gauge-card accent">
+    <div class="gauge-card">
       <div class="label">Spesa carburante/mese</div>
       <div class="value" id="statSpesaCarburanteMese">€ 0</div>
     </div>
@@ -489,7 +488,7 @@
   <div class="modal-overlay" id="modalRifornimento">
     <div class="modal-box">
       <div class="modal-header">
-        <h2 style="margin:0;">Nuovo rifornimento</h2>
+        <h2 style="margin:0;" id="rifTitle">Nuovo rifornimento</h2>
         <button type="button" class="modal-close" data-close="modalRifornimento">✕</button>
       </div>
       <div class="scan-row">
@@ -533,9 +532,13 @@
           <label for="fNote">Note (facoltativo)</label>
           <input type="text" id="fNote" placeholder="es. viaggio Sardegna, autostrada...">
         </div>
-        <button type="submit" class="btn">+ Aggiungi</button>
+        <div class="field wide" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="fPieno" style="width:auto;" checked>
+          <label for="fPieno" style="margin:0;text-transform:none;font-size:13px;">Pieno (serbatoio riempito)</label>
+        </div>
+        <button type="submit" class="btn" id="rifSubmit">+ Aggiungi</button>
       </form>
-      <div class="helper-note">L'importo totale e il consumo (km/l) si calcolano automaticamente. Il consumo presuppone un pieno ad ogni rifornimento.</div>
+      <div class="helper-note">L'importo totale e il consumo (km/l) si calcolano automaticamente. Il consumo si calcola tra un pieno e il successivo, sommando i litri dei rifornimenti parziali intermedi.</div>
     </div>
   </div>
 
@@ -643,7 +646,7 @@
   <div class="modal-overlay" id="modalSpesa">
     <div class="modal-box">
       <div class="modal-header">
-        <h2 style="margin:0;">Nuova spesa</h2>
+        <h2 style="margin:0;" id="spesaTitle">Nuova spesa</h2>
         <button type="button" class="modal-close" data-close="modalSpesa">✕</button>
       </div>
       <form id="expenseForm">
@@ -674,7 +677,7 @@
           <label for="eNote">Note</label>
           <input type="text" id="eNote" placeholder="es. Canone Mensile">
         </div>
-        <div class="field wide" style="display:flex;align-items:center;gap:8px;">
+        <div class="field wide" id="eRicorrenteBox" style="display:flex;align-items:center;gap:8px;">
           <input type="checkbox" id="eRicorrente" style="width:auto;">
           <label for="eRicorrente" style="margin:0;text-transform:none;font-size:13px;">Ricorrente ogni mese (stesso giorno, importo e nota)</label>
         </div>
@@ -682,8 +685,9 @@
           <label for="eNumeroRate">Numero rate</label>
           <input type="number" id="eNumeroRate" min="1" placeholder="es. 36">
         </div>
-        <button type="submit" class="btn">+ Aggiungi spesa</button>
+        <button type="submit" class="btn" id="spesaSubmit">+ Aggiungi spesa</button>
       </form>
+      <div class="helper-note" id="eEditNote" style="display:none;">Stai modificando una singola occorrenza di una spesa ricorrente: le altre non cambiano.</div>
       <div class="helper-note">Le spese ricorrenti si generano da sole ogni mese, dal giorno impostato in poi, quando riapri la pagina. Per un finanziamento, indica il numero di rate: dopo l'ultima rata la spesa non verrà più generata.</div>
     </div>
   </div>
@@ -705,27 +709,27 @@
       <div class="gauges" style="grid-template-columns:repeat(2,1fr);margin-bottom:20px;">
         <div class="gauge-card">
           <div class="label">Totale assicurazione</div>
-          <div class="value" id="statCanoniTotali" style="color:var(--amber);">€ 0</div>
+          <div class="value" id="statTot-assicurazione" style="color:var(--amber);">€ 0</div>
         </div>
         <div class="gauge-card">
           <div class="label">Totale bollo</div>
-          <div class="value" id="statBolloTotali" style="color:var(--teal);">€ 0</div>
+          <div class="value" id="statTot-bollo" style="color:var(--teal);">€ 0</div>
         </div>
         <div class="gauge-card">
           <div class="label">Totale manutenzione</div>
-          <div class="value" id="statExtraTotali" style="color:var(--orange);">€ 0</div>
+          <div class="value" id="statTot-manutenzione" style="color:var(--orange);">€ 0</div>
         </div>
         <div class="gauge-card">
           <div class="label">Totale tagliando</div>
-          <div class="value" id="statTagliandoTotali" style="color:var(--red);">€ 0</div>
+          <div class="value" id="statTot-tagliando" style="color:var(--red);">€ 0</div>
         </div>
         <div class="gauge-card">
           <div class="label">Totale finanziamento</div>
-          <div class="value" id="statFinanziamentoTotali" style="color:var(--purple);">€ 0</div>
+          <div class="value" id="statTot-finanziamento" style="color:var(--purple);">€ 0</div>
         </div>
         <div class="gauge-card">
           <div class="label">Totale altro</div>
-          <div class="value" id="statGhostTotali" style="color:var(--pink);">€ 0</div>
+          <div class="value" id="statTot-altro" style="color:var(--pink);">€ 0</div>
         </div>
       </div>
       <div class="row-between">
@@ -803,7 +807,7 @@
       </div>
       <div class="field" style="margin-bottom:12px;">
         <label for="ghToken">Personal Access Token</label>
-        <input type="password" id="ghToken" placeholder="github_pat_...">
+        <input type="password" id="ghToken" placeholder="github_pat_..." autocomplete="off">
       </div>
       <div class="control-bar" style="margin-bottom:8px;">
         <div class="group">
@@ -812,7 +816,8 @@
           <button type="button" class="btn btn-ghost" id="disconnectGithubBtn">Disconnetti</button>
         </div>
       </div>
-      <div class="helper-note">Il token viene salvato solo nel localStorage di questo browser/dispositivo. Il file JSON su GitHub deve stare su una repository privata; l'app HTML può invece stare su una repository pubblica.</div>
+      <div class="helper-note">Ogni modifica viene salvata subito su questo dispositivo e inviata a GitHub. Se l'invio non riesce (es. senza rete), le modifiche restano in attesa e vengono unite ai dati su GitHub alla successiva apertura o con "Sincronizza ora".</div>
+      <div class="helper-note">Il token viene salvato solo nel localStorage di questo browser/dispositivo e non viene più mostrato nel campo: per sostituirlo incollane uno nuovo, per mantenerlo lascia il campo vuoto. Il file JSON su GitHub deve stare su una repository privata; l'app HTML può invece stare su una repository pubblica.</div>
     </div>
   </div>
 
@@ -824,68 +829,194 @@ const SPESE_KEY = 'myGarageSpese_v1';
 const RICORRENTI_KEY = 'myGarageRicorrenti_v1';
 const VEICOLI_KEY = 'myGarageVeicoli_v1';
 const DEFAULT_TARGA_KEY = 'myGarageDefaultTarga_v1';
+const ELIMINATI_KEY = 'myGarageEliminati_v1';
+const DIRTY_KEY = 'myGarageDirty_v1';
 const GITHUB_CONFIG_KEY = 'myGarage_github_config';
+
+const PAGE_SIZE = 10;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const MONTH_NAMES = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+const GRID_COLOR = '#dde3ea';
+const TEXT_COLOR = '#6b7684';
 
 let defaultTarga = '';
 let veicoli = {};
 let entries = [];
 let spese = [];
 let ricorrenti = [];
+// id eliminati (o 'veicolo:TARGA') -> timestamp: evita che un'unione con GitHub li faccia ricomparire
+let eliminati = {};
 let charts = {};
 let currentVehicleFilter = '';
 let currentPageRif = 1;
 let currentPageSpese = 1;
-const PAGE_SIZE = 10;
+let editingEntryId = null;
+let editingSpesaId = null;
 let githubFileSha = null;
 let githubSyncing = false;
+let pushQueued = false;
+let changeSeq = 0;
+let lastGithubStatus = '';
 
-function loadDefaultTarga(){
+// --- PERSISTENZA LOCALE ---
+function readJson(key, fallback){
+  try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }catch(e){ return fallback; }
+}
+
+function loadAll(){
+  const d = normalizePayload({
+    veicoli: readJson(VEICOLI_KEY, {}),
+    rifornimenti: readJson(STORAGE_KEY, []),
+    spese: readJson(SPESE_KEY, []),
+    ricorrenti: readJson(RICORRENTI_KEY, []),
+    eliminati: readJson(ELIMINATI_KEY, {})
+  });
+  veicoli = d.veicoli; entries = d.rifornimenti; spese = d.spese; ricorrenti = d.ricorrenti; eliminati = d.eliminati;
   try{ defaultTarga = localStorage.getItem(DEFAULT_TARGA_KEY) || ''; }catch(e){ defaultTarga = ''; }
 }
+
+function saveAll(){
+  try{
+    localStorage.setItem(VEICOLI_KEY, JSON.stringify(veicoli));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    localStorage.setItem(SPESE_KEY, JSON.stringify(spese));
+    localStorage.setItem(RICORRENTI_KEY, JSON.stringify(ricorrenti));
+    localStorage.setItem(ELIMINATI_KEY, JSON.stringify(eliminati));
+    localStorage.setItem(DEFAULT_TARGA_KEY, defaultTarga);
+  }catch(e){
+    alert('Impossibile salvare i dati su questo dispositivo (memoria piena o archiviazione bloccata).');
+  }
+}
+
 function saveDefaultTarga(v){
   defaultTarga = (v||'').trim().toUpperCase();
-  localStorage.setItem(DEFAULT_TARGA_KEY, defaultTarga);
+  try{ localStorage.setItem(DEFAULT_TARGA_KEY, defaultTarga); }catch(e){}
 }
-function loadVeicoli(){
-  try{ const raw = localStorage.getItem(VEICOLI_KEY); veicoli = raw ? JSON.parse(raw) : {}; }catch(e){ veicoli = {}; }
-}
-function saveVeicoli(){ localStorage.setItem(VEICOLI_KEY, JSON.stringify(veicoli)); }
 
-function loadEntries(){
-  try{ const raw = localStorage.getItem(STORAGE_KEY); entries = raw ? JSON.parse(raw) : []; }catch(e){ entries = []; }
-}
-function saveEntries(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+function isDirty(){ try{ return localStorage.getItem(DIRTY_KEY)==='1'; }catch(e){ return false; } }
+function setDirty(v){ try{ v ? localStorage.setItem(DIRTY_KEY,'1') : localStorage.removeItem(DIRTY_KEY); }catch(e){} }
 
-function loadSpese(){
-  try{ const raw = localStorage.getItem(SPESE_KEY); spese = raw ? JSON.parse(raw) : []; }catch(e){ spese = []; }
+// Da chiamare dopo ogni modifica ai dati: salva in locale, segna le modifiche come
+// non ancora sincronizzate e le invia a GitHub (se configurato).
+function commit(){
+  saveAll();
+  changeSeq++;
+  setDirty(true);
+  pushToGithub();
 }
-function saveSpese(){ localStorage.setItem(SPESE_KEY, JSON.stringify(spese)); }
-function loadRicorrenti(){
-  try{ const raw = localStorage.getItem(RICORRENTI_KEY); ricorrenti = raw ? JSON.parse(raw) : []; }catch(e){ ricorrenti = []; }
+
+function markDeleted(id){ eliminati[id] = Date.now(); }
+function isDeleted(id, updatedAt){ const ts = eliminati[id]; return !!ts && ts >= (updatedAt||0); }
+
+function uid(){
+  return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
-function saveRicorrenti(){ localStorage.setItem(RICORRENTI_KEY, JSON.stringify(ricorrenti)); }
+
+function normalizePayload(p){
+  p = (p && typeof p==='object') ? p : {};
+  const isObj = v => !!v && typeof v==='object' && !Array.isArray(v);
+  const veic = {};
+  if(isObj(p.veicoli)) Object.entries(p.veicoli).forEach(([t,v])=>{ if(isObj(v)) veic[t] = v; });
+  const rifornimenti = (Array.isArray(p.rifornimenti) ? p.rifornimenti : [])
+    .filter(e=> e && e.id && DATE_RE.test(e.data))
+    .map(e=>({ ...e, km:Number(e.km)||0, litri:Number(e.litri)||0, prezzo:Number(e.prezzo)||0 }));
+  const sp = (Array.isArray(p.spese) ? p.spese : [])
+    .filter(s=> s && s.id && DATE_RE.test(s.data))
+    .map(s=>({ ...s, importo:Number(s.importo)||0 }));
+  const ric = (Array.isArray(p.ricorrenti) ? p.ricorrenti : [])
+    .filter(r=> r && r.id && DATE_RE.test(r.dataInizio))
+    .map(r=>({ ...r, giorno:Number(r.giorno)||1, importo:Number(r.importo)||0, escluse:Array.isArray(r.escluse) ? r.escluse : [] }));
+  return {
+    veicoli: veic,
+    rifornimenti,
+    spese: sp,
+    ricorrenti: ric,
+    eliminati: isObj(p.eliminati) ? p.eliminati : {},
+    targaPredefinita: p.targaPredefinita ? String(p.targaPredefinita).toUpperCase() : ''
+  };
+}
+
+// --- UNIONE DATI LOCALI + GITHUB ---
+function mergeById(localList, remoteList){
+  const map = new Map();
+  [...remoteList, ...localList].forEach(item=>{
+    if(isDeleted(item.id, item.updatedAt)) return;
+    const prev = map.get(item.id);
+    if(!prev || (item.updatedAt||0) >= (prev.updatedAt||0)) map.set(item.id, item);
+  });
+  return [...map.values()];
+}
+
+function mergeRemoteData(payload){
+  const r = normalizePayload(payload);
+  Object.entries(r.eliminati).forEach(([id,ts])=>{ if(!eliminati[id] || ts > eliminati[id]) eliminati[id] = ts; });
+
+  entries = mergeById(entries, r.rifornimenti);
+
+  const allRules = [...r.ricorrenti, ...ricorrenti];
+  ricorrenti = mergeById(ricorrenti, r.ricorrenti).map(rule=>({
+    ...rule,
+    escluse: [...new Set(allRules.filter(x=>x.id===rule.id).flatMap(x=>x.escluse||[]))]
+  }));
+
+  // Le occorrenze ricorrenti sono uniche per regola+mese (i dati vecchi avevano id casuali per dispositivo)
+  const ruleById = new Map(ricorrenti.map(x=>[x.id,x]));
+  const seen = new Set();
+  spese = mergeById(spese, r.spese).filter(s=>{
+    if(!s.ruleId) return true;
+    const month = s.data.slice(0,7);
+    const key = s.ruleId+'|'+month;
+    const rule = ruleById.get(s.ruleId);
+    if(seen.has(key) || eliminati[s.ruleId] || (rule && rule.escluse.includes(month))) return false;
+    seen.add(key);
+    return true;
+  });
+
+  const merged = {};
+  new Set([...Object.keys(r.veicoli), ...Object.keys(veicoli)]).forEach(t=>{
+    const loc = veicoli[t], rem = r.veicoli[t];
+    const pick = !rem ? loc : !loc ? rem : ((loc.updatedAt||0) >= (rem.updatedAt||0) ? loc : rem);
+    if(!isDeleted('veicolo:'+t, pick.updatedAt)) merged[t] = pick;
+  });
+  veicoli = merged;
+  saveAll();
+}
 
 function getFilteredEntries(){
   return currentVehicleFilter ? entries.filter(e=> (e.targa||'N/D')===currentVehicleFilter) : entries;
 }
 
+// Consumo calcolato tra due pieni: km percorsi / litri messi dopo il pieno precedente
+// (inclusi i rifornimenti parziali intermedi). I dati senza campo "pieno" valgono come pieni.
 function computeDerived(list){
-  const source = list || entries;
   const byTarga = {};
-  source.forEach(e=>{
+  list.forEach(e=>{
     const t = e.targa || 'N/D';
     if(!byTarga[t]) byTarga[t]=[];
     byTarga[t].push(e);
   });
-  let result = [];
+  const result = [];
   Object.values(byTarga).forEach(group=>{
     const sorted = [...group].sort((a,b)=> a.data.localeCompare(b.data) || a.km-b.km);
     let prevKm = null;
+    let lastFullKm = null;
+    let litriDaPieno = 0;
     sorted.forEach(e=>{
+      const pieno = e.pieno !== false;
       const kmPercorsi = prevKm===null ? null : (e.km - prevKm);
-      const consumo = (kmPercorsi && kmPercorsi>0) ? (kmPercorsi / e.litri) : null;
       prevKm = e.km;
-      result.push({...e, kmPercorsi, consumo, importo: e.litri*e.prezzo});
+      let consumo = null, consumoKm = 0, consumoLitri = 0;
+      if(lastFullKm !== null) litriDaPieno += e.litri;
+      if(pieno){
+        if(lastFullKm !== null && e.km > lastFullKm && litriDaPieno > 0){
+          consumoKm = e.km - lastFullKm;
+          consumoLitri = litriDaPieno;
+          consumo = consumoKm / consumoLitri;
+        }
+        lastFullKm = e.km;
+        litriDaPieno = 0;
+      }
+      result.push({...e, pieno, kmPercorsi, consumo, consumoKm, consumoLitri, importo: e.litri*e.prezzo});
     });
   });
   return result;
@@ -914,6 +1045,10 @@ function fmt(n, d=1){
   const withDots = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   const out = d>0 ? withDots + ',' + decPart : withDots;
   return neg ? '-' + out : out;
+}
+
+function esc(v){
+  return String(v ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function localISO(d){
@@ -963,7 +1098,7 @@ function buildTargaOptionsHtml(selectedValue){
     const v = veicoli[t] || {};
     const icon = vehicleIconEmoji(v.tipologia);
     const label = v.nome ? `${icon} ${t} — ${v.nome}` : `${icon} ${t}`;
-    html += `<option value="${t}" ${t===selectedValue?'selected':''}>${label}</option>`;
+    html += `<option value="${esc(t)}" ${t===selectedValue?'selected':''}>${esc(label)}</option>`;
   });
   html += `<option value="__add__">+ Aggiungi nuovo veicolo…</option>`;
   return html;
@@ -980,11 +1115,7 @@ function populateTargaSelects(){
 
 function handleTargaSelectAddOption(selectEl, sourceModalId){
   selectEl.addEventListener('change', ()=>{
-    if(selectEl.value === '__add__'){
-      closeModal(sourceModalId);
-      renderVehicleModalList();
-      openModal('modalVeicolo');
-    }
+    if(selectEl.value === '__add__') openVehiclePickerFrom(sourceModalId);
   });
 }
 
@@ -1005,10 +1136,30 @@ function getVehicleDisplayLabel(){
 function renderVehicleCard(){
   const label = getVehicleDisplayLabel();
   document.getElementById('vehicleCardValue').textContent = label;
-  const chipRif = document.getElementById('vehicleChipRif');
-  const chipSpese = document.getElementById('vehicleChipSpese');
-  if(chipRif) chipRif.textContent = label;
-  if(chipSpese) chipSpese.textContent = label;
+  document.getElementById('vehicleChipRif').textContent = label;
+  document.getElementById('vehicleChipSpese').textContent = label;
+}
+
+function deleteVehicle(targa){
+  const nRif = entries.filter(e=>e.targa===targa).length;
+  const nSpese = spese.filter(s=>s.targa===targa).length;
+  const nRic = ricorrenti.filter(r=>r.targa===targa).length;
+  const msg = (nRif || nSpese || nRic)
+    ? `Eliminare il veicolo ${targa}?\n\nVerranno eliminati anche i dati collegati: ${nRif} rifornimenti, ${nSpese} spese e ${nRic} spese ricorrenti.`
+    : `Eliminare il veicolo ${targa}?`;
+  if(!confirm(msg)) return;
+  markDeleted('veicolo:'+targa);
+  delete veicoli[targa];
+  const keep = x=>{ if(x.targa===targa){ markDeleted(x.id); return false; } return true; };
+  entries = entries.filter(keep);
+  spese = spese.filter(keep);
+  ricorrenti = ricorrenti.filter(keep);
+  if(currentVehicleFilter===targa) currentVehicleFilter = '';
+  if(defaultTarga===targa) defaultTarga = '';
+  commit();
+  renderVehicleModalList();
+  render();
+  renderSpese();
 }
 
 function renderVehicleModalList(){
@@ -1024,8 +1175,8 @@ function renderVehicleModalList(){
     const active = t===currentVehicleFilter;
     const label = nome ? `${icon} ${nome} — ${t}` : `${icon} ${t}`;
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);gap:8px;">
-      <button type="button" class="btn ${active?'':'btn-ghost'}" data-select-veicolo="${t}" style="flex:1;text-align:left;">${label}</button>
-      <button type="button" class="modal-close" data-del-veicolo="${t}" title="Rimuovi dall'elenco">✕</button>
+      <button type="button" class="btn ${active?'':'btn-ghost'}" data-select-veicolo="${esc(t)}" style="flex:1;text-align:left;">${esc(label)}</button>
+      <button type="button" class="modal-close" data-del-veicolo="${esc(t)}" title="Elimina veicolo">✕</button>
     </div>`;
   }).join('');
   container.querySelectorAll('[data-select-veicolo]').forEach(btn=>{
@@ -1038,19 +1189,10 @@ function renderVehicleModalList(){
       closeVehiclePickerAndReturn();
       render();
       renderSpese();
-      pushToGithub();
     });
   });
   container.querySelectorAll('[data-del-veicolo]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const targa = btn.dataset.delVeicolo;
-      delete veicoli[targa];
-      saveVeicoli();
-      if(currentVehicleFilter===targa) currentVehicleFilter = '';
-      renderVehicleModalList();
-      renderVehicleCard();
-      pushToGithub();
-    });
+    btn.addEventListener('click', ()=> deleteVehicle(btn.dataset.delVeicolo));
   });
 }
 
@@ -1061,10 +1203,9 @@ function render(){
 
   const totLitri = derived.reduce((s,e)=>s+e.litri,0);
   const totSpesa = derived.reduce((s,e)=>s+e.importo,0);
-  const validConsumi = derived.filter(e=>e.consumo && e.consumo>0);
-  const avgConsumo = validConsumi.length
-    ? validConsumi.reduce((s,e)=>s+e.consumo,0)/validConsumi.length
-    : null;
+  const kmConsumo = derived.reduce((s,e)=>s+e.consumoKm,0);
+  const litriConsumo = derived.reduce((s,e)=>s+e.consumoLitri,0);
+  const avgConsumo = litriConsumo>0 ? kmConsumo/litriConsumo : null;
 
   document.getElementById('statSpesa').textContent = '€ '+fmt(totSpesa,2);
   document.getElementById('gaugeAvgConsumo').innerHTML = (avgConsumo? fmt(avgConsumo,1):'–')+' <span class="unit">km/l</span>';
@@ -1077,16 +1218,18 @@ function render(){
 
   const displayList = [...derived].sort((a,b)=> b.data.localeCompare(a.data) || b.km-a.km);
   const lastEntry = displayList.length ? displayList[0] : null;
+  const lastConsumo = displayList.find(e=>e.consumo);
 
+  // Verde = l'ultimo dato è migliore della media (consumo più alto, prezzo più basso)
   const kmlEl = document.getElementById('gaugeAvgConsumo');
-  if(avgConsumo && lastEntry && lastEntry.consumo){
-    kmlEl.style.color = (avgConsumo < lastEntry.consumo) ? 'var(--teal)' : 'var(--red)';
+  if(avgConsumo && lastConsumo){
+    kmlEl.style.color = (lastConsumo.consumo > avgConsumo) ? 'var(--teal)' : 'var(--red)';
   }else{
     kmlEl.style.color = '';
   }
   const eurLEl = document.getElementById('statPrezzoMedio');
   if(totLitri>0 && lastEntry){
-    eurLEl.style.color = (prezzoMedio < lastEntry.prezzo) ? 'var(--teal)' : 'var(--red)';
+    eurLEl.style.color = (lastEntry.prezzo < prezzoMedio) ? 'var(--teal)' : 'var(--red)';
   }else{
     eurLEl.style.color = '';
   }
@@ -1117,26 +1260,32 @@ function render(){
   pageItemsRif.forEach(e=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${formatDateIt(e.data)}</td>
-      <td>${e.targa ? `${vehicleIconEmoji(getVehicleTipologia(e.targa))} ${e.targa}` : '—'}</td>
-      <td><span class="badge" style="color:${fuelBadgeColor(e.carburante)};"><span class="badge-dot" style="background:${fuelBadgeColor(e.carburante)};"></span>${e.carburante||'—'}</span></td>
+      <td>${esc(formatDateIt(e.data))}</td>
+      <td>${e.targa ? `${vehicleIconEmoji(getVehicleTipologia(e.targa))} ${esc(e.targa)}` : '—'}</td>
+      <td><span class="badge" style="color:${fuelBadgeColor(e.carburante)};"><span class="badge-dot" style="background:${fuelBadgeColor(e.carburante)};"></span>${esc(e.carburante||'—')}</span></td>
       <td>${fmt(e.km,0)}</td>
       <td>${e.kmPercorsi!==null? fmt(e.kmPercorsi,0):'—'}</td>
-      <td>${fmt(e.litri,2)}</td>
+      <td>${fmt(e.litri,2)}${e.pieno ? '' : ' <span class="tag-parz">parz.</span>'}</td>
       <td>${fmt(e.prezzo,3)}</td>
       <td>€ ${fmt(e.importo,2)}</td>
       <td>${e.consumo? fmt(e.consumo,1):'—'}</td>
-      <td class="note" title="${(e.note||'').replace(/"/g,'&quot;')}">${e.note||'—'}</td>
-      <td class="del"><button title="Elimina" data-id="${e.id}">✕</button></td>
+      <td class="note" title="${esc(e.note)}">${esc(e.note||'—')}</td>
+      <td class="del"><button title="Modifica" data-edit="${esc(e.id)}">✎</button><button title="Elimina" data-del="${esc(e.id)}">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
-  tbody.querySelectorAll('button[data-id]').forEach(btn=>{
+  tbody.querySelectorAll('button[data-edit]').forEach(btn=>{
+    btn.addEventListener('click', ()=> editFromHistory('modalStoricoRifornimenti', ()=> openEntryForm(btn.dataset.edit)));
+  });
+  tbody.querySelectorAll('button[data-del]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      entries = entries.filter(e=>e.id !== btn.dataset.id);
-      saveEntries();
+      const e = entries.find(x=>x.id===btn.dataset.del);
+      if(!e) return;
+      if(!confirm(`Eliminare il rifornimento del ${formatDateIt(e.data)} (${fmt(e.litri,2)} L, € ${fmt(e.litri*e.prezzo,2)})?`)) return;
+      markDeleted(e.id);
+      entries = entries.filter(x=>x.id !== e.id);
+      commit();
       render();
-      pushToGithub();
     });
   });
 
@@ -1150,7 +1299,7 @@ function renderYearSelect(derived){
   const current = sel.value;
   sel.innerHTML='';
   if(years.length===0){
-    const opt=document.createElement('option'); opt.textContent='Nessun dato'; sel.appendChild(opt);
+    const opt=document.createElement('option'); opt.value=''; opt.textContent='Nessun dato'; sel.appendChild(opt);
     return;
   }
   years.forEach(y=>{
@@ -1159,22 +1308,20 @@ function renderYearSelect(derived){
   sel.value = years.includes(current) ? current : years[0];
 }
 
-function destroyChart(key){ if(charts[key]){ charts[key].destroy(); } }
+function destroyChart(key){ if(charts[key]){ charts[key].destroy(); charts[key]=null; } }
 
 function renderCharts(derived){
-  const yearSel = document.getElementById('yearSelect');
-  const year = yearSel.value;
+  const year = document.getElementById('yearSelect').value;
   const canvasEl = document.getElementById('chartVolumeImporto');
   const emptyEl = document.getElementById('chartEmptyState');
-  if(derived.length===0 || !year){
-    if(charts.volumeImporto){ charts.volumeImporto.destroy(); charts.volumeImporto=null; }
+  if(derived.length===0 || !year || !window.Chart){
+    destroyChart('volumeImporto');
     canvasEl.style.display='none';
     emptyEl.style.display='block';
     return;
   }
   canvasEl.style.display='block';
   emptyEl.style.display='none';
-  const monthNames = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
 
   const yearData = derived.filter(e=> e.data.slice(0,4) === year);
   const speseMese = Array(12).fill(0);
@@ -1185,16 +1332,11 @@ function renderCharts(derived){
     litriMese[m]+= e.litri;
   });
 
-  const gridColor = '#dde3ea';
-  const textColor = '#6b7684';
-  Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
-  Chart.defaults.color = textColor;
-
   destroyChart('volumeImporto');
-  charts.volumeImporto = new Chart(document.getElementById('chartVolumeImporto'), {
+  charts.volumeImporto = new Chart(canvasEl, {
     type:'bar',
     data:{
-      labels: monthNames,
+      labels: MONTH_NAMES,
       datasets:[
         { type:'bar', label:'Litri', data:litriMese, backgroundColor:'#86efac', borderRadius:4, yAxisID:'yLitri', order:2 },
         { type:'line', label:'Importo €', data:speseMese, borderColor:'#7dd3fc', backgroundColor:'#7dd3fc33', tension:.3, pointRadius:3, yAxisID:'yImporto', order:1 }
@@ -1205,15 +1347,15 @@ function renderCharts(derived){
       maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
       plugins:{
-        legend:{ display:true, labels:{color:textColor, font:{size:12}} },
+        legend:{ display:true, labels:{color:TEXT_COLOR, font:{size:12}} },
         title:{ display:true, text:`Andamento rifornimenti ${year}`, color:'#1c2733', font:{family:"'IBM Plex Sans', sans-serif", size:13, weight:'600'}, padding:{bottom:12} },
         tooltip:{ callbacks:{ label: ctx => {
           return ctx.dataset.yAxisID==='yImporto' ? `Importo: € ${fmt(ctx.parsed.y,2)}` : `Litri: ${fmt(ctx.parsed.y,2)} L`;
         } } }
       },
       scales:{
-        x:{ grid:{color:gridColor}, ticks:{font:{size:11}} },
-        yLitri:{ position:'left', grid:{color:gridColor}, beginAtZero:true,
+        x:{ grid:{color:GRID_COLOR}, ticks:{font:{size:11}} },
+        yLitri:{ position:'left', grid:{color:GRID_COLOR}, beginAtZero:true,
           ticks:{font:{size:11}, callback:v=>fmt(v,0)},
           title:{display:true, text:'Litri', font:{size:11}}
         },
@@ -1229,9 +1371,16 @@ function renderCharts(derived){
 // --- SPESE VARIE (con ricorrenza mensile) ---
 function daysInMonth(year, month){ return new Date(year, month, 0).getDate(); }
 
-const TIPOLOGIE_SPESA = ['assicurazione','bollo','manutenzione','tagliando','finanziamento','altro'];
+const TIPI_SPESA = {
+  assicurazione: { label:'Assicurazione', color:'var(--amber)',  chart:'#86efac' },
+  bollo:         { label:'Bollo',         color:'var(--teal)',   chart:'#7dd3fc' },
+  manutenzione:  { label:'Manutenzione',  color:'var(--orange)', chart:'#fdba74' },
+  tagliando:     { label:'Tagliando',     color:'var(--red)',    chart:'#f87171' },
+  finanziamento: { label:'Finanziamento', color:'var(--purple)', chart:'#c4b5fd' },
+  altro:         { label:'Altro',         color:'var(--pink)',   chart:'#f9a8d4' }
+};
+const TIPOLOGIE_SPESA = Object.keys(TIPI_SPESA);
 
-// Le spese hanno 6 tipologie: assicurazione, bollo, manutenzione, tagliando, finanziamento, altro.
 function tipologiaSpesa(s){
   return TIPOLOGIE_SPESA.includes(s.tipologia) ? s.tipologia : 'altro';
 }
@@ -1248,17 +1397,14 @@ function updateSpesaMensileCard(){
 }
 
 function computeSpeseBreakdown(list){
-  const source = list || spese;
-  const totSpese = source.reduce((sum,s)=>sum+s.importo,0);
-  const totCanoni = source.filter(s=>tipologiaSpesa(s)==='assicurazione').reduce((sum,s)=>sum+s.importo,0);
-  const totBollo = source.filter(s=>tipologiaSpesa(s)==='bollo').reduce((sum,s)=>sum+s.importo,0);
-  const totExtra = source.filter(s=>tipologiaSpesa(s)==='manutenzione').reduce((sum,s)=>sum+s.importo,0);
-  const totTagliando = source.filter(s=>tipologiaSpesa(s)==='tagliando').reduce((sum,s)=>sum+s.importo,0);
-  const totFinanziamento = source.filter(s=>tipologiaSpesa(s)==='finanziamento').reduce((sum,s)=>sum+s.importo,0);
-  const totGhost = source.filter(s=>tipologiaSpesa(s)==='altro').reduce((sum,s)=>sum+s.importo,0);
-  return { totSpese, totCanoni, totBollo, totExtra, totTagliando, totFinanziamento, totGhost };
+  const tot = { totale:0 };
+  TIPOLOGIE_SPESA.forEach(t=> tot[t]=0);
+  list.forEach(s=>{ tot.totale += s.importo; tot[tipologiaSpesa(s)] += s.importo; });
+  return tot;
 }
 
+// Restituisce true se ha aggiunto occorrenze. Gli id sono deterministici (regola+mese)
+// così due dispositivi generano la stessa occorrenza senza duplicarla.
 function generateRecurringOccurrences(){
   const today = new Date();
   const todayISO = localISO(today);
@@ -1270,15 +1416,15 @@ function generateRecurringOccurrences(){
     while(y < curY || (y===curY && m<=curM)){
       const monthOffset = (y-startY)*12 + (m-startM);
       if(rule.numeroRate && monthOffset >= rule.numeroRate) break;
-      const dim = daysInMonth(y,m);
-      const day = Math.min(rule.giorno, dim);
-      const occDate = `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const day = Math.min(rule.giorno, daysInMonth(y,m));
+      const monthKey = `${y}-${String(m).padStart(2,'0')}`;
+      const occDate = `${monthKey}-${String(day).padStart(2,'0')}`;
       if(occDate <= todayISO){
-        const monthKey = `${y}-${String(m).padStart(2,'0')}`;
-        const excluded = (rule.escluse||[]).includes(monthKey);
+        const id = `${rule.id}_${monthKey}`;
+        const excluded = (rule.escluse||[]).includes(monthKey) || eliminati[id];
         const exists = spese.some(s=> s.ruleId===rule.id && s.data.slice(0,7)===monthKey);
         if(!excluded && !exists){
-          spese.push({ id: crypto.randomUUID(), data: occDate, importo: rule.importo, note: rule.note, tipologia: rule.tipologia||'assicurazione', targa: rule.targa||'', ruleId: rule.id });
+          spese.push({ id, data: occDate, importo: rule.importo, note: rule.note, tipologia: rule.tipologia||'assicurazione', targa: rule.targa||'', ruleId: rule.id });
           changed = true;
         }
       }
@@ -1286,11 +1432,37 @@ function generateRecurringOccurrences(){
       if(m>12){ m=1; y++; }
     }
   });
-  if(changed) saveSpese();
+  return changed;
+}
+
+function deleteSpesa(id){
+  const s = spese.find(x=>x.id===id);
+  if(!s) return;
+  const rule = s.ruleId ? ricorrenti.find(r=>r.id===s.ruleId) : null;
+  if(rule){
+    if(!confirm(`Eliminare la spesa ricorrente del ${formatDateIt(s.data)} (€ ${fmt(s.importo,2)})?`)) return;
+    const deleteAll = confirm("Vuoi eliminare l'intera ricorrenza?\n\nOK = elimina la ricorrenza e tutte le sue occorrenze, passate e future\nAnnulla = elimina solo questa occorrenza (non verrà rigenerata)");
+    if(deleteAll){
+      markDeleted(rule.id);
+      ricorrenti = ricorrenti.filter(r=>r.id !== rule.id);
+      spese = spese.filter(x=>{ if(x.ruleId===rule.id){ markDeleted(x.id); return false; } return true; });
+    }else{
+      rule.escluse = [...new Set([...(rule.escluse||[]), s.data.slice(0,7)])];
+      rule.updatedAt = Date.now();
+      markDeleted(s.id);
+      spese = spese.filter(x=>x.id !== id);
+    }
+  }else{
+    if(!confirm(`Eliminare la spesa del ${formatDateIt(s.data)} (€ ${fmt(s.importo,2)})?`)) return;
+    markDeleted(s.id);
+    spese = spese.filter(x=>x.id !== id);
+  }
+  commit();
+  renderSpese();
 }
 
 function renderSpese(){
-  generateRecurringOccurrences();
+  if(generateRecurringOccurrences()) commit();
   renderVehicleCard();
   updateSpesaMensileCard();
   const tbody = document.getElementById('expenseTableBody');
@@ -1313,73 +1485,41 @@ function renderSpese(){
   pageItemsSpese.forEach(s=>{
     const tr = document.createElement('tr');
     const ricorrenteTag = s.ruleId ? ' <span style="color:var(--muted);font-size:11px;">(ricorrente)</span>' : '';
-    const tipo = tipologiaSpesa(s);
-    const tipoLabelMap = {
-      assicurazione: '<span style="color:var(--amber);font-weight:700;">Assicurazione</span>',
-      bollo: '<span style="color:var(--teal);font-weight:700;">Bollo</span>',
-      manutenzione: '<span style="color:var(--orange);font-weight:700;">Manutenzione</span>',
-      tagliando: '<span style="color:var(--red);font-weight:700;">Tagliando</span>',
-      finanziamento: '<span style="color:var(--purple);font-weight:700;">Finanziamento</span>',
-      altro: '<span style="color:var(--pink);font-weight:700;">Altro</span>'
-    };
-    const tipoLabel = tipoLabelMap[tipo];
+    const tipo = TIPI_SPESA[tipologiaSpesa(s)];
     const vIcon = vehicleIconEmoji(getVehicleTipologia(s.targa));
     tr.innerHTML = `
-      <td>${formatDateIt(s.data)}</td>
-      <td>${s.targa ? `${vIcon} ${s.targa}` : '—'}</td>
+      <td>${esc(formatDateIt(s.data))}</td>
+      <td>${s.targa ? `${vIcon} ${esc(s.targa)}` : '—'}</td>
       <td>€ ${fmt(s.importo,2)}</td>
-      <td>${tipoLabel}</td>
-      <td class="note" title="${(s.note||'').replace(/"/g,'&quot;')}">${s.note||'—'}${ricorrenteTag}</td>
-      <td class="del"><button title="Elimina" data-id="${s.id}">✕</button></td>
+      <td><span style="color:${tipo.color};font-weight:700;">${tipo.label}</span></td>
+      <td class="note" title="${esc(s.note)}">${esc(s.note||'—')}${ricorrenteTag}</td>
+      <td class="del"><button title="Modifica" data-edit="${esc(s.id)}">✎</button><button title="Elimina" data-del="${esc(s.id)}">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
-  tbody.querySelectorAll('button[data-id]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const id = btn.dataset.id;
-      const s = spese.find(x=>x.id===id);
-      if(s && s.ruleId){
-        const deleteAll = confirm("Questa e' una spesa ricorrente.\n\nOK = elimina anche tutte le occorrenze future (l'intera ricorrenza)\nAnnulla = elimina solo questa occorrenza (non verra' rigenerata)");
-        if(deleteAll){
-          ricorrenti = ricorrenti.filter(r=>r.id !== s.ruleId);
-          spese = spese.filter(x=>x.ruleId !== s.ruleId);
-          saveRicorrenti();
-        }else{
-          const rule = ricorrenti.find(r=>r.id===s.ruleId);
-          if(rule){
-            rule.escluse = rule.escluse || [];
-            rule.escluse.push(s.data.slice(0,7));
-            saveRicorrenti();
-          }
-          spese = spese.filter(x=>x.id !== id);
-        }
-      }else{
-        spese = spese.filter(x=>x.id !== id);
-      }
-      saveSpese();
-      renderSpese();
-      pushToGithub();
-    });
+  tbody.querySelectorAll('button[data-edit]').forEach(btn=>{
+    btn.addEventListener('click', ()=> editFromHistory('modalStoricoSpese', ()=> openSpesaForm(btn.dataset.edit)));
+  });
+  tbody.querySelectorAll('button[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteSpesa(btn.dataset.del));
   });
 
-  const { totSpese, totCanoni, totBollo, totExtra, totTagliando, totFinanziamento, totGhost } = computeSpeseBreakdown(filteredSpese);
-  document.getElementById('statSpeseTotali').textContent = '€ '+fmt(totSpese,2);
-  document.getElementById('statCanoniTotali').textContent = '€ '+fmt(totCanoni,2);
-  document.getElementById('statBolloTotali').textContent = '€ '+fmt(totBollo,2);
-  document.getElementById('statExtraTotali').textContent = '€ '+fmt(totExtra,2);
-  document.getElementById('statTagliandoTotali').textContent = '€ '+fmt(totTagliando,2);
-  document.getElementById('statFinanziamentoTotali').textContent = '€ '+fmt(totFinanziamento,2);
-  document.getElementById('statGhostTotali').textContent = '€ '+fmt(totGhost,2);
+  const tot = computeSpeseBreakdown(filteredSpese);
+  document.getElementById('statSpeseTotali').textContent = '€ '+fmt(tot.totale,2);
+  TIPOLOGIE_SPESA.forEach(t=>{
+    document.getElementById('statTot-'+t).textContent = '€ '+fmt(tot[t],2);
+  });
   renderSpeseChart();
 }
 
 function renderSpeseChart(){
   const yearSel = document.getElementById('expenseYearSelect');
-  const years = [...new Set(getFilteredSpese().map(s=>s.data.slice(0,4)))].sort((a,b)=>b-a);
+  const filteredSpese = getFilteredSpese();
+  const years = [...new Set(filteredSpese.map(s=>s.data.slice(0,4)))].sort((a,b)=>b-a);
   const current = yearSel.value;
   yearSel.innerHTML='';
   if(years.length===0){
-    const opt=document.createElement('option'); opt.textContent='Nessun dato'; yearSel.appendChild(opt);
+    const opt=document.createElement('option'); opt.value=''; opt.textContent='Nessun dato'; yearSel.appendChild(opt);
   }else{
     years.forEach(y=>{
       const opt=document.createElement('option'); opt.value=y; opt.textContent=y; yearSel.appendChild(opt);
@@ -1390,9 +1530,8 @@ function renderSpeseChart(){
   const year = yearSel.value;
   const canvasEl = document.getElementById('chartSpeseAndamento');
   const emptyEl = document.getElementById('chartSpeseEmptyState');
-  const filteredSpese = getFilteredSpese();
-  if(filteredSpese.length===0 || !year){
-    if(charts.speseAndamento){ charts.speseAndamento.destroy(); charts.speseAndamento=null; }
+  if(filteredSpese.length===0 || !year || !window.Chart){
+    destroyChart('speseAndamento');
     canvasEl.style.display='none';
     emptyEl.style.display='block';
     return;
@@ -1400,53 +1539,33 @@ function renderSpeseChart(){
   canvasEl.style.display='block';
   emptyEl.style.display='none';
 
-  const monthNames = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-  const yearSpese = filteredSpese.filter(s=> s.data.slice(0,4)===year);
-  const assicurazioneMese = Array(12).fill(0);
-  const bolloMese = Array(12).fill(0);
-  const manutenzioneMese = Array(12).fill(0);
-  const tagliandoMese = Array(12).fill(0);
-  const finanziamentoMese = Array(12).fill(0);
-  const altroMese = Array(12).fill(0);
-  yearSpese.forEach(s=>{
+  const perTipo = {};
+  TIPOLOGIE_SPESA.forEach(t=> perTipo[t] = Array(12).fill(0));
+  filteredSpese.filter(s=> s.data.slice(0,4)===year).forEach(s=>{
     const m = parseInt(s.data.slice(5,7),10)-1;
-    const tipo = tipologiaSpesa(s);
-    if(tipo==='assicurazione') assicurazioneMese[m]+=s.importo;
-    else if(tipo==='bollo') bolloMese[m]+=s.importo;
-    else if(tipo==='manutenzione') manutenzioneMese[m]+=s.importo;
-    else if(tipo==='tagliando') tagliandoMese[m]+=s.importo;
-    else if(tipo==='finanziamento') finanziamentoMese[m]+=s.importo;
-    else altroMese[m]+=s.importo;
+    perTipo[tipologiaSpesa(s)][m] += s.importo;
   });
 
-  const gridColor = '#dde3ea';
-  const textColor = '#6b7684';
-
   destroyChart('speseAndamento');
-  charts.speseAndamento = new Chart(document.getElementById('chartSpeseAndamento'), {
+  charts.speseAndamento = new Chart(canvasEl, {
     type:'bar',
     data:{
-      labels: monthNames,
-      datasets:[
-        { label:'Assicurazione', data:assicurazioneMese, backgroundColor:'#86efac', borderRadius:4, stack:'spese' },
-        { label:'Bollo', data:bolloMese, backgroundColor:'#7dd3fc', borderRadius:4, stack:'spese' },
-        { label:'Manutenzione', data:manutenzioneMese, backgroundColor:'#fdba74', borderRadius:4, stack:'spese' },
-        { label:'Tagliando', data:tagliandoMese, backgroundColor:'#f87171', borderRadius:4, stack:'spese' },
-        { label:'Finanziamento', data:finanziamentoMese, backgroundColor:'#c4b5fd', borderRadius:4, stack:'spese' },
-        { label:'Altro', data:altroMese, backgroundColor:'#f9a8d4', borderRadius:4, stack:'spese' }
-      ]
+      labels: MONTH_NAMES,
+      datasets: TIPOLOGIE_SPESA.map(t=>({
+        label: TIPI_SPESA[t].label, data: perTipo[t], backgroundColor: TIPI_SPESA[t].chart, borderRadius:4, stack:'spese'
+      }))
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
       plugins:{
-        legend:{ display:true, labels:{color:textColor, font:{size:12}} },
+        legend:{ display:true, labels:{color:TEXT_COLOR, font:{size:12}} },
         title:{ display:true, text:`Andamento spese ${year}`, color:'#1c2733', font:{family:"'IBM Plex Sans', sans-serif", size:13, weight:'600'}, padding:{bottom:12} },
         tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label}: € ${fmt(ctx.parsed.y,2)}` } }
       },
       scales:{
-        x:{ grid:{color:gridColor}, ticks:{font:{size:11}}, stacked:true },
-        y:{ grid:{color:gridColor}, ticks:{font:{size:11}, callback:v=>'€ '+fmt(v,0)}, beginAtZero:true, stacked:true }
+        x:{ grid:{color:GRID_COLOR}, ticks:{font:{size:11}}, stacked:true },
+        y:{ grid:{color:GRID_COLOR}, ticks:{font:{size:11}, callback:v=>'€ '+fmt(v,0)}, beginAtZero:true, stacked:true }
       }
     }
   });
@@ -1465,11 +1584,66 @@ document.getElementById('nextPageSpese').addEventListener('click', ()=>{
   renderSpese();
 });
 
+// --- FORM RIFORNIMENTO / SPESA (nuovo o modifica) ---
+function clearScanState(){
+  document.getElementById('scanStatus').textContent = '';
+  ['fData','fKm','fLitri','fPrezzo'].forEach(id=> document.getElementById(id).classList.remove('scanned'));
+}
+
+function openEntryForm(id){
+  document.getElementById('entryForm').reset();
+  clearScanState();
+  const e = id ? entries.find(x=>x.id===id) : null;
+  editingEntryId = e ? e.id : null;
+  document.getElementById('rifTitle').textContent = e ? 'Modifica rifornimento' : 'Nuovo rifornimento';
+  document.getElementById('rifSubmit').textContent = e ? 'Salva modifiche' : '+ Aggiungi';
+  populateTargaSelects();
+  const targa = e ? e.targa : getDefaultTargaForForms();
+  document.getElementById('fTarga').value = targa;
+  if(e){
+    document.getElementById('fData').value = e.data;
+    document.getElementById('fKm').value = fmt(e.km,0);
+    document.getElementById('fLitri').value = fmt(e.litri,2);
+    document.getElementById('fPrezzo').value = fmt(e.prezzo,3);
+    document.getElementById('fCarburante').value = e.carburante || 'Benzina';
+    document.getElementById('fNote').value = e.note || '';
+    document.getElementById('fPieno').checked = e.pieno !== false;
+  }else{
+    document.getElementById('fData').value = localISO(new Date());
+    const last = entries.filter(x=>x.targa===targa).sort((a,b)=> b.data.localeCompare(a.data) || b.km-a.km)[0];
+    if(last && last.carburante) document.getElementById('fCarburante').value = last.carburante;
+  }
+  openModal('modalRifornimento');
+}
+
+function openSpesaForm(id){
+  document.getElementById('expenseForm').reset();
+  const s = id ? spese.find(x=>x.id===id) : null;
+  editingSpesaId = s ? s.id : null;
+  document.getElementById('spesaTitle').textContent = s ? 'Modifica spesa' : 'Nuova spesa';
+  document.getElementById('spesaSubmit').textContent = s ? 'Salva modifiche' : '+ Aggiungi spesa';
+  document.getElementById('eEditNote').style.display = (s && s.ruleId) ? 'block' : 'none';
+  populateTargaSelects();
+  document.getElementById('eTarga').value = s ? s.targa : getDefaultTargaForForms();
+  if(s){
+    document.getElementById('eData').value = s.data;
+    document.getElementById('eImporto').value = fmt(s.importo,2);
+    document.getElementById('eTipologia').value = tipologiaSpesa(s);
+    document.getElementById('eNote').value = s.note || '';
+  }else{
+    document.getElementById('eData').value = localISO(new Date());
+  }
+  updateERateBoxVisibility();
+  openModal('modalSpesa');
+}
+
 function updateERateBoxVisibility(){
   const tipologia = document.getElementById('eTipologia').value;
   const ricorrenteCheckbox = document.getElementById('eRicorrente');
   const rateBox = document.getElementById('eRateBox');
-  if(tipologia === 'finanziamento'){
+  // In modifica si cambia solo la singola spesa: niente opzioni di ricorrenza
+  document.getElementById('eRicorrenteBox').style.display = editingSpesaId ? 'none' : 'flex';
+  if(!editingSpesaId && tipologia === 'finanziamento'){
     ricorrenteCheckbox.checked = true;
     rateBox.style.display = 'block';
   }else{
@@ -1489,49 +1663,60 @@ document.getElementById('expenseForm').addEventListener('submit', (ev)=>{
   ev.preventDefault();
   const targa = document.getElementById('eTarga').value;
   const data = document.getElementById('eData').value;
-  const importo = parseItNumber(document.getElementById('eImporto').value);
+  const importo = parseItNumber(document.getElementById('eImporto').value, 'money');
   const note = document.getElementById('eNote').value.trim();
   const tipologia = document.getElementById('eTipologia').value;
-  const ricorrente = document.getElementById('eRicorrente').checked;
-  const isFinanziamento = tipologia === 'finanziamento';
+  const ricorrente = !editingSpesaId && document.getElementById('eRicorrente').checked;
+  const isFinanziamento = !editingSpesaId && tipologia === 'finanziamento';
   const numeroRate = isFinanziamento ? parseInt(document.getElementById('eNumeroRate').value, 10) : null;
-  if(!data || isNaN(importo) || !targa || targa==='__add__') return;
+  if(!targa || targa==='__add__'){ alert('Seleziona un veicolo.'); return; }
+  if(!data || isNaN(importo) || importo<=0){ alert("Controlla data e importo: l'importo deve essere un numero maggiore di zero."); return; }
   if(isFinanziamento && (!numeroRate || numeroRate < 1)){ alert('Indica il numero di rate del finanziamento.'); return; }
+  const now = Date.now();
 
-  if(ricorrente){
+  if(editingSpesaId){
+    const old = spese.find(x=>x.id===editingSpesaId);
+    if(old && old.ruleId && old.data.slice(0,7)!==data.slice(0,7)){
+      // L'occorrenza spostata in un altro mese non deve essere rigenerata nel mese originale
+      const rule = ricorrenti.find(r=>r.id===old.ruleId);
+      if(rule){ rule.escluse = [...new Set([...(rule.escluse||[]), old.data.slice(0,7)])]; rule.updatedAt = now; }
+    }
+    spese = spese.map(x=> x.id===editingSpesaId ? { ...x, data, importo, note, tipologia, targa, updatedAt:now } : x);
+  }else if(ricorrente){
     const giorno = parseInt(data.slice(8,10),10);
-    ricorrenti.push({ id: crypto.randomUUID(), giorno, importo, note, tipologia, targa, dataInizio: data, numeroRate: isFinanziamento ? numeroRate : null });
-    saveRicorrenti();
+    ricorrenti.push({ id: uid(), giorno, importo, note, tipologia, targa, dataInizio: data, numeroRate: isFinanziamento ? numeroRate : null, escluse:[], updatedAt:now });
   }else{
-    spese.push({ id: crypto.randomUUID(), data, importo, note, tipologia, targa, ruleId:null });
-    saveSpese();
+    spese.push({ id: uid(), data, importo, note, tipologia, targa, ruleId:null, updatedAt:now });
   }
-  ev.target.reset();
-  updateERateBoxVisibility();
+  editingSpesaId = null;
+  commit();
   renderSpese();
-  populateTargaSelects();
-  closeModal('modalSpesa');
-  pushToGithub();
+  closeFormModal('modalSpesa');
 });
 
 document.getElementById('entryForm').addEventListener('submit', (ev)=>{
   ev.preventDefault();
   const targa = document.getElementById('fTarga').value;
   const data = document.getElementById('fData').value;
-  const km = parseItNumber(document.getElementById('fKm').value);
+  const km = parseItNumber(document.getElementById('fKm').value, 'int');
   const litri = parseItNumber(document.getElementById('fLitri').value);
   const prezzo = parseItNumber(document.getElementById('fPrezzo').value);
   const carburante = document.getElementById('fCarburante').value;
   const note = document.getElementById('fNote').value.trim();
-  if(!data || isNaN(km) || isNaN(litri) || isNaN(prezzo) || !targa || targa==='__add__') return;
+  const pieno = document.getElementById('fPieno').checked;
+  if(!targa || targa==='__add__'){ alert('Seleziona un veicolo.'); return; }
+  if(!data || isNaN(km) || isNaN(litri) || isNaN(prezzo) || km<0 || litri<=0 || prezzo<=0){
+    alert('Controlla i valori: km, litri e prezzo devono essere numeri validi (litri e prezzo maggiori di zero).');
+    return;
+  }
 
-  entries.push({ id: crypto.randomUUID(), data, targa, km, litri, prezzo, carburante, note });
-  saveEntries();
-  ev.target.reset();
-  populateTargaSelects();
+  const item = { id: editingEntryId || uid(), data, targa, km, litri, prezzo, carburante, pieno, note, updatedAt: Date.now() };
+  if(editingEntryId) entries = entries.map(x=> x.id===editingEntryId ? item : x);
+  else entries.push(item);
+  editingEntryId = null;
+  commit();
   render();
-  closeModal('modalRifornimento');
-  pushToGithub();
+  closeFormModal('modalRifornimento');
 });
 
 document.getElementById('yearSelect').addEventListener('change', ()=>{
@@ -1549,17 +1734,26 @@ document.getElementById('nextPageRif').addEventListener('click', ()=>{
 
 // --- BACKUP JSON (locale) ---
 function buildExportPayload(){
-  return { veicoli, rifornimenti: entries, spese, ricorrenti, targaPredefinita: defaultTarga };
+  return { veicoli, rifornimenti: entries, spese, ricorrenti, eliminati, targaPredefinita: defaultTarga };
 }
-function applyImportedPayload(payload){
-  veicoli = (payload && typeof payload.veicoli==='object' && payload.veicoli && !Array.isArray(payload.veicoli)) ? payload.veicoli : {};
-  entries = Array.isArray(payload && payload.rifornimenti) ? payload.rifornimenti : [];
-  spese = Array.isArray(payload && payload.spese) ? payload.spese : [];
-  ricorrenti = Array.isArray(payload && payload.ricorrenti) ? payload.ricorrenti : [];
-  defaultTarga = (payload && payload.targaPredefinita) ? String(payload.targaPredefinita).toUpperCase() : '';
-  saveVeicoli(); saveEntries(); saveSpese(); saveRicorrenti();
-  localStorage.setItem(DEFAULT_TARGA_KEY, defaultTarga);
-  currentVehicleFilter = defaultTarga || '';
+
+// Importazione da file: sostituisce tutti i dati. Ciò che non è nel file viene segnato
+// come eliminato, così una successiva unione con GitHub non lo fa ricomparire.
+function importPayload(payload){
+  const d = normalizePayload(payload);
+  const now = Date.now();
+  const keepIds = new Set();
+  [d.rifornimenti, d.spese, d.ricorrenti].forEach(list=> list.forEach(x=>{ x.updatedAt = now; keepIds.add(x.id); }));
+  Object.values(d.veicoli).forEach(v=>{ v.updatedAt = now; });
+  const tombs = { ...d.eliminati };
+  Object.entries(eliminati).forEach(([id,ts])=>{ if(!tombs[id] || ts > tombs[id]) tombs[id] = ts; });
+  [...entries, ...spese, ...ricorrenti].forEach(x=>{ if(!keepIds.has(x.id)) tombs[x.id] = now; });
+  Object.keys(veicoli).forEach(t=>{ if(!d.veicoli[t]) tombs['veicolo:'+t] = now; });
+
+  veicoli = d.veicoli; entries = d.rifornimenti; spese = d.spese; ricorrenti = d.ricorrenti; eliminati = tombs;
+  defaultTarga = d.targaPredefinita;
+  currentVehicleFilter = defaultTarga;
+  commit();
 }
 
 document.getElementById('exportJsonBtn').addEventListener('click', ()=>{
@@ -1578,10 +1772,9 @@ document.getElementById('importFile').addEventListener('change', (ev)=>{
         ev.target.value = '';
         return;
       }
-      applyImportedPayload(imported);
+      importPayload(imported);
       render();
       renderSpese();
-      pushToGithub();
       alert(`Importati: ${entries.length} rifornimenti, ${spese.length} spese, ${Object.keys(veicoli).length} veicoli.`);
     }catch(err){
       alert('File non valido. Serve un export JSON generato da questa app.');
@@ -1607,6 +1800,8 @@ function todayStamp(){
 // L'app HTML può stare su una repository GitHub pubblica; il file JSON con i dati
 // va invece su una repository privata (come nello schema di FinClarity). Il token
 // viene salvato solo nel localStorage di questo browser/dispositivo.
+// Le modifiche non ancora inviate restano segnate (DIRTY_KEY): all'avvio vengono
+// unite ai dati di GitHub invece di essere sovrascritte.
 
 function getGithubConfig(){
   try{ return JSON.parse(localStorage.getItem(GITHUB_CONFIG_KEY)) || null; }catch(e){ return null; }
@@ -1625,8 +1820,12 @@ function base64ToUtf8(b64){
   return new TextDecoder().decode(bytes);
 }
 function updateGithubStatus(msg){
-  const el = document.getElementById('githubStatusText');
-  if(el) el.textContent = msg;
+  lastGithubStatus = msg;
+  document.getElementById('githubStatusText').textContent = msg;
+}
+
+function contentsPath(cfg){
+  return '/contents/' + cfg.path.split('/').map(encodeURIComponent).join('/');
 }
 
 async function githubApi(path, options = {}){
@@ -1646,7 +1845,7 @@ async function pullFromGithub(){
   const cfg = getGithubConfig();
   if(!cfg || !cfg.token) return { ok:false, reason:'no-config' };
   try{
-    const res = await githubApi(`/contents/${encodeURIComponent(cfg.path)}?ref=${encodeURIComponent(cfg.branch)}`);
+    const res = await githubApi(`${contentsPath(cfg)}?ref=${encodeURIComponent(cfg.branch)}`, { cache:'no-store' });
     if(res.status === 404) return { ok:false, reason:'not-found' };
     if(!res.ok) return { ok:false, reason:'error-'+res.status };
     const json = await res.json();
@@ -1658,115 +1857,171 @@ async function pullFromGithub(){
   }
 }
 
-async function pushToGithub(retry = true){
+async function pushOnce(cfg){
+  const seqAtStart = changeSeq;
+  const body = {
+    message: `Aggiornamento dati myGarage - ${new Date().toISOString()}`,
+    content: utf8ToBase64(JSON.stringify(buildExportPayload(), null, 2)),
+    branch: cfg.branch
+  };
+  if(githubFileSha) body.sha = githubFileSha;
+
+  const res = await githubApi(contentsPath(cfg), {
+    method:'PUT',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if(res.status === 409 || res.status === 422) return 'conflict';
+  if(res.status === 404){
+    updateGithubStatus('⚠ Repository non trovata. Crea la repository privata su GitHub, poi premi "Sincronizza ora".');
+    return 'error';
+  }
+  if(!res.ok){
+    updateGithubStatus(`⚠ Errore GitHub (${res.status}). Controlla token e permessi. Le modifiche restano salvate in locale.`);
+    return 'error';
+  }
+
+  const json = await res.json();
+  githubFileSha = json.content.sha;
+  if(changeSeq === seqAtStart) setDirty(false);
+  updateGithubStatus(`Sincronizzato su GitHub alle ${new Date().toLocaleTimeString('it-IT')}`);
+  return 'ok';
+}
+
+// Invia i dati a GitHub. Se un invio è già in corso, quello nuovo viene messo in coda
+// (non scartato). In caso di conflitto scarica il file remoto, lo unisce e riprova.
+async function pushToGithub(){
   const cfg = getGithubConfig();
   if(!cfg || !cfg.token) return;
-  if(githubSyncing) return;
+  if(githubSyncing){ pushQueued = true; return; }
   githubSyncing = true;
   updateGithubStatus('Sincronizzazione in corso...');
+  let conflicts = 0;
   try{
-    const body = {
-      message: `Aggiornamento dati myGarage - ${new Date().toISOString()}`,
-      content: utf8ToBase64(JSON.stringify(buildExportPayload(), null, 2)),
-      branch: cfg.branch
-    };
-    if(githubFileSha) body.sha = githubFileSha;
-
-    const res = await githubApi(`/contents/${encodeURIComponent(cfg.path)}`, {
-      method:'PUT',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if(res.status === 409 || res.status === 422){
-      if(retry){
-        const pull = await pullFromGithub();
-        if(pull.ok){ githubSyncing = false; return pushToGithub(false); }
+    do{
+      pushQueued = false;
+      const result = await pushOnce(cfg);
+      if(result === 'error') break;
+      if(result === 'conflict'){
+        const pull = conflicts < 3 ? await pullFromGithub() : { ok:false };
+        conflicts++;
+        if(!pull.ok){
+          updateGithubStatus('⚠ Conflitto di sincronizzazione: premi "Sincronizza ora" per riprovare. Le modifiche restano salvate in locale.');
+          break;
+        }
+        mergeRemoteData(pull.data);
+        refreshAll();
+        pushQueued = true;
       }
-      updateGithubStatus('⚠ Conflitto di sincronizzazione: premi "Sincronizza ora" per riprovare.');
-      return;
-    }
-    if(res.status === 404){
-      updateGithubStatus('⚠ Repository non trovata. Crea la repository privata su GitHub, poi premi "Sincronizza ora".');
-      return;
-    }
-    if(!res.ok){
-      updateGithubStatus(`⚠ Errore GitHub (${res.status}). Controlla token e permessi.`);
-      return;
-    }
-
-    const json = await res.json();
-    githubFileSha = json.content.sha;
-    updateGithubStatus(`Sincronizzato su GitHub alle ${new Date().toLocaleTimeString('it-IT')}`);
+    }while(pushQueued);
   }catch(err){
-    updateGithubStatus('⚠ Sincronizzazione fallita (rete assente?). I dati restano salvati in locale.');
+    updateGithubStatus('⚠ Sincronizzazione fallita (rete assente?). Le modifiche restano in locale e verranno inviate alla prossima sincronizzazione.');
   }finally{
     githubSyncing = false;
   }
 }
 
+// Scarica i dati da GitHub, li unisce a quelli locali e invia il risultato.
+async function syncNow(){
+  const cfg = getGithubConfig();
+  if(!cfg || !cfg.token){ updateGithubStatus('Non configurato.'); return; }
+  if(githubSyncing){ pushQueued = true; return; }
+  updateGithubStatus('Sincronizzazione in corso...');
+  const pull = await pullFromGithub();
+  if(pull.ok){
+    mergeRemoteData(pull.data);
+    refreshAll();
+  }else if(pull.reason === 'not-found'){
+    githubFileSha = null;
+  }else{
+    updateGithubStatus(pull.reason === 'network'
+      ? '⚠ Impossibile contattare GitHub (rete assente?). Le modifiche restano in locale.'
+      : `⚠ Impossibile leggere da GitHub (${pull.reason}). Controlla token e permessi.`);
+    return;
+  }
+  changeSeq++;
+  setDirty(true);
+  pushToGithub();
+}
+
 function renderGithubConfigForm(){
   const cfg = getGithubConfig() || {};
-  const ownerEl = document.getElementById('ghOwner');
-  if(!ownerEl) return;
-  ownerEl.value = cfg.owner || '';
+  document.getElementById('ghOwner').value = cfg.owner || '';
   document.getElementById('ghRepo').value = cfg.repo || '';
   document.getElementById('ghPath').value = cfg.path || 'dati.json';
   document.getElementById('ghBranch').value = cfg.branch || 'main';
-  document.getElementById('ghToken').value = cfg.token || '';
-  updateGithubStatus(cfg.token ? `Configurato: ${cfg.owner}/${cfg.repo} (${cfg.branch})` : 'Non configurato.');
+  const tokenEl = document.getElementById('ghToken');
+  tokenEl.value = '';
+  tokenEl.placeholder = cfg.token ? 'Token salvato ✓ (lascia vuoto per mantenerlo)' : 'github_pat_...';
+  let msg = cfg.token ? (lastGithubStatus || `Configurato: ${cfg.owner}/${cfg.repo} (${cfg.branch})`) : 'Non configurato.';
+  if(cfg.token && isDirty() && !githubSyncing && !msg.startsWith('⚠')) msg += ' — ci sono modifiche non ancora sincronizzate.';
+  document.getElementById('githubStatusText').textContent = msg;
 }
 
 function saveGithubConfigFromForm(){
   const cfg = {
     owner: document.getElementById('ghOwner').value.trim(),
     repo: document.getElementById('ghRepo').value.trim(),
-    path: document.getElementById('ghPath').value.trim() || 'dati.json',
+    path: document.getElementById('ghPath').value.trim().replace(/^\/+/, '') || 'dati.json',
     branch: document.getElementById('ghBranch').value.trim() || 'main',
-    token: document.getElementById('ghToken').value.trim()
+    // Campo vuoto = mantieni il token già salvato
+    token: document.getElementById('ghToken').value.trim() || (getGithubConfig() || {}).token || ''
   };
   if(!cfg.owner || !cfg.repo || !cfg.token){ alert('Compila almeno Utente, Repository e Token.'); return; }
   saveGithubConfig(cfg);
+  renderGithubConfigForm();
   githubFileSha = null;
   updateGithubStatus('Configurazione salvata.');
-  pushToGithub();
+  syncNow();
 }
 
 function disconnectGithub(){
   if(!confirm('Disconnettere la sincronizzazione GitHub? La configurazione verrà rimossa da questo dispositivo (il file su GitHub non viene toccato).')) return;
   localStorage.removeItem(GITHUB_CONFIG_KEY);
   githubFileSha = null;
+  lastGithubStatus = '';
   renderGithubConfigForm();
 }
 
 document.getElementById('saveGithubConfigBtn').addEventListener('click', saveGithubConfigFromForm);
-document.getElementById('syncGithubBtn').addEventListener('click', ()=> pushToGithub());
+document.getElementById('syncGithubBtn').addEventListener('click', syncNow);
 document.getElementById('disconnectGithubBtn').addEventListener('click', disconnectGithub);
 
 // --- FORMATTAZIONE NUMERI IT (punto migliaia, virgola decimali) ---
-function parseItNumber(str){
+// mode 'int'   (km): punti e virgole sono separatori delle migliaia.
+// mode 'dec'   (litri, €/litro): con la virgola i punti sono migliaia; senza virgola
+//              un solo punto vale come decimale (42.5 = 42,5), come su molte tastiere mobili.
+// mode 'money' (importi): come 'dec', ma "1.200" (3 cifre dopo un solo punto) vale milleduecento.
+function parseItNumber(str, mode = 'dec'){
   if(str===null || str===undefined) return NaN;
-  const cleaned = String(str).trim().replace(/\./g,'').replace(',', '.');
-  return cleaned==='' ? NaN : parseFloat(cleaned);
+  let s = String(str).trim().replace(/\s/g,'');
+  if(s==='') return NaN;
+  if(mode === 'int'){
+    s = s.replace(/[.,]/g,'');
+  }else if(s.includes(',')){
+    s = s.replace(/\./g,'').replace(',', '.');
+  }else{
+    const dots = (s.match(/\./g) || []).length;
+    if(dots > 1 || (mode === 'money' && /^\d{1,3}\.\d{3}$/.test(s))) s = s.replace(/\./g,'');
+  }
+  return /^-?\d+(\.\d+)?$/.test(s) ? parseFloat(s) : NaN;
 }
-function formatItNumber(num, decimals){
-  if(num===null || num===undefined || isNaN(num)) return '';
-  return Number(num).toLocaleString('it-IT', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
-}
-function attachItFormatting(id, decimals){
+function attachItFormatting(id, decimals, mode){
   const el = document.getElementById(id);
   el.addEventListener('focus', ()=>{
-    const num = parseItNumber(el.value);
-    el.value = isNaN(num) ? '' : String(num).replace('.', ',');
+    const num = parseItNumber(el.value, mode);
+    if(!isNaN(num)) el.value = String(num).replace('.', ',');
   });
   el.addEventListener('blur', ()=>{
-    const num = parseItNumber(el.value);
-    el.value = isNaN(num) ? el.value : formatItNumber(num, decimals);
+    const num = parseItNumber(el.value, mode);
+    if(!isNaN(num)) el.value = fmt(num, decimals);
   });
 }
-attachItFormatting('fKm', 0);
-attachItFormatting('fLitri', 2);
-attachItFormatting('fPrezzo', 3);
+attachItFormatting('fKm', 0, 'int');
+attachItFormatting('fLitri', 2, 'dec');
+attachItFormatting('fPrezzo', 3, 'dec');
+attachItFormatting('eImporto', 2, 'money');
 
 // --- OCR SCONTRINO ---
 let tesseractScriptLoading = null;
@@ -1775,9 +2030,12 @@ function loadTesseractScript(){
   if(tesseractScriptLoading) return tesseractScriptLoading;
   tesseractScriptLoading = new Promise((resolve, reject)=>{
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
     s.onload = ()=> resolve();
-    s.onerror = ()=> reject(new Error('modulo OCR non disponibile (serve connessione internet)'));
+    s.onerror = ()=>{
+      tesseractScriptLoading = null;
+      reject(new Error('modulo OCR non disponibile (serve connessione internet)'));
+    };
     document.head.appendChild(s);
   });
   return tesseractScriptLoading;
@@ -1831,7 +2089,7 @@ function applyScannedData(text){
     const el = document.getElementById(id);
     el.classList.remove('scanned');
     if(val!==null && val!==undefined && !(typeof val==='number' && isNaN(val))){
-      el.value = (id in decimalsById) ? formatItNumber(val, decimalsById[id]) : val;
+      el.value = (id in decimalsById) ? fmt(val, decimalsById[id]) : val;
       el.classList.add('scanned');
       found++;
     }
@@ -1882,7 +2140,19 @@ document.getElementById('receiptInput').addEventListener('change', async (ev)=>{
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
+function resizeChartFor(modalId){
+  if(modalId==='modalStoricoRifornimenti' && charts.volumeImporto) charts.volumeImporto.resize();
+  if(modalId==='modalStoricoSpese' && charts.speseAndamento) charts.speseAndamento.resize();
+}
+
+function refreshAll(){
+  render();
+  renderSpese();
+  if(document.getElementById('modalVeicolo').classList.contains('open')) renderVehicleModalList();
+}
+
 let returnToModalAfterVeicolo = null;
+let returnToModalAfterForm = null;
 
 function openVehiclePickerFrom(modalId){
   returnToModalAfterVeicolo = modalId;
@@ -1896,20 +2166,39 @@ function closeVehiclePickerAndReturn(){
   if(returnToModalAfterVeicolo){
     const target = returnToModalAfterVeicolo;
     returnToModalAfterVeicolo = null;
+    populateTargaSelects();
     openModal(target);
-    if(target==='modalStoricoRifornimenti' && charts.volumeImporto) charts.volumeImporto.resize();
-    if(target==='modalStoricoSpese' && charts.speseAndamento) charts.speseAndamento.resize();
+    resizeChartFor(target);
   }
 }
 
-document.getElementById('btnOpenRifornimento').addEventListener('click', ()=>{
-  populateTargaSelects();
-  openModal('modalRifornimento');
-});
-document.getElementById('btnOpenSpesa').addEventListener('click', ()=>{
-  populateTargaSelects();
-  openModal('modalSpesa');
-});
+// Modifica dallo storico: chiude lo storico, apre il form e ci torna alla chiusura
+function editFromHistory(historyModalId, openForm){
+  closeModal(historyModalId);
+  returnToModalAfterForm = historyModalId;
+  openForm();
+}
+
+function closeFormModal(id){
+  closeModal(id);
+  editingEntryId = null;
+  editingSpesaId = null;
+  if(returnToModalAfterForm){
+    const target = returnToModalAfterForm;
+    returnToModalAfterForm = null;
+    openModal(target);
+    resizeChartFor(target);
+  }
+}
+
+function closeAnyModal(id){
+  if(id === 'modalVeicolo') closeVehiclePickerAndReturn();
+  else if(id === 'modalRifornimento' || id === 'modalSpesa') closeFormModal(id);
+  else closeModal(id);
+}
+
+document.getElementById('btnOpenRifornimento').addEventListener('click', ()=> openEntryForm(null));
+document.getElementById('btnOpenSpesa').addEventListener('click', ()=> openSpesaForm(null));
 handleTargaSelectAddOption(document.getElementById('fTarga'), 'modalRifornimento');
 handleTargaSelectAddOption(document.getElementById('eTarga'), 'modalSpesa');
 document.getElementById('btnOpenImpostazioni').addEventListener('click', ()=>{
@@ -1918,11 +2207,11 @@ document.getElementById('btnOpenImpostazioni').addEventListener('click', ()=>{
 });
 document.getElementById('btnOpenStoricoRifornimenti').addEventListener('click', ()=>{
   openModal('modalStoricoRifornimenti');
-  if(charts.volumeImporto) charts.volumeImporto.resize();
+  resizeChartFor('modalStoricoRifornimenti');
 });
 document.getElementById('btnOpenStoricoSpese').addEventListener('click', ()=>{
   openModal('modalStoricoSpese');
-  if(charts.speseAndamento) charts.speseAndamento.resize();
+  resizeChartFor('modalStoricoSpese');
 });
 
 document.getElementById('vehicleCard').addEventListener('click', ()=>{
@@ -1934,6 +2223,7 @@ document.getElementById('btnVeicoloStoricoSpese').addEventListener('click', ()=>
 
 document.getElementById('btnAllVehicles').addEventListener('click', ()=>{
   currentVehicleFilter = '';
+  saveDefaultTarga('');
   currentPageRif = 1;
   currentPageSpese = 1;
   closeVehiclePickerAndReturn();
@@ -1945,51 +2235,64 @@ document.getElementById('btnAddVeicolo').addEventListener('click', ()=>{
   const nome = document.getElementById('newVeicoloNome').value.trim();
   const tipologia = document.getElementById('newVeicoloTipologia').value;
   if(!targa){ alert('Inserisci almeno la targa.'); return; }
-  veicoli[targa] = { nome, tipologia };
-  saveVeicoli();
+  if(targa === '__ADD__'){ alert('Targa non valida.'); return; }
+  veicoli[targa] = { nome, tipologia, updatedAt: Date.now() };
   currentVehicleFilter = targa;
-  saveDefaultTarga(targa);
+  defaultTarga = targa;
+  commit();
   document.getElementById('newVeicoloTarga').value = '';
   document.getElementById('newVeicoloNome').value = '';
   document.getElementById('newVeicoloTipologia').value = 'Automobile';
   closeVehiclePickerAndReturn();
   render();
   renderSpese();
-  pushToGithub();
 });
 
-document.querySelectorAll('.modal-close').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    if(btn.dataset.close === 'modalVeicolo') closeVehiclePickerAndReturn();
-    else closeModal(btn.dataset.close);
-  });
+document.querySelectorAll('.modal-close[data-close]').forEach(btn=>{
+  btn.addEventListener('click', ()=> closeAnyModal(btn.dataset.close));
 });
 document.querySelectorAll('.modal-overlay').forEach(overlay=>{
   overlay.addEventListener('click', (ev)=>{
-    if(ev.target === overlay){
-      if(overlay.id === 'modalVeicolo') closeVehiclePickerAndReturn();
-      else closeModal(overlay.id);
-    }
+    if(ev.target === overlay) closeAnyModal(overlay.id);
   });
+});
+document.addEventListener('keydown', (ev)=>{
+  if(ev.key !== 'Escape') return;
+  const open = [...document.querySelectorAll('.modal-overlay.open')].pop();
+  if(open) closeAnyModal(open.id);
 });
 
 // --- AVVIO APPLICAZIONE ---
 async function boot(){
-  loadVeicoli();
-  loadDefaultTarga();
-  loadEntries();
-  loadSpese();
-  loadRicorrenti();
-  currentVehicleFilter = defaultTarga || '';
+  loadAll();
+  currentVehicleFilter = defaultTarga;
+  if(window.Chart){
+    Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+    Chart.defaults.color = TEXT_COLOR;
+  }
 
   const cfg = getGithubConfig();
+  let needPush = false;
   if(cfg && cfg.token){
     const pull = await pullFromGithub();
     if(pull.ok){
-      applyImportedPayload(pull.data);
-      updateGithubStatus(`Dati caricati da GitHub (${cfg.owner}/${cfg.repo}).`);
+      if(isDirty()){
+        // Ci sono modifiche locali mai arrivate su GitHub: unisci invece di sovrascrivere
+        mergeRemoteData(pull.data);
+        needPush = true;
+        updateGithubStatus('Dati di GitHub uniti alle modifiche locali non ancora sincronizzate.');
+      }else{
+        const d = normalizePayload(pull.data);
+        veicoli = d.veicoli; entries = d.rifornimenti; spese = d.spese; ricorrenti = d.ricorrenti; eliminati = d.eliminati;
+        let hadDefault = true;
+        try{ hadDefault = localStorage.getItem(DEFAULT_TARGA_KEY) !== null; }catch(e){}
+        if(!hadDefault){ defaultTarga = d.targaPredefinita; currentVehicleFilter = defaultTarga; }
+        saveAll();
+        updateGithubStatus(`Dati caricati da GitHub (${cfg.owner}/${cfg.repo}).`);
+      }
     }else if(pull.reason === 'not-found'){
-      updateGithubStatus('Nessun file trovato su GitHub: verrà creato al primo salvataggio.');
+      needPush = true;
+      updateGithubStatus('Nessun file trovato su GitHub: lo creo ora con i dati locali.');
     }else{
       updateGithubStatus('Impossibile contattare GitHub ora: uso i dati salvati in locale.');
     }
@@ -1999,6 +2302,11 @@ async function boot(){
   renderSpese();
   renderGithubConfigForm();
   updateERateBoxVisibility();
+  if(needPush){
+    changeSeq++;
+    setDirty(true);
+    pushToGithub();
+  }
 }
 boot();
 </script>
